@@ -11,6 +11,8 @@ export interface Tab {
   result: QueryResult | null
   error: string | null
   isExecuting: boolean
+  rowLimit: number | null  // null = no limit (All)
+  selectedText: string     // currently selected text in the editor
 }
 
 interface EditorState {
@@ -21,6 +23,8 @@ interface EditorState {
   closeTab: (id: string) => void
   setActiveTab: (id: string) => void
   updateTabContent: (id: string, content: string) => void
+  setRowLimit: (id: string, limit: number | null) => void
+  setSelectedText: (id: string, selectedText: string) => void
   executeQuery: (tabId: string, connectionId: string, sql: string) => Promise<void>
 }
 
@@ -33,6 +37,8 @@ function createTab(): Tab {
     result: null,
     error: null,
     isExecuting: false,
+    rowLimit: 100,
+    selectedText: '',
   }
 }
 
@@ -64,6 +70,18 @@ export const useEditorStore = create<EditorState>((set, _get) => {
     updateTabContent: (id: string, content: string) => {
       set((state) => ({
         tabs: state.tabs.map((t) => (t.id === id ? { ...t, content } : t)),
+      }))
+    },
+
+    setRowLimit: (id: string, limit: number | null) => {
+      set((state) => ({
+        tabs: state.tabs.map((t) => (t.id === id ? { ...t, rowLimit: limit } : t)),
+      }))
+    },
+
+    setSelectedText: (id: string, selectedText: string) => {
+      set((state) => ({
+        tabs: state.tabs.map((t) => (t.id === id ? { ...t, selectedText } : t)),
       }))
     },
 

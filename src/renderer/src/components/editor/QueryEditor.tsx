@@ -1,4 +1,6 @@
+import { useRef } from 'react'
 import Editor, { type Monaco } from '@monaco-editor/react'
+import type * as MonacoTypes from 'monaco-editor'
 import { useEditorStore } from '../../stores/editor-store'
 
 interface QueryEditorProps {
@@ -6,11 +8,15 @@ interface QueryEditorProps {
 }
 
 export function QueryEditor({ tabId }: QueryEditorProps) {
-  const { tabs, updateTabContent } = useEditorStore()
+  const { tabs, updateTabContent, setSelectedText } = useEditorStore()
   const tab = tabs.find((t) => t.id === tabId)
+  const editorRef = useRef<MonacoTypes.editor.IStandaloneCodeEditor | null>(null)
+
   if (!tab) return null
 
-  const handleMount = (_editor: unknown, monaco: Monaco) => {
+  const handleMount = (editor: MonacoTypes.editor.IStandaloneCodeEditor, monaco: Monaco) => {
+    editorRef.current = editor
+
     monaco.editor.defineTheme('mai-dark', {
       base: 'vs-dark',
       inherit: true,
@@ -33,6 +39,18 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
       },
     })
     monaco.editor.setTheme('mai-dark')
+
+    // Track selection changes
+    editor.onDidChangeCursorSelection(() => {
+      const selection = editor.getSelection()
+      if (selection && !selection.isEmpty()) {
+        const model = editor.getModel()
+        const selectedText = model?.getValueInRange(selection) ?? ''
+        setSelectedText(tabId, selectedText)
+      } else {
+        setSelectedText(tabId, '')
+      }
+    })
   }
 
   return (
