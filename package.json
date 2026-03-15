@@ -1,0 +1,33 @@
+{
+  "name": "mai-sql",
+  "version": "0.1.0",
+  "description": "AI-native multi-database SQL client",
+  "main": "out/main/index.js",
+  "homepage": "https://github.com/microleap/mai-sql",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.3"
+  },
+  "devDependencies": {
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@playwright/test": "^1.44.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "electron": "^35.7.5",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^2.3.0",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "vitest": "^1.6.0"
+  }
+}
