@@ -3,6 +3,7 @@
 ## Per-Sprint Testing
 
 ### Sprint 1: Foundation
+
 1. Launch Electron app — verify window opens, dev mode hot reload works
 2. Connect to local PostgreSQL — test connection button succeeds
 3. Execute `SELECT * FROM pg_tables` — verify results render in grid
@@ -11,6 +12,7 @@
 6. Close and reopen app — verify saved connection persists
 
 ### Sprint 2: Multi-DB + Editor
+
 1. Connect to MySQL database — verify MySQL-specific syntax highlighting
 2. Connect to MariaDB database — verify connection and queries work
 3. Open 3 tabs with different queries — verify independent state
@@ -19,6 +21,7 @@
 6. Test keyboard shortcuts: Cmd+Enter, Cmd+T, Cmd+W
 
 ### Sprint 3: AI Core
+
 1. Configure OpenAI key — verify validation test call succeeds
 2. Configure Anthropic key — verify validation succeeds
 3. Type "show all users created in the last 7 days" → verify generated SQL references correct tables/columns from schema
@@ -28,6 +31,7 @@
 7. Test with OpenRouter — verify multi-model gateway works
 
 ### Sprint 4: Extended DBs + Visualization
+
 1. Connect to MongoDB — verify editor switches to JSON/MQL mode
 2. Run MongoDB find query — verify results display
 3. Connect to ClickHouse — verify ClickHouse SQL dialect works
@@ -37,6 +41,7 @@
 7. Double-click a cell → edit → review generated SQL → commit change
 
 ### Sprint 5: Advanced AI + Polish
+
 1. Write a slow query with missing index → click "Optimize" → verify AI suggests index and optimized query
 2. Verify project context indexer runs and stores schema metadata
 3. Save a query with name and description → find it in saved queries sidebar
@@ -45,6 +50,7 @@
 6. Check auto-update mechanism (with test update server)
 
 ### Sprint 6: Security + Launch
+
 1. Set connection permission to "viewer" → attempt INSERT → verify blocked with clear message
 2. Enable SSL for PostgreSQL connection → verify secure connection
 3. Configure SSH tunnel → verify connection through bastion
@@ -62,17 +68,17 @@
 
 **Target coverage: 80%+ for core modules**
 
-| Module | Key Test Cases |
-|--------|---------------|
-| `drivers/interface.ts` | Type validation, error handling |
-| `drivers/postgresql.ts` | Connection, query execution, schema introspection (mocked) |
-| `drivers/mysql.ts` | Same pattern as PostgreSQL |
-| `drivers/factory.ts` | Correct driver instantiation per config type |
-| `ai/interface.ts` | Request/response validation |
+| Module                  | Key Test Cases                                               |
+| ----------------------- | ------------------------------------------------------------ |
+| `drivers/interface.ts`  | Type validation, error handling                              |
+| `drivers/postgresql.ts` | Connection, query execution, schema introspection (mocked)   |
+| `drivers/mysql.ts`      | Same pattern as PostgreSQL                                   |
+| `drivers/factory.ts`    | Correct driver instantiation per config type                 |
+| `ai/interface.ts`       | Request/response validation                                  |
 | `ai/context-builder.ts` | Context budget management, priority ordering, token counting |
-| `ai/prompts/*.ts` | Prompt template generation with various inputs |
-| `security/keychain.ts` | Store/retrieve/delete credentials |
-| `storage/history.ts` | CRUD operations, search, pagination |
+| `ai/prompts/*.ts`       | Prompt template generation with various inputs               |
+| `security/keychain.ts`  | Store/retrieve/delete credentials                            |
+| `storage/history.ts`    | CRUD operations, search, pagination                          |
 
 ### Integration Tests (Vitest + Docker)
 
@@ -83,33 +89,33 @@
 services:
   postgres:
     image: postgres:16
-    ports: ["5433:5432"]
+    ports: ['5433:5432']
   mysql:
     image: mysql:8
-    ports: ["3307:3306"]
+    ports: ['3307:3306']
   mariadb:
     image: mariadb:11
-    ports: ["3308:3306"]
+    ports: ['3308:3306']
   mongodb:
     image: mongo:7
-    ports: ["27018:27017"]
+    ports: ['27018:27017']
   clickhouse:
     image: clickhouse/clickhouse-server:24
-    ports: ["8124:8123"]
+    ports: ['8124:8123']
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    ports: ["1434:1433"]
+    ports: ['1434:1433']
 ```
 
-| Test Suite | Scope |
-|-----------|-------|
-| PostgreSQL integration | Real connection, DDL, DML, schema introspection, EXPLAIN |
-| MySQL integration | Same as PostgreSQL |
-| MariaDB integration | Same + MariaDB-specific features |
-| MongoDB integration | Connection, MQL execution, collection listing, document sampling |
-| ClickHouse integration | Connection, query, system table introspection |
-| MSSQL integration | Connection, T-SQL, sys.* views introspection |
-| AI provider integration | Validate key, generate SQL, autocomplete (requires API keys) |
+| Test Suite              | Scope                                                            |
+| ----------------------- | ---------------------------------------------------------------- |
+| PostgreSQL integration  | Real connection, DDL, DML, schema introspection, EXPLAIN         |
+| MySQL integration       | Same as PostgreSQL                                               |
+| MariaDB integration     | Same + MariaDB-specific features                                 |
+| MongoDB integration     | Connection, MQL execution, collection listing, document sampling |
+| ClickHouse integration  | Connection, query, system table introspection                    |
+| MSSQL integration       | Connection, T-SQL, sys.\* views introspection                    |
+| AI provider integration | Validate key, generate SQL, autocomplete (requires API keys)     |
 
 ### E2E Tests (Playwright for Electron)
 
@@ -124,19 +130,20 @@ services:
 
 ### Performance Tests
 
-| Test | Tool | Target |
-|------|------|--------|
-| App startup time | Custom timing | < 3s |
-| 1k rows rendering | Playwright timing | < 200ms |
-| 100k rows scroll | Playwright + FPS | 60fps smooth |
-| Memory under load | process.memoryUsage() | < 400MB |
-| AI autocomplete round-trip | Custom timing | < 500ms |
+| Test                       | Tool                  | Target       |
+| -------------------------- | --------------------- | ------------ |
+| App startup time           | Custom timing         | < 3s         |
+| 1k rows rendering          | Playwright timing     | < 200ms      |
+| 100k rows scroll           | Playwright + FPS      | 60fps smooth |
+| Memory under load          | process.memoryUsage() | < 400MB      |
+| AI autocomplete round-trip | Custom timing         | < 500ms      |
 
 ---
 
 ## CI/CD Pipeline
 
 ### PR Checks (`.github/workflows/ci.yml`)
+
 ```
 Trigger: Push to PR
 
@@ -149,6 +156,7 @@ Steps:
 ```
 
 ### Release (`.github/workflows/release.yml`)
+
 ```
 Trigger: Git tag v*
 

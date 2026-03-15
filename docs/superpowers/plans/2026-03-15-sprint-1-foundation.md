@@ -15,6 +15,7 @@
 ### Task 1: Initialize Project with electron-vite
 
 **Files:**
+
 - Create: `package.json`
 - Create: `electron.vite.config.ts`
 - Create: `tsconfig.json`
@@ -91,30 +92,30 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/main/index.ts')
-        }
-      }
-    }
+          index: resolve(__dirname, 'src/main/index.ts'),
+        },
+      },
+    },
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/preload/index.ts')
-        }
-      }
-    }
+          index: resolve(__dirname, 'src/preload/index.ts'),
+        },
+      },
+    },
   },
   renderer: {
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
-        '@shared': resolve('src/shared')
-      }
+        '@shared': resolve('src/shared'),
+      },
     },
-    plugins: [react()]
-  }
+    plugins: [react()],
+  },
 })
 ```
 
@@ -123,10 +124,7 @@ export default defineConfig({
 ```json
 {
   "files": [],
-  "references": [
-    { "path": "./tsconfig.node.json" },
-    { "path": "./tsconfig.web.json" }
-  ]
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }]
 }
 ```
 
@@ -171,7 +169,7 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:react-hooks/recommended'
+    'plugin:react-hooks/recommended',
   ],
   parser: '@typescript-eslint/parser',
   plugins: ['@typescript-eslint'],
@@ -179,8 +177,8 @@ module.exports = {
   env: { node: true, browser: true, es2022: true },
   rules: {
     '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }]
-  }
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+  },
 }
 ```
 
@@ -225,6 +223,7 @@ git commit -m "chore: initialize electron-vite project scaffold"
 ### Task 2: Install All Sprint 1 Dependencies
 
 **Files:**
+
 - Modify: `package.json` (dependencies section)
 
 - [ ] **Step 1: Install production dependencies**
@@ -279,7 +278,7 @@ export default {
   content: ['./src/renderer/src/**/*.{ts,tsx}', './src/renderer/index.html'],
   darkMode: 'class',
   theme: { extend: {} },
-  plugins: []
+  plugins: [],
 } satisfies Config
 ```
 
@@ -304,6 +303,7 @@ git commit -m "chore: install all sprint 1 dependencies"
 ### Task 3: Define Shared Types
 
 **Files:**
+
 - Create: `src/shared/types/connection.ts`
 - Create: `src/shared/types/query.ts`
 - Create: `src/shared/types/schema.ts`
@@ -321,7 +321,14 @@ import type { ConnectionConfig, SQLDialect } from '../connection'
 
 describe('ConnectionConfig types', () => {
   it('SQLDialect includes all 6 supported databases', () => {
-    const dialects: SQLDialect[] = ['postgresql', 'mysql', 'mariadb', 'mongodb', 'clickhouse', 'mssql']
+    const dialects: SQLDialect[] = [
+      'postgresql',
+      'mysql',
+      'mariadb',
+      'mongodb',
+      'clickhouse',
+      'mssql',
+    ]
     expectTypeOf(dialects).toEqualTypeOf<SQLDialect[]>()
   })
 
@@ -334,7 +341,7 @@ describe('ConnectionConfig types', () => {
       port: 5432,
       database: 'testdb',
       username: 'user',
-      password: 'pass'
+      password: 'pass',
     }
     expectTypeOf(config).toMatchTypeOf<ConnectionConfig>()
   })
@@ -346,6 +353,7 @@ describe('ConnectionConfig types', () => {
 ```bash
 npx vitest run src/shared/types/__tests__/connection.test.ts
 ```
+
 Expected: FAIL — "Cannot find module '../connection'"
 
 - [ ] **Step 3: Create connection.ts**
@@ -505,6 +513,7 @@ export * from './types/ipc'
 ```bash
 npx vitest run src/shared/types/__tests__/connection.test.ts
 ```
+
 Expected: PASS
 
 - [ ] **Step 9: Commit shared types**
@@ -521,6 +530,7 @@ git commit -m "feat: add shared type definitions for IPC contract"
 ### Task 4: Electron Main Process Entry
 
 **Files:**
+
 - Create: `src/main/index.ts`
 - Create: `src/preload/index.ts`
 - Create: `src/renderer/index.html`
@@ -548,8 +558,8 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       contextIsolation: true,
-      nodeIntegration: false
-    }
+      nodeIntegration: false,
+    },
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -625,10 +635,14 @@ const api: IPCChannels = {
 
   // Schema
   'schema:databases': (connectionId) => ipcRenderer.invoke('schema:databases', connectionId),
-  'schema:schemas': (connectionId, database) => ipcRenderer.invoke('schema:schemas', connectionId, database),
-  'schema:tables': (connectionId, schema) => ipcRenderer.invoke('schema:tables', connectionId, schema),
-  'schema:columns': (connectionId, table) => ipcRenderer.invoke('schema:columns', connectionId, table),
-  'schema:relationships': (connectionId, schema) => ipcRenderer.invoke('schema:relationships', connectionId, schema),
+  'schema:schemas': (connectionId, database) =>
+    ipcRenderer.invoke('schema:schemas', connectionId, database),
+  'schema:tables': (connectionId, schema) =>
+    ipcRenderer.invoke('schema:tables', connectionId, schema),
+  'schema:columns': (connectionId, table) =>
+    ipcRenderer.invoke('schema:columns', connectionId, table),
+  'schema:relationships': (connectionId, schema) =>
+    ipcRenderer.invoke('schema:relationships', connectionId, schema),
 }
 
 contextBridge.exposeInMainWorld('api', api)
@@ -663,7 +677,7 @@ declare global {
 
 ```css
 /* src/renderer/src/assets/index.css */
-@import "tailwindcss";
+@import 'tailwindcss';
 ```
 
 - [ ] **Step 6: Create React entry point**
@@ -700,6 +714,7 @@ export default function App() {
 ```bash
 npm run dev
 ```
+
 Expected: Electron window opens showing "MAI SQL loading..."
 
 - [ ] **Step 9: Commit main process and renderer shell**
@@ -716,6 +731,7 @@ git commit -m "feat: add electron main process, preload IPC bridge, and react sh
 ### Task 5: IDataSource Interface
 
 **Files:**
+
 - Create: `src/main/drivers/interface.ts`
 - Create: `src/main/drivers/__tests__/interface.test.ts`
 
@@ -777,6 +793,7 @@ git commit -m "feat: add IDataSource interface — DB driver contract"
 ### Task 6: PostgreSQL Driver
 
 **Files:**
+
 - Create: `src/main/drivers/postgresql.ts`
 - Create: `src/main/drivers/__tests__/postgresql.test.ts`
 
@@ -862,7 +879,9 @@ describe('PostgreSQLDriver', () => {
     mockPool.query.mockRejectedValueOnce(new Error('relation "users" does not exist'))
 
     await driver.connect()
-    await expect(driver.execute('SELECT * FROM users')).rejects.toThrow('relation "users" does not exist')
+    await expect(driver.execute('SELECT * FROM users')).rejects.toThrow(
+      'relation "users" does not exist'
+    )
   })
 })
 ```
@@ -872,6 +891,7 @@ describe('PostgreSQLDriver', () => {
 ```bash
 npx vitest run src/main/drivers/__tests__/postgresql.test.ts
 ```
+
 Expected: FAIL — "Cannot find module '../postgresql'"
 
 - [ ] **Step 4: Implement PostgreSQL driver**
@@ -1096,6 +1116,7 @@ npm install nanoid
 ```bash
 npx vitest run src/main/drivers/__tests__/postgresql.test.ts
 ```
+
 Expected: PASS
 
 - [ ] **Step 7: Commit PostgreSQL driver**
@@ -1110,6 +1131,7 @@ git commit -m "feat: add PostgreSQL driver implementing IDataSource"
 ### Task 7: Driver Factory
 
 **Files:**
+
 - Create: `src/main/drivers/factory.ts`
 - Create: `src/main/drivers/__tests__/factory.test.ts`
 
@@ -1123,8 +1145,13 @@ import { PostgreSQLDriver } from '../postgresql'
 import type { ConnectionConfig } from '../../../shared/types/connection'
 
 const baseConfig: Omit<ConnectionConfig, 'type'> = {
-  id: 'test', name: 'test', host: 'localhost', port: 5432,
-  database: 'db', username: 'user', password: 'pass'
+  id: 'test',
+  name: 'test',
+  host: 'localhost',
+  port: 5432,
+  database: 'db',
+  username: 'user',
+  password: 'pass',
 }
 
 describe('createDriver', () => {
@@ -1135,8 +1162,9 @@ describe('createDriver', () => {
   })
 
   it('throws for unsupported driver type', () => {
-    expect(() => createDriver({ ...baseConfig, type: 'mongodb' as any }))
-      .toThrow('Driver for mongodb not implemented yet')
+    expect(() => createDriver({ ...baseConfig, type: 'mongodb' as any })).toThrow(
+      'Driver for mongodb not implemented yet'
+    )
   })
 })
 ```
@@ -1146,6 +1174,7 @@ describe('createDriver', () => {
 ```bash
 npx vitest run src/main/drivers/__tests__/factory.test.ts
 ```
+
 Expected: FAIL
 
 - [ ] **Step 3: Implement factory**
@@ -1171,6 +1200,7 @@ export function createDriver(config: ConnectionConfig): IDataSource {
 ```bash
 npx vitest run src/main/drivers/__tests__/factory.test.ts
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit factory**
@@ -1187,6 +1217,7 @@ git commit -m "feat: add driver factory for ConnectionConfig → IDataSource"
 ### Task 8: Keychain Wrapper
 
 **Files:**
+
 - Create: `src/main/security/keychain.ts`
 - Create: `src/main/security/__tests__/keychain.test.ts`
 
@@ -1201,7 +1232,7 @@ vi.mock('electron-keytar', () => ({
     setPassword: vi.fn().mockResolvedValue(undefined),
     getPassword: vi.fn().mockResolvedValue('secret-password'),
     deletePassword: vi.fn().mockResolvedValue(true),
-  }
+  },
 }))
 
 import { KeychainService } from '../keychain'
@@ -1266,6 +1297,7 @@ export const keychain = new KeychainService('mai-sql')
 ```bash
 npx vitest run src/main/security/__tests__/keychain.test.ts
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit keychain**
@@ -1282,6 +1314,7 @@ git commit -m "feat: add OS keychain wrapper via electron-keytar"
 ### Task 9: Connection Manager + IPC
 
 **Files:**
+
 - Create: `src/main/managers/connection-manager.ts`
 - Create: `src/main/ipc/connections.ts`
 - Create: `src/main/managers/__tests__/connection-manager.test.ts`
@@ -1308,7 +1341,7 @@ vi.mock('electron-store', () => {
       get: (key: string, def: unknown) => store.get(key) ?? def,
       set: (key: string, val: unknown) => store.set(key, val),
       delete: (key: string) => store.delete(key),
-    }))
+    })),
   }
 })
 vi.mock('../../security/keychain', () => ({
@@ -1316,7 +1349,7 @@ vi.mock('../../security/keychain', () => ({
     setPassword: vi.fn().mockResolvedValue(undefined),
     getPassword: vi.fn().mockResolvedValue('testpass'),
     deletePassword: vi.fn().mockResolvedValue(undefined),
-  }
+  },
 }))
 vi.mock('../../drivers/factory', () => ({
   createDriver: vi.fn().mockReturnValue({
@@ -1324,16 +1357,22 @@ vi.mock('../../drivers/factory', () => ({
     disconnect: vi.fn().mockResolvedValue(undefined),
     testConnection: vi.fn().mockResolvedValue(true),
     getDialect: vi.fn().mockReturnValue('postgresql'),
-  })
+  }),
 }))
 
 import { ConnectionManager } from '../connection-manager'
 import type { ConnectionConfig } from '../../../shared/types/connection'
 
 const config: ConnectionConfig = {
-  id: 'conn-1', name: 'Local PG', type: 'postgresql',
-  host: 'localhost', port: 5432, database: 'testdb',
-  username: 'user', password: 'pass', ssl: false
+  id: 'conn-1',
+  name: 'Local PG',
+  type: 'postgresql',
+  host: 'localhost',
+  port: 5432,
+  database: 'testdb',
+  username: 'user',
+  password: 'pass',
+  ssl: false,
 }
 
 describe('ConnectionManager', () => {
@@ -1505,6 +1544,7 @@ ipcMain.handle('connection:disconnect', async (_event, id: string) => {
 ```bash
 npx vitest run src/main/managers/__tests__/connection-manager.test.ts
 ```
+
 Expected: PASS
 
 - [ ] **Step 7: Commit connection management**
@@ -1519,6 +1559,7 @@ git commit -m "feat: add connection manager with keychain storage and IPC handle
 ### Task 10: Query & Schema IPC Handlers
 
 **Files:**
+
 - Create: `src/main/ipc/queries.ts`
 - Create: `src/main/ipc/schema.ts`
 
@@ -1593,6 +1634,7 @@ git commit -m "feat: add query execution and schema introspection IPC handlers"
 ### Task 11: Zustand Stores
 
 **Files:**
+
 - Create: `src/renderer/src/stores/connection-store.ts`
 - Create: `src/renderer/src/stores/editor-store.ts`
 - Create: `src/renderer/src/stores/ui-store.ts`
@@ -1758,9 +1800,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     } catch (err) {
       set((state) => ({
         tabs: state.tabs.map((t) =>
-          t.id === tabId
-            ? { ...t, isExecuting: false, error: (err as Error).message }
-            : t
+          t.id === tabId ? { ...t, isExecuting: false, error: (err as Error).message } : t
         ),
       }))
     }
@@ -1803,6 +1843,7 @@ git commit -m "feat: add Zustand stores for connections, editor tabs, and UI sta
 ### Task 12: Monaco SQL Editor Component
 
 **Files:**
+
 - Create: `src/renderer/src/components/editor/QueryEditor.tsx`
 - Create: `src/renderer/src/components/editor/TabBar.tsx`
 - Create: `src/renderer/src/components/editor/EditorToolbar.tsx`
@@ -2001,6 +2042,7 @@ git commit -m "feat: add Monaco SQL editor, tab bar, and editor toolbar"
 ### Task 13: Results Grid Component
 
 **Files:**
+
 - Create: `src/renderer/src/components/results/ResultsGrid.tsx`
 - Create: `src/renderer/src/components/results/ResultsToolbar.tsx`
 
@@ -2177,6 +2219,7 @@ git commit -m "feat: add virtual-scroll results grid and toolbar (TanStack Table
 ### Task 14: Database Schema Explorer Sidebar
 
 **Files:**
+
 - Create: `src/renderer/src/components/sidebar/DatabaseTree.tsx`
 - Create: `src/renderer/src/components/sidebar/ConnectionList.tsx`
 
@@ -2383,6 +2426,7 @@ git commit -m "feat: add database schema explorer tree and connection list sideb
 ### Task 15: Connection Form Dialog
 
 **Files:**
+
 - Create: `src/renderer/src/components/settings/ConnectionForm.tsx`
 
 - [ ] **Step 1: Install shadcn/ui components needed**
@@ -2538,6 +2582,7 @@ git commit -m "feat: add connection form dialog with test-before-save"
 ### Task 16: Main Application Layout
 
 **Files:**
+
 - Modify: `src/renderer/src/App.tsx`
 - Create: `src/renderer/src/components/layout/MainLayout.tsx`
 
@@ -2659,6 +2704,7 @@ git commit -m "feat: wire up main application layout with sidebar, editor, and r
 ### Task 17: i18n Setup
 
 **Files:**
+
 - Create: `src/renderer/src/i18n/config.ts`
 - Create: `src/renderer/src/i18n/en/translation.json`
 - Create: `src/renderer/src/i18n/vi/translation.json`
@@ -2672,17 +2718,15 @@ import { initReactI18next } from 'react-i18next'
 import en from './en/translation.json'
 import vi from './vi/translation.json'
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en: { translation: en },
-      vi: { translation: vi },
-    },
-    lng: 'en',
-    fallbackLng: 'en',
-    interpolation: { escapeValue: false },
-  })
+i18n.use(initReactI18next).init({
+  resources: {
+    en: { translation: en },
+    vi: { translation: vi },
+  },
+  lng: 'en',
+  fallbackLng: 'en',
+  interpolation: { escapeValue: false },
+})
 
 export default i18n
 ```
@@ -2774,6 +2818,7 @@ git commit -m "feat: add react-i18next with English and Vietnamese translations"
 ### Task 18: Keyboard Shortcuts
 
 **Files:**
+
 - Create: `src/renderer/src/hooks/useKeyboardShortcuts.ts`
 
 - [ ] **Step 1: Implement global keyboard shortcuts hook**
@@ -2845,6 +2890,7 @@ git commit -m "feat: add keyboard shortcuts (Cmd+Enter execute, Cmd+T new tab, C
 ```bash
 npx vitest run
 ```
+
 Expected: All tests PASS, 0 failures
 
 - [ ] **Step 2: Run type check**
@@ -2852,6 +2898,7 @@ Expected: All tests PASS, 0 failures
 ```bash
 npx tsc --noEmit
 ```
+
 Expected: 0 errors
 
 - [ ] **Step 3: Run linter**
@@ -2859,6 +2906,7 @@ Expected: 0 errors
 ```bash
 npx eslint . --ext .ts,.tsx
 ```
+
 Expected: 0 errors (warnings acceptable)
 
 - [ ] **Step 4: Launch app in dev mode**
@@ -2868,6 +2916,7 @@ npm run dev
 ```
 
 Manual verification checklist (from Sprint 1 verification plan):
+
 - [ ] Electron window opens
 - [ ] Click "New Connection" → form appears → fill PostgreSQL details → "Test Connection" succeeds
 - [ ] Save connection → appears in sidebar
@@ -2894,6 +2943,7 @@ git commit -m "feat: complete sprint 1 — connect, query, and explore PostgreSQ
 **Sprint 1 User Stories Covered:** US-1.1 through US-1.6
 
 **What's built:**
+
 - Electron app with secure IPC (contextBridge pattern)
 - PostgreSQL driver with full IDataSource implementation
 - OS keychain credential storage (never plaintext)
@@ -2905,6 +2955,7 @@ git commit -m "feat: complete sprint 1 — connect, query, and explore PostgreSQ
 - i18n (English + Vietnamese)
 
 **Not in Sprint 1** (planned for Sprint 2+):
+
 - MySQL/MariaDB drivers (Sprint 2)
 - Query history persistence (Sprint 2)
 - AI features (Sprint 3)
