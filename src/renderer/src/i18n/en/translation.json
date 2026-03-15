@@ -1,0 +1,23 @@
+{
+  "app": { "name": "MAI SQL" },
+  "connections": {
+    "title": "Connections",
+    "add": "New Connection",
+    "test": "Test Connection",
+    "save": "Save",
+    "empty": "No connections yet.\nAdd one to get started.",
+    "loading": "Loading..."
+  },
+  "editor": {
+    "run": "Run",
+    "stop": "Stop",
+    "newTab": "New Query"
+  },
+  "results": {
+    "rows": "{{count}} rows",
+    "empty": "Run a query to see results"
+  },
+  "schema": {
+    "title": "Schema"
+  }
+}

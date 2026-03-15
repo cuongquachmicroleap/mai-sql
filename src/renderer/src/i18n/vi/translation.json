@@ -1,0 +1,23 @@
+{
+  "app": { "name": "MAI SQL" },
+  "connections": {
+    "title": "Kết nối",
+    "add": "Kết nối mới",
+    "test": "Kiểm tra kết nối",
+    "save": "Lưu",
+    "empty": "Chưa có kết nối.\nThêm một kết nối để bắt đầu.",
+    "loading": "Đang tải..."
+  },
+  "editor": {
+    "run": "Chạy",
+    "stop": "Dừng",
+    "newTab": "Truy vấn mới"
+  },
+  "results": {
+    "rows": "{{count}} hàng",
+    "empty": "Chạy truy vấn để xem kết quả"
+  },
+  "schema": {
+    "title": "Lược đồ"
+  }
+}
