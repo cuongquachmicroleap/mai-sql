@@ -1,35 +1,62 @@
 import { Play, Square } from 'lucide-react'
 import { useEditorStore } from '../../stores/editor-store'
 import { useConnectionStore } from '../../stores/connection-store'
-import { Button } from '../ui/button'
 
-interface EditorToolbarProps {
-  tabId: string
-}
+interface EditorToolbarProps { tabId: string }
 
 export function EditorToolbar({ tabId }: EditorToolbarProps) {
   const { tabs, executeQuery } = useEditorStore()
-  const { activeConnectionId } = useConnectionStore()
+  const { activeConnectionId, connections } = useConnectionStore()
   const tab = tabs.find((t) => t.id === tabId)
   if (!tab) return null
 
   const canExecute = !!activeConnectionId && !!tab.content.trim() && !tab.isExecuting
+  const activeConn = connections.find((c) => c.id === activeConnectionId)
 
   return (
-    <div className="flex h-10 items-center gap-2 border-b border-border px-3">
-      <Button
-        size="sm"
-        variant={canExecute ? 'default' : 'secondary'}
+    <div
+      className="flex items-center gap-2 px-3"
+      style={{
+        height: 38,
+        borderBottom: '1px solid var(--color-border)',
+        background: '#0a0a0a',
+      }}
+    >
+      {/* Run button */}
+      <button
         disabled={!canExecute}
         onClick={() => executeQuery(tabId, activeConnectionId!, tab.content)}
-        className="gap-1"
+        className="flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-all disabled:opacity-40"
+        style={{
+          background: canExecute ? 'var(--color-primary)' : 'var(--color-secondary)',
+          color: canExecute ? 'var(--color-primary-foreground)' : 'var(--color-muted-foreground)',
+        }}
       >
-        {tab.isExecuting ? (
-          <><Square className="h-3 w-3" /> Stop</>
-        ) : (
-          <><Play className="h-3 w-3" /> Run <span className="text-xs opacity-60 ml-1">⌘↵</span></>
-        )}
-      </Button>
+        {tab.isExecuting ? <Square size={11} /> : <Play size={11} />}
+        <span>{tab.isExecuting ? 'Stop' : 'Run'}</span>
+        <span className="opacity-50 ml-0.5" style={{ fontSize: 10 }}>⌘↵</span>
+      </button>
+
+      <div className="h-4 w-px mx-1" style={{ background: 'var(--color-border)' }} />
+
+      {/* Active connection chip */}
+      {activeConn ? (
+        <div
+          className="flex items-center gap-1.5 rounded px-2 py-1 text-xs"
+          style={{ background: 'var(--color-secondary)', color: 'var(--color-foreground)' }}
+        >
+          <span
+            className="h-1.5 w-1.5 rounded-full shrink-0"
+            style={{ background: '#22c55e' }}
+          />
+          <span>{activeConn.name}</span>
+          <span style={{ color: 'var(--color-muted-foreground)' }}>{activeConn.type}</span>
+        </div>
+      ) : (
+        <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+          No connection
+        </span>
+      )}
     </div>
   )
 }

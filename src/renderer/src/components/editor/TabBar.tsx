@@ -1,39 +1,69 @@
 import { Plus, X } from 'lucide-react'
 import { useEditorStore } from '../../stores/editor-store'
-import { cn } from '../../lib/utils'
 
 export function TabBar() {
   const { tabs, activeTabId, addTab, closeTab, setActiveTab } = useEditorStore()
 
   return (
-    <div className="flex h-9 items-center border-b border-border bg-muted/30 overflow-x-auto">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => setActiveTab(tab.id)}
-          className={cn(
-            'flex h-full min-w-28 max-w-48 items-center gap-1 border-r border-border px-3 text-sm shrink-0',
-            'hover:bg-muted transition-colors',
-            activeTabId === tab.id && 'bg-background border-t-2 border-t-primary'
-          )}
-        >
-          <span className="flex-1 truncate text-left">{tab.title}</span>
-          {tab.isExecuting && <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />}
-          <span
-            role="button"
-            onClick={(e) => { e.stopPropagation(); closeTab(tab.id) }}
-            className="ml-1 rounded p-0.5 hover:bg-destructive/20 hover:text-destructive"
+    <div
+      className="flex items-end overflow-x-auto"
+      style={{
+        background: '#080808',
+        borderBottom: '1px solid var(--color-border)',
+        minHeight: 36,
+        height: 36,
+      }}
+    >
+      {tabs.map((tab) => {
+        const isActive = activeTabId === tab.id
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className="group flex h-full min-w-28 max-w-44 items-center gap-1.5 px-3 text-xs shrink-0 relative transition-colors"
+            style={{
+              background: isActive ? 'var(--color-background)' : 'transparent',
+              color: isActive ? 'var(--color-foreground)' : 'var(--color-muted-foreground)',
+              borderRight: '1px solid var(--color-border)',
+              borderTop: isActive ? '1px solid var(--color-primary)' : '1px solid transparent',
+            }}
           >
-            <X className="h-3 w-3" />
-          </span>
-        </button>
-      ))}
+            {/* Dot when executing */}
+            {tab.isExecuting && (
+              <span
+                className="h-1.5 w-1.5 shrink-0 rounded-full animate-pulse"
+                style={{ background: 'var(--color-primary)' }}
+              />
+            )}
+            {/* Error indicator */}
+            {tab.error && !tab.isExecuting && (
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--color-destructive)' }} />
+            )}
+            <span className="flex-1 truncate text-left">{tab.title}</span>
+            <span
+              role="button"
+              onClick={(e) => { e.stopPropagation(); closeTab(tab.id) }}
+              className="flex h-4 w-4 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ color: 'var(--color-muted-foreground)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-foreground)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-muted-foreground)'}
+            >
+              <X size={10} />
+            </span>
+          </button>
+        )
+      })}
+
+      {/* New tab button */}
       <button
         onClick={addTab}
-        className="flex h-full items-center px-2 hover:bg-muted transition-colors"
-        title="New tab (Cmd+T)"
+        className="flex h-full items-center px-2 transition-colors"
+        style={{ color: 'var(--color-muted-foreground)' }}
+        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-foreground)'}
+        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-muted-foreground)'}
+        title="New tab (⌘T)"
       >
-        <Plus className="h-4 w-4" />
+        <Plus size={14} />
       </button>
     </div>
   )
