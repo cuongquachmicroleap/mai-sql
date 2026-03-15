@@ -23,8 +23,17 @@ export class KeychainService {
   async getPassword(account: string): Promise<string | null> {
     const encoded = this.store.get(account)
     if (!encoded) return null
-    const buffer = Buffer.from(encoded, 'base64')
-    return safeStorage.decryptString(buffer)
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error('safeStorage encryption is not available on this platform')
+    }
+    try {
+      const buffer = Buffer.from(encoded, 'base64')
+      return safeStorage.decryptString(buffer)
+    } catch (err) {
+      // Stored value is corrupted or from a different keychain — treat as missing
+      console.error(`Failed to decrypt stored credential for account '${account}':`, err)
+      return null
+    }
   }
 
   async deletePassword(account: string): Promise<void> {

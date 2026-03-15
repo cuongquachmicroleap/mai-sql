@@ -13,15 +13,16 @@ vi.mock('electron', () => ({
   }
 }))
 
-// Mock electron-store
+// Move store map outside factory so it can be cleared
+const mockStoreData = new Map<string, string>()
+
 vi.mock('electron-store', () => {
-  const store = new Map<string, string>()
   return {
     default: vi.fn().mockImplementation(() => ({
-      get: (key: string) => store.get(key),
-      set: (key: string, val: string) => store.set(key, val),
-      delete: (key: string) => store.delete(key),
-      has: (key: string) => store.has(key),
+      get: (key: string) => mockStoreData.get(key),
+      set: (key: string, val: string) => mockStoreData.set(key, val),
+      delete: (key: string) => mockStoreData.delete(key),
+      has: (key: string) => mockStoreData.has(key),
     }))
   }
 })
@@ -33,6 +34,7 @@ describe('KeychainService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockStoreData.clear() // reset store between tests
     keychain = new KeychainService('test-service')
   })
 
