@@ -1,6 +1,6 @@
 import type { SQLDialect } from '../../shared/types/connection'
 import type { QueryResult } from '../../shared/types/query'
-import type { TableInfo, ColumnInfo, Relationship, IndexInfo } from '../../shared/types/schema'
+import type { TableInfo, ColumnInfo, Relationship, IndexInfo, FunctionInfo, TriggerInfo } from '../../shared/types/schema'
 
 export type { SQLDialect }
 
@@ -19,8 +19,10 @@ export interface IDataSource {
   getSchemas(database: string): Promise<string[]>
   getTables(schema: string): Promise<TableInfo[]>
   getColumns(table: string, schema?: string): Promise<ColumnInfo[]>
+  getFunctions(schema: string): Promise<FunctionInfo[]>
   getRelationships(schema: string): Promise<Relationship[]>
   getIndexes(table: string, schema?: string): Promise<IndexInfo[]>
+  getTriggers(table: string, schema: string): Promise<TriggerInfo[]>
 
   // Metadata
   getDialect(): SQLDialect

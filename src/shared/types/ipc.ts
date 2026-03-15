@@ -1,6 +1,6 @@
 import type { ConnectionConfig, SavedConnection } from './connection'
 import type { QueryResult } from './query'
-import type { TableInfo, ColumnInfo, Relationship } from './schema'
+import type { TableInfo, ColumnInfo, Relationship, FunctionInfo, IndexInfo, TriggerInfo } from './schema'
 
 // All IPC channels are typed here. contextBridge enforces this at runtime.
 export interface IPCChannels {
@@ -20,7 +20,10 @@ export interface IPCChannels {
   'schema:databases': (connectionId: string) => Promise<string[]>
   'schema:schemas': (connectionId: string, database: string) => Promise<string[]>
   'schema:tables': (connectionId: string, schema: string) => Promise<TableInfo[]>
-  'schema:columns': (connectionId: string, table: string) => Promise<ColumnInfo[]>
+  'schema:columns': (connectionId: string, table: string, schema?: string) => Promise<ColumnInfo[]>
+  'schema:indexes': (connectionId: string, table: string, schema: string) => Promise<IndexInfo[]>
+  'schema:triggers': (connectionId: string, table: string, schema: string) => Promise<TriggerInfo[]>
+  'schema:functions': (connectionId: string, schema: string) => Promise<FunctionInfo[]>
   'schema:relationships': (connectionId: string, schema: string) => Promise<Relationship[]>
 
   // Backup / Restore

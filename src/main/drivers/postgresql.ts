@@ -3,7 +3,19 @@ import { nanoid } from 'nanoid'
 import { DataSourceError, type IDataSource } from './interface'
 import type { ConnectionConfig } from '../../shared/types/connection'
 import type { QueryResult, ColumnMeta } from '../../shared/types/query'
-import type { TableInfo, ColumnInfo, Relationship, IndexInfo } from '../../shared/types/schema'
+import type { TableInfo, ColumnInfo, Relationship, IndexInfo, FunctionInfo, TriggerInfo } from '../../shared/types/schema'
+
+function buildDisplayType(
+  udtName: string,
+  maxLen: number | null,
+  precision: number | null,
+  scale: number | null,
+): string {
+  if (maxLen != null) return `${udtName}(${maxLen})`
+  if (precision != null && scale != null) return `${udtName}(${precision},${scale})`
+  if (precision != null) return `${udtName}(${precision})`
+  return udtName
+}
 
 export class PostgreSQLDriver implements IDataSource {
   private pool: Pool | null = null
@@ -115,32 +127,46 @@ export class PostgreSQLDriver implements IDataSource {
   async getColumns(table: string, schema = 'public'): Promise<ColumnInfo[]> {
     const result = await this.execute(
       `SELECT
-         c.column_name, c.data_type, c.is_nullable, c.column_default,
-         (SELECT true FROM information_schema.table_constraints tc
-          JOIN information_schema.key_column_usage kcu
-            ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
-          WHERE tc.constraint_type = 'PRIMARY KEY'
-            AND tc.table_name = c.table_name AND kcu.column_name = c.column_name LIMIT 1
+         c.column_name, c.data_type, c.udt_name, c.is_nullable, c.column_default,
+         c.character_maximum_length, c.numeric_precision, c.numeric_scale,
+         EXISTS (
+           SELECT 1 FROM information_schema.table_constraints tc
+           JOIN information_schema.key_column_usage kcu
+             ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+           WHERE tc.constraint_type = 'PRIMARY KEY'
+             AND tc.table_schema = c.table_schema AND tc.table_name = c.table_name AND kcu.column_name = c.column_name
          ) AS is_pk,
-         (SELECT true FROM information_schema.key_column_usage kcu2
-          JOIN information_schema.table_constraints tc2
-            ON kcu2.constraint_name = tc2.constraint_name
-          WHERE tc2.constraint_type = 'FOREIGN KEY'
-            AND tc2.table_name = c.table_name AND kcu2.column_name = c.column_name LIMIT 1
+         EXISTS (
+           SELECT 1 FROM information_schema.key_column_usage kcu2
+           JOIN information_schema.table_constraints tc2
+             ON kcu2.constraint_name = tc2.constraint_name AND kcu2.constraint_schema = tc2.constraint_schema
+           WHERE tc2.constraint_type = 'FOREIGN KEY'
+             AND tc2.table_schema = c.table_schema AND tc2.table_name = c.table_name AND kcu2.column_name = c.column_name
          ) AS is_fk
        FROM information_schema.columns c
        WHERE c.table_schema = $1 AND c.table_name = $2
        ORDER BY c.ordinal_position`,
       [schema, table]
     )
-    return result.rows.map((r) => ({
-      name: String(r['column_name']),
-      type: String(r['data_type']),
-      nullable: r['is_nullable'] === 'YES',
-      defaultValue: r['column_default'] ? String(r['column_default']) : undefined,
-      isPrimaryKey: r['is_pk'] === true,
-      isForeignKey: r['is_fk'] === true,
-    }))
+    return result.rows.map((r) => {
+      const type = String(r['data_type'])
+      const udtName = String(r['udt_name'])
+      const maxLen = r['character_maximum_length'] != null ? Number(r['character_maximum_length']) : null
+      const precision = r['numeric_precision'] != null ? Number(r['numeric_precision']) : null
+      const scale = r['numeric_scale'] != null ? Number(r['numeric_scale']) : null
+      return {
+        name: String(r['column_name']),
+        type,
+        displayType: buildDisplayType(udtName, maxLen, precision, scale),
+        nullable: r['is_nullable'] === 'YES',
+        defaultValue: r['column_default'] ? String(r['column_default']) : undefined,
+        isPrimaryKey: r['is_pk'] === true,
+        isForeignKey: r['is_fk'] === true,
+        maxLength: maxLen ?? undefined,
+        precision: precision ?? undefined,
+        scale: scale ?? undefined,
+      }
+    })
   }
 
   async getRelationships(schema: string): Promise<Relationship[]> {
@@ -168,6 +194,54 @@ export class PostgreSQLDriver implements IDataSource {
     }))
   }
 
+  async getFunctions(schema = 'public'): Promise<FunctionInfo[]> {
+    const result = await this.execute(
+      `SELECT p.proname AS name,
+              pg_get_function_result(p.oid) AS return_type,
+              l.lanname AS language,
+              CASE p.prokind WHEN 'p' THEN 'procedure' ELSE 'function' END AS kind
+       FROM pg_proc p
+       JOIN pg_namespace n ON n.oid = p.pronamespace
+       JOIN pg_language l ON l.oid = p.prolang
+       WHERE n.nspname = $1
+         AND p.prokind IN ('f', 'p')
+       ORDER BY p.proname`,
+      [schema]
+    )
+    return result.rows.map((r) => ({
+      name: String(r['name']),
+      returnType: String(r['return_type'] ?? ''),
+      language: String(r['language']),
+      kind: r['kind'] === 'procedure' ? ('procedure' as const) : ('function' as const),
+    }))
+  }
+
+  async getTriggers(table: string, schema: string): Promise<TriggerInfo[]> {
+    const result = await this.execute(
+      `SELECT trigger_name, event_manipulation, action_timing, action_orientation
+       FROM information_schema.triggers
+       WHERE event_object_schema = $1 AND event_object_table = $2
+       ORDER BY trigger_name, event_manipulation`,
+      [schema, table]
+    )
+    // Collapse multiple event rows for same trigger into one
+    const map = new Map<string, TriggerInfo>()
+    for (const r of result.rows) {
+      const name = String(r['trigger_name'])
+      if (map.has(name)) {
+        map.get(name)!.event += `/${r['event_manipulation']}`
+      } else {
+        map.set(name, {
+          name,
+          event: String(r['event_manipulation']),
+          timing: String(r['action_timing']),
+          orientation: String(r['action_orientation']),
+        })
+      }
+    }
+    return Array.from(map.values())
+  }
+
   async getIndexes(table: string, schema = 'public'): Promise<IndexInfo[]> {
     const result = await this.execute(
       `SELECT
@@ -186,7 +260,7 @@ export class PostgreSQLDriver implements IDataSource {
     )
     return result.rows.map((r) => ({
       name: String(r['index_name']),
-      columns: r['columns'] as string[],
+      columns: Array.isArray(r['columns']) ? r['columns'] : String(r['columns'] ?? '').replace(/[{}]/g, '').split(',').filter(Boolean),
       isUnique: Boolean(r['is_unique']),
       isPrimary: Boolean(r['is_primary']),
     }))

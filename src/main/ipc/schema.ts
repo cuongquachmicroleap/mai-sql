@@ -19,10 +19,28 @@ ipcMain.handle('schema:tables', async (_event, connectionId: string, schema: str
   return driver.getTables(schema)
 })
 
-ipcMain.handle('schema:columns', async (_event, connectionId: string, table: string) => {
+ipcMain.handle('schema:columns', async (_event, connectionId: string, table: string, schema?: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
-  return driver.getColumns(table)
+  return driver.getColumns(table, schema)
+})
+
+ipcMain.handle('schema:indexes', async (_event, connectionId: string, table: string, schema: string) => {
+  const driver = connectionManager.getDriver(connectionId)
+  if (!driver) throw new Error(`Not connected to '${connectionId}'`)
+  return driver.getIndexes(table, schema)
+})
+
+ipcMain.handle('schema:triggers', async (_event, connectionId: string, table: string, schema: string) => {
+  const driver = connectionManager.getDriver(connectionId)
+  if (!driver) throw new Error(`Not connected to '${connectionId}'`)
+  return driver.getTriggers(table, schema)
+})
+
+ipcMain.handle('schema:functions', async (_event, connectionId: string, schema: string) => {
+  const driver = connectionManager.getDriver(connectionId)
+  if (!driver) throw new Error(`Not connected to '${connectionId}'`)
+  return driver.getFunctions(schema)
 })
 
 ipcMain.handle('schema:relationships', async (_event, connectionId: string, schema: string) => {

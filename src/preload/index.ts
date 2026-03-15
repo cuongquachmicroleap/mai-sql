@@ -19,7 +19,10 @@ const api: IPCChannels = {
   'schema:databases': (connectionId) => ipcRenderer.invoke('schema:databases', connectionId),
   'schema:schemas': (connectionId, database) => ipcRenderer.invoke('schema:schemas', connectionId, database),
   'schema:tables': (connectionId, schema) => ipcRenderer.invoke('schema:tables', connectionId, schema),
-  'schema:columns': (connectionId, table) => ipcRenderer.invoke('schema:columns', connectionId, table),
+  'schema:columns': (connectionId, table, schema) => ipcRenderer.invoke('schema:columns', connectionId, table, schema),
+  'schema:indexes': (connectionId, table, schema) => ipcRenderer.invoke('schema:indexes', connectionId, table, schema),
+  'schema:triggers': (connectionId, table, schema) => ipcRenderer.invoke('schema:triggers', connectionId, table, schema),
+  'schema:functions': (connectionId, schema) => ipcRenderer.invoke('schema:functions', connectionId, schema),
   'schema:relationships': (connectionId, schema) => ipcRenderer.invoke('schema:relationships', connectionId, schema),
 
   // Backup / Restore

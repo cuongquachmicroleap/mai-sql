@@ -15,7 +15,7 @@ const ROW_LIMIT_OPTIONS: { label: string; value: number | null }[] = [
 
 function applyRowLimit(sql: string, limit: number | null): string {
   if (limit === null) return sql
-  const trimmed = sql.trim()
+  const trimmed = sql.trim().replace(/;+$/, '')
   // Only add LIMIT to SELECT statements that don't already have one
   if (!trimmed.toUpperCase().startsWith('SELECT')) return sql
   if (/\bLIMIT\b/i.test(trimmed)) return sql
