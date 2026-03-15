@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { nanoid } from 'nanoid'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useConnectionStore } from '../../stores/connection-store'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
-import type { ConnectionConfig, SQLDialect } from '@shared/types/connection'
+import type { ConnectionConfig, SQLDialect, SSHTunnelConfig } from '@shared/types/connection'
 
 const DIALECT_DEFAULTS: Record<SQLDialect, { port: number; label: string }> = {
   postgresql: { port: 5432, label: 'PostgreSQL' },
@@ -24,10 +25,18 @@ export function ConnectionForm() {
   })
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [sshEnabled, setSshEnabled] = useState(false)
   const { loadConnections } = useConnectionStore()
 
   const setField = (key: keyof ConnectionConfig, value: unknown) =>
     setForm((prev) => ({ ...prev, [key]: value }))
+
+  const setSshField = (key: keyof SSHTunnelConfig, value: unknown) =>
+    setForm((prev) => ({
+      ...prev,
+      sshTunnel: { host: '', port: 22, username: '', ...prev.sshTunnel, [key]: value },
+    }))
 
   const handleTest = async () => {
     if (!form.host || !form.database || !form.username || !form.password) return
@@ -50,11 +59,14 @@ export function ConnectionForm() {
       username: form.username,
       password: form.password,
       ssl: form.ssl,
+      sshTunnel: sshEnabled ? form.sshTunnel : undefined,
     }
     await invoke('connection:save', config)
     await loadConnections()
     setOpen(false)
     setForm({ type: 'postgresql', host: 'localhost', port: 5432, ssl: false })
+    setSshEnabled(false)
+    setAdvancedOpen(false)
     setTestResult(null)
   }
 
@@ -111,6 +123,100 @@ export function ConnectionForm() {
                 <Input type="password" value={form.password ?? ''} onChange={(e) => setField('password', e.target.value)} />
               </div>
             </div>
+            {/* Advanced section */}
+            <div className="border border-[var(--color-border)] rounded-md overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setAdvancedOpen((v) => !v)}
+                className="flex items-center gap-2 w-full px-3 py-2 text-xs font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)] transition-colors"
+              >
+                {advancedOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                Advanced
+              </button>
+              {advancedOpen && (
+                <div className="px-3 pb-3 grid gap-3 border-t border-[var(--color-border)]">
+                  {/* SSL toggle */}
+                  <label className="flex items-center gap-2 pt-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={!!form.ssl}
+                      onChange={(e) => setField('ssl', e.target.checked)}
+                      className="accent-[var(--color-primary)] w-3.5 h-3.5"
+                    />
+                    <span className="text-xs font-medium text-[var(--color-muted-foreground)]">Use SSL/TLS</span>
+                  </label>
+
+                  {/* SSH Tunnel toggle */}
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={sshEnabled}
+                      onChange={(e) => setSshEnabled(e.target.checked)}
+                      className="accent-[var(--color-primary)] w-3.5 h-3.5"
+                    />
+                    <span className="text-xs font-medium text-[var(--color-muted-foreground)]">Use SSH Tunnel</span>
+                  </label>
+
+                  {/* SSH Tunnel fields */}
+                  {sshEnabled && (
+                    <div className="grid gap-3 pl-5">
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="col-span-2 grid gap-1.5">
+                          <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Host</label>
+                          <input
+                            type="text"
+                            placeholder="bastion.example.com"
+                            value={form.sshTunnel?.host ?? ''}
+                            onChange={(e) => setSshField('host', e.target.value)}
+                            className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                          />
+                        </div>
+                        <div className="grid gap-1.5">
+                          <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Port</label>
+                          <input
+                            type="number"
+                            value={form.sshTunnel?.port ?? 22}
+                            onChange={(e) => setSshField('port', Number(e.target.value))}
+                            className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid gap-1.5">
+                        <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Username</label>
+                        <input
+                          type="text"
+                          placeholder="ubuntu"
+                          value={form.sshTunnel?.username ?? ''}
+                          onChange={(e) => setSshField('username', e.target.value)}
+                          className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                        />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Private Key Path <span className="text-[var(--color-muted-foreground)] font-normal">(optional)</span></label>
+                        <input
+                          type="text"
+                          placeholder="~/.ssh/id_rsa"
+                          value={form.sshTunnel?.privateKey ?? ''}
+                          onChange={(e) => setSshField('privateKey', e.target.value)}
+                          className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                        />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Password <span className="text-[var(--color-muted-foreground)] font-normal">(optional)</span></label>
+                        <input
+                          type="password"
+                          placeholder="Leave blank for key-based auth"
+                          value={form.sshTunnel?.password ?? ''}
+                          onChange={(e) => setSshField('password', e.target.value)}
+                          className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {testResult && (
               <p className={`text-xs ${testResult.success ? 'text-green-500' : 'text-destructive'}`}>
                 {testResult.success ? '✓ Connection successful' : `✗ ${testResult.error}`}
