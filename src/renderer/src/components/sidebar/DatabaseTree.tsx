@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { ChevronRight, ChevronDown, Database, Table2, Columns3, Loader2, AlertCircle } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { ChevronRight, ChevronDown, Database, Table2, Columns3, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useEditorStore } from '../../stores/editor-store'
 import type { TableInfo, ColumnInfo } from '@shared/types/schema'
@@ -18,45 +18,42 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
   const [error, setError] = useState<string | null>(null)
   const { activeTabId, updateTabContent } = useEditorStore()
 
-  useEffect(() => {
+  const loadSchema = useCallback(async () => {
     setSchemas([])
     setExpanded(new Set())
     setTablesBySchema({})
     setColumnsByTable({})
     setError(null)
-
-    const load = async () => {
-      setLoadingKeys((prev) => new Set(prev).add('root'))
-      try {
-        const dbs = await invoke('schema:databases', connectionId)
-        const db = dbs[0]
-        if (!db) {
-          setError('No databases found')
-          return
-        }
-        const schemaList = await invoke('schema:schemas', connectionId, db)
-        setSchemas(schemaList)
-
-        // Auto-expand 'public' schema and load its tables
-        const defaultSchema = schemaList.includes('public') ? 'public' : schemaList[0]
-        if (defaultSchema) {
-          setExpanded(new Set([defaultSchema]))
-          setLoadingKeys((prev) => new Set(prev).add(defaultSchema))
-          try {
-            const tables = await invoke('schema:tables', connectionId, defaultSchema)
-            setTablesBySchema({ [defaultSchema]: tables })
-          } finally {
-            setLoadingKeys((prev) => { const n = new Set(prev); n.delete(defaultSchema); return n })
-          }
-        }
-      } catch (err) {
-        setError((err as Error).message)
-      } finally {
-        setLoadingKeys((prev) => { const n = new Set(prev); n.delete('root'); return n })
+    setLoadingKeys(new Set(['root']))
+    try {
+      const dbs = await invoke('schema:databases', connectionId)
+      const db = dbs[0]
+      if (!db) {
+        setError('No databases found')
+        return
       }
+      const schemaList = await invoke('schema:schemas', connectionId, db)
+      setSchemas(schemaList)
+
+      const defaultSchema = schemaList.includes('public') ? 'public' : schemaList[0]
+      if (defaultSchema) {
+        setExpanded(new Set([defaultSchema]))
+        setLoadingKeys((prev) => new Set(prev).add(defaultSchema))
+        try {
+          const tables = await invoke('schema:tables', connectionId, defaultSchema)
+          setTablesBySchema({ [defaultSchema]: tables })
+        } finally {
+          setLoadingKeys((prev) => { const n = new Set(prev); n.delete(defaultSchema); return n })
+        }
+      }
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoadingKeys((prev) => { const n = new Set(prev); n.delete('root'); return n })
     }
-    load()
   }, [connectionId])
+
+  useEffect(() => { loadSchema() }, [loadSchema])
 
   const loadTables = async (schema: string) => {
     if (tablesBySchema[schema]) return
@@ -101,34 +98,63 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     updateTabContent(activeTabId, `SELECT *\nFROM ${schema}.${table}\nLIMIT 100;`)
   }
 
-  if (loadingKeys.has('root')) {
+  const isRefreshing = loadingKeys.has('root')
+
+  const header = (
+    <div className="flex items-center justify-between px-2 py-1 group">
+      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-muted-foreground)', fontSize: 10 }}>Schema</span>
+      <button
+        onClick={loadSchema}
+        disabled={isRefreshing}
+        title="Refresh schema"
+        className="flex items-center justify-center h-4 w-4 rounded transition-colors"
+        style={{ color: 'var(--color-muted-foreground)' }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-foreground)')}
+        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-muted-foreground)')}
+      >
+        <RefreshCw size={11} className={isRefreshing ? 'animate-spin' : ''} />
+      </button>
+    </div>
+  )
+
+  if (isRefreshing) {
     return (
-      <div className="flex items-center gap-2 px-2 py-2" style={{ color: 'var(--color-muted-foreground)' }}>
-        <Loader2 size={11} className="animate-spin shrink-0" />
-        <span className="text-xs">Loading schema...</span>
-      </div>
+      <>
+        {header}
+        <div className="flex items-center gap-2 px-2 py-2" style={{ color: 'var(--color-muted-foreground)' }}>
+          <Loader2 size={11} className="animate-spin shrink-0" />
+          <span className="text-xs">Loading schema...</span>
+        </div>
+      </>
     )
   }
 
   if (error) {
     return (
-      <div className="flex items-start gap-1.5 px-2 py-2" style={{ color: 'var(--color-destructive)' }}>
-        <AlertCircle size={11} className="shrink-0 mt-0.5" />
-        <span className="text-xs break-all">{error}</span>
-      </div>
+      <>
+        {header}
+        <div className="flex items-start gap-1.5 px-2 py-2" style={{ color: 'var(--color-destructive)' }}>
+          <AlertCircle size={11} className="shrink-0 mt-0.5" />
+          <span className="text-xs break-all">{error}</span>
+        </div>
+      </>
     )
   }
 
   if (schemas.length === 0) {
     return (
-      <div className="px-2 py-2" style={{ color: 'var(--color-muted-foreground)', fontSize: 11 }}>
-        No schemas found
-      </div>
+      <>
+        {header}
+        <div className="px-2 py-2" style={{ color: 'var(--color-muted-foreground)', fontSize: 11 }}>
+          No schemas found
+        </div>
+      </>
     )
   }
 
   return (
     <div className="select-none" style={{ fontSize: 12 }}>
+      {header}
       {schemas.map((schema) => (
         <div key={schema}>
           <button
