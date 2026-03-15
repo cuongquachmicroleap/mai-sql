@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react'
 import { nanoid } from 'nanoid'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useConnectionStore } from '../../stores/connection-store'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
-import { Label } from '../ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 import type { ConnectionConfig, SQLDialect, SSHTunnelConfig, SavedConnection } from '@shared/types/connection'
 
@@ -23,6 +20,63 @@ interface ConnectionFormProps {
   onClose?: () => void
 }
 
+// Shared input style
+const INPUT_STYLE: React.CSSProperties = {
+  height: 34,
+  background: '#222227',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: 6,
+  padding: '0 10px',
+  fontSize: 13,
+  color: '#ECECEC',
+  width: '100%',
+  outline: 'none',
+  fontFamily: 'inherit',
+  transition: 'border-color 0.15s',
+}
+
+const LABEL_STYLE: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 500,
+  color: '#8B8B8B',
+  display: 'block',
+  marginBottom: 4,
+}
+
+function FormInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <input
+      {...props}
+      style={{
+        ...INPUT_STYLE,
+        borderColor: focused ? '#5B8AF0' : 'rgba(255,255,255,0.08)',
+        ...props.style,
+      }}
+      onFocus={(e) => { setFocused(true); props.onFocus?.(e) }}
+      onBlur={(e) => { setFocused(false); props.onBlur?.(e) }}
+    />
+  )
+}
+
+function FormSelect(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <select
+      {...props}
+      style={{
+        ...INPUT_STYLE,
+        borderColor: focused ? '#5B8AF0' : 'rgba(255,255,255,0.08)',
+        appearance: 'none',
+        cursor: 'pointer',
+        ...props.style,
+      }}
+      onFocus={(e) => { setFocused(true); props.onFocus?.(e) }}
+      onBlur={(e) => { setFocused(false); props.onBlur?.(e) }}
+    />
+  )
+}
+
 export function ConnectionForm({ initialConnection, onClose }: ConnectionFormProps) {
   const isEditing = !!initialConnection
 
@@ -34,9 +88,9 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null)
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [sshEnabled, setSshEnabled] = useState(false)
+  const [btnNewHovered, setBtnNewHovered] = useState(false)
   const { loadConnections } = useConnectionStore()
 
-  // When editing, pre-fill form from the saved connection
   useEffect(() => {
     if (initialConnection) {
       setOpen(true)
@@ -50,7 +104,6 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
         username: initialConnection.username,
         ssl: initialConnection.ssl,
         sshTunnel: initialConnection.sshTunnel,
-        // password intentionally left blank — user must re-enter
       })
       setSshEnabled(!!initialConnection.sshTunnel)
       setAdvancedOpen(!!initialConnection.ssl || !!initialConnection.sshTunnel)
@@ -119,73 +172,115 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
   const canSave = !!form.host && !!form.database && !!form.username && (isEditing || !!form.password)
   const canTest = !!form.host && !!form.database && !!form.username && !!form.password
 
-  const inputStyle: React.CSSProperties = {
-    height: 34,
-    background: 'var(--color-bg-subtle)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 6,
-    padding: '0 10px',
-    fontSize: 13,
-    color: 'var(--color-text-primary)',
-    width: '100%',
-    outline: 'none',
-    fontFamily: 'var(--font-sans)',
-    transition: 'border-color 0.15s, box-shadow 0.15s',
-  }
-
   return (
     <>
       {!isEditing && (
-        <Button size="sm" className="w-full" onClick={() => setOpen(true)}>+ New Connection</Button>
+        <button
+          onClick={() => setOpen(true)}
+          onMouseEnter={() => setBtnNewHovered(true)}
+          onMouseLeave={() => setBtnNewHovered(false)}
+          style={{
+            width: '100%',
+            height: 30,
+            background: btnNewHovered ? '#2A2A30' : '#222227',
+            border: '1px solid rgba(255,255,255,0.10)',
+            borderRadius: 6,
+            color: '#8B8B8B',
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            transition: 'background 0.15s, color 0.15s',
+          }}
+        >
+          <Plus size={13} />
+          New Connection
+        </button>
       )}
       <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose() }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>{isEditing ? 'Edit Connection' : 'New Connection'}</DialogTitle>
+            <DialogTitle>
+              {isEditing ? 'Edit Connection' : 'New Connection'}
+            </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-2">
-            <div className="grid gap-1.5">
-              <Label>Database Type</Label>
-              <select
+
+          <div style={{ display: 'grid', gap: 14, paddingTop: 8 }}>
+            {/* Database Type */}
+            <div>
+              <label style={LABEL_STYLE}>Database Type</label>
+              <FormSelect
                 value={form.type}
                 onChange={(e) => {
                   const type = e.target.value as SQLDialect
                   setField('type', type)
                   setField('port', DIALECT_DEFAULTS[type].port)
                 }}
-                style={inputStyle}
               >
                 {(Object.entries(DIALECT_DEFAULTS) as [SQLDialect, { port: number; label: string }][]).map(([k, v]) => (
-                  <option key={k} value={k}>{v.label}</option>
+                  <option key={k} value={k} style={{ background: '#222227', color: '#ECECEC' }}>{v.label}</option>
                 ))}
-              </select>
+              </FormSelect>
             </div>
-            <div className="grid gap-1.5">
-              <Label>Name (optional)</Label>
-              <Input placeholder="My Database" value={form.name ?? ''} onChange={(e) => setField('name', e.target.value)} />
+
+            {/* Name */}
+            <div>
+              <label style={LABEL_STYLE}>Name (optional)</label>
+              <FormInput
+                placeholder="My Database"
+                value={form.name ?? ''}
+                onChange={(e) => setField('name', e.target.value)}
+              />
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="col-span-2 grid gap-1.5">
-                <Label>Host</Label>
-                <Input value={form.host ?? ''} onChange={(e) => setField('host', e.target.value)} />
+
+            {/* Host + Port */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
+              <div>
+                <label style={LABEL_STYLE}>Host</label>
+                <FormInput
+                  value={form.host ?? ''}
+                  onChange={(e) => setField('host', e.target.value)}
+                />
               </div>
-              <div className="grid gap-1.5">
-                <Label>Port</Label>
-                <Input type="number" value={form.port ?? ''} onChange={(e) => setField('port', Number(e.target.value))} />
+              <div>
+                <label style={LABEL_STYLE}>Port</label>
+                <FormInput
+                  type="number"
+                  value={form.port ?? ''}
+                  onChange={(e) => setField('port', Number(e.target.value))}
+                />
               </div>
             </div>
-            <div className="grid gap-1.5">
-              <Label>Database</Label>
-              <Input value={form.database ?? ''} onChange={(e) => setField('database', e.target.value)} />
+
+            {/* Database */}
+            <div>
+              <label style={LABEL_STYLE}>Database</label>
+              <FormInput
+                value={form.database ?? ''}
+                onChange={(e) => setField('database', e.target.value)}
+              />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="grid gap-1.5">
-                <Label>Username</Label>
-                <Input value={form.username ?? ''} onChange={(e) => setField('username', e.target.value)} />
+
+            {/* Username + Password */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div>
+                <label style={LABEL_STYLE}>Username</label>
+                <FormInput
+                  value={form.username ?? ''}
+                  onChange={(e) => setField('username', e.target.value)}
+                />
               </div>
-              <div className="grid gap-1.5">
-                <Label>Password{isEditing && <span className="font-normal text-muted-foreground ml-1">(required)</span>}</Label>
-                <Input
+              <div>
+                <label style={LABEL_STYLE}>
+                  Password
+                  {isEditing && (
+                    <span style={{ fontWeight: 400, color: '#555560', marginLeft: 4 }}>(required)</span>
+                  )}
+                </label>
+                <FormInput
                   type="password"
                   placeholder={isEditing ? 'Enter password to save' : ''}
                   value={form.password ?? ''}
@@ -193,92 +288,117 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                 />
               </div>
             </div>
+
             {/* Advanced section */}
-            <div className="border border-[var(--color-border)] rounded-md overflow-hidden">
+            <div style={{
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 6,
+              overflow: 'hidden',
+            }}>
               <button
                 type="button"
                 onClick={() => setAdvancedOpen((v) => !v)}
-                className="flex items-center gap-2 w-full px-3 py-2 text-xs font-medium text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] hover:bg-[var(--color-accent)] transition-colors"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  width: '100%',
+                  padding: '6px 12px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: '#8B8B8B',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'color 0.12s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#ECECEC'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#8B8B8B'}
               >
                 {advancedOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 Advanced
               </button>
               {advancedOpen && (
-                <div className="px-3 pb-3 grid gap-3 border-t border-[var(--color-border)]">
+                <div style={{
+                  padding: '8px 12px 12px',
+                  borderTop: '1px solid rgba(255,255,255,0.08)',
+                  display: 'grid',
+                  gap: 10,
+                }}>
                   {/* SSL toggle */}
-                  <label className="flex items-center gap-2 pt-3 cursor-pointer select-none">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
                     <input
                       type="checkbox"
                       checked={!!form.ssl}
                       onChange={(e) => setField('ssl', e.target.checked)}
-                      className="accent-[var(--color-primary)] w-3.5 h-3.5"
+                      style={{ width: 14, height: 14, accentColor: '#5B8AF0' }}
                     />
-                    <span className="text-xs font-medium text-[var(--color-muted-foreground)]">Use SSL/TLS</span>
+                    <span style={{ fontSize: 12, color: '#8B8B8B' }}>Use SSL/TLS</span>
                   </label>
 
                   {/* SSH Tunnel toggle */}
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
                     <input
                       type="checkbox"
                       checked={sshEnabled}
                       onChange={(e) => setSshEnabled(e.target.checked)}
-                      className="accent-[var(--color-primary)] w-3.5 h-3.5"
+                      style={{ width: 14, height: 14, accentColor: '#5B8AF0' }}
                     />
-                    <span className="text-xs font-medium text-[var(--color-muted-foreground)]">Use SSH Tunnel</span>
+                    <span style={{ fontSize: 12, color: '#8B8B8B' }}>Use SSH Tunnel</span>
                   </label>
 
-                  {/* SSH Tunnel fields */}
                   {sshEnabled && (
-                    <div className="grid gap-3 pl-5">
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="col-span-2 grid gap-1.5">
-                          <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Host</label>
-                          <input
+                    <div style={{ paddingLeft: 20, display: 'grid', gap: 10 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
+                        <div>
+                          <label style={LABEL_STYLE}>SSH Host</label>
+                          <FormInput
                             type="text"
                             placeholder="bastion.example.com"
                             value={form.sshTunnel?.host ?? ''}
                             onChange={(e) => setSshField('host', e.target.value)}
-                            style={inputStyle}
                           />
                         </div>
-                        <div className="grid gap-1.5">
-                          <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Port</label>
-                          <input
+                        <div>
+                          <label style={LABEL_STYLE}>SSH Port</label>
+                          <FormInput
                             type="number"
                             value={form.sshTunnel?.port ?? 22}
                             onChange={(e) => setSshField('port', Number(e.target.value))}
-                            style={inputStyle}
                           />
                         </div>
                       </div>
-                      <div className="grid gap-1.5">
-                        <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Username</label>
-                        <input
+                      <div>
+                        <label style={LABEL_STYLE}>SSH Username</label>
+                        <FormInput
                           type="text"
                           placeholder="ubuntu"
                           value={form.sshTunnel?.username ?? ''}
                           onChange={(e) => setSshField('username', e.target.value)}
-                          style={inputStyle}
                         />
                       </div>
-                      <div className="grid gap-1.5">
-                        <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Private Key Path <span className="text-[var(--color-muted-foreground)] font-normal">(optional)</span></label>
-                        <input
+                      <div>
+                        <label style={LABEL_STYLE}>
+                          SSH Private Key Path
+                          <span style={{ fontWeight: 400, color: '#555560', marginLeft: 4 }}>(optional)</span>
+                        </label>
+                        <FormInput
                           type="text"
                           placeholder="~/.ssh/id_rsa"
                           value={form.sshTunnel?.privateKey ?? ''}
                           onChange={(e) => setSshField('privateKey', e.target.value)}
-                          style={inputStyle}
                         />
                       </div>
-                      <div className="grid gap-1.5">
-                        <label className="text-xs font-medium text-[var(--color-muted-foreground)]">SSH Password <span className="text-[var(--color-muted-foreground)] font-normal">(optional)</span></label>
-                        <input
+                      <div>
+                        <label style={LABEL_STYLE}>
+                          SSH Password
+                          <span style={{ fontWeight: 400, color: '#555560', marginLeft: 4 }}>(optional)</span>
+                        </label>
+                        <FormInput
                           type="password"
                           placeholder="Leave blank for key-based auth"
                           value={form.sshTunnel?.password ?? ''}
                           onChange={(e) => setSshField('password', e.target.value)}
-                          style={inputStyle}
                         />
                       </div>
                     </div>
@@ -287,27 +407,98 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
               )}
             </div>
 
+            {/* Test result */}
             {testResult && (
-              <p className={`text-xs ${testResult.success ? 'text-green-500' : 'text-destructive'}`}>
+              <p style={{
+                fontSize: 12,
+                color: testResult.success ? '#34D399' : '#F87171',
+                margin: 0,
+              }}>
                 {testResult.success ? '✓ Connection successful' : `✗ ${testResult.error}`}
               </p>
             )}
-            <div className="flex gap-2 justify-end items-center">
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
               {isEditing && !form.password && (
-                <span className="text-xs mr-auto" style={{ color: 'var(--color-muted-foreground)' }}>
+                <span style={{ fontSize: 12, color: '#555560', marginRight: 'auto' }}>
                   Enter password to test
                 </span>
               )}
-              <Button variant="outline" onClick={handleTest} disabled={testing || !canTest}>
+              {/* Test button — outline style */}
+              <OutlineButton onClick={handleTest} disabled={testing || !canTest}>
                 {testing ? 'Testing...' : 'Test Connection'}
-              </Button>
-              <Button onClick={handleSave} disabled={!canSave}>
+              </OutlineButton>
+              {/* Save button — accent */}
+              <PrimaryButton onClick={handleSave} disabled={!canSave}>
                 {isEditing ? 'Save Changes' : 'Save'}
-              </Button>
+              </PrimaryButton>
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+function OutlineButton({ onClick, disabled, children }: {
+  onClick: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        height: 32,
+        padding: '0 12px',
+        fontSize: 12,
+        fontWeight: 500,
+        background: hovered && !disabled ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 6,
+        color: disabled ? '#555560' : '#8B8B8B',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+        transition: 'background 0.15s, color 0.15s',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function PrimaryButton({ onClick, disabled, children }: {
+  onClick: () => void
+  disabled?: boolean
+  children: React.ReactNode
+}) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        height: 32,
+        padding: '0 14px',
+        fontSize: 12,
+        fontWeight: 500,
+        background: disabled ? '#3A3A45' : hovered ? '#4A7AE0' : '#5B8AF0',
+        border: 'none',
+        borderRadius: 6,
+        color: '#ffffff',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+        transition: 'background 0.15s',
+      }}
+    >
+      {children}
+    </button>
   )
 }

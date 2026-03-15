@@ -14,9 +14,25 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
     monaco.editor.defineTheme('mai-dark', {
       base: 'vs-dark',
       inherit: true,
-      rules: [],
-      colors: { 'editor.background': '#0f0f0f' },
+      rules: [
+        { token: 'keyword', foreground: '5B8AF0', fontStyle: 'bold' },
+        { token: 'string', foreground: 'CE9178' },
+        { token: 'number', foreground: '98C379' },
+        { token: 'comment', foreground: '555560', fontStyle: 'italic' },
+      ],
+      colors: {
+        'editor.background': '#131316',
+        'editor.foreground': '#ECECEC',
+        'editor.lineHighlightBackground': '#1C1C20',
+        'editorLineNumber.foreground': '#3A3A45',
+        'editorLineNumber.activeForeground': '#5B8AF0',
+        'editor.selectionBackground': '#5B8AF025',
+        'editorCursor.foreground': '#5B8AF0',
+        'editorIndentGuide.background1': '#222227',
+        'editorGutter.background': '#131316',
+      },
     })
+    monaco.editor.setTheme('mai-dark')
   }
 
   return (
@@ -30,7 +46,7 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
         theme="mai-dark"
         options={{
           fontSize: 14,
-          fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+          fontFamily: "'JetBrains Mono', 'SF Mono', 'Fira Code', monospace",
           minimap: { enabled: false },
           lineNumbers: 'on',
           scrollBeyondLastLine: false,
@@ -38,6 +54,10 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
           automaticLayout: true,
           tabSize: 2,
           quickSuggestions: true,
+          padding: { top: 12, bottom: 12 },
+          lineHeight: 22,
+          renderLineHighlight: 'all',
+          smoothScrolling: true,
         }}
       />
     </div>

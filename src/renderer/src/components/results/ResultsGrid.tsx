@@ -9,13 +9,17 @@ interface ResultsGridProps {
 
 function CellValue({ value }: { value: unknown }) {
   if (value === null || value === undefined) {
-    return <span style={{ color: 'var(--color-null)', fontStyle: 'italic', opacity: 0.7 }}>NULL</span>
+    return <span style={{ color: '#555560', fontStyle: 'italic' }}>NULL</span>
   }
   if (typeof value === 'boolean') {
     return (
       <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-        <span style={{ width: 6, height: 6, borderRadius: '50%', background: value ? '#22C55E' : '#EF4444', flexShrink: 0 }} />
-        <span style={{ color: value ? '#22C55E' : '#EF4444' }}>{value ? 'true' : 'false'}</span>
+        <span style={{
+          width: 6, height: 6, borderRadius: '50%',
+          background: value ? '#34D399' : '#F87171',
+          flexShrink: 0,
+        }} />
+        <span style={{ color: value ? '#34D399' : '#F87171' }}>{value ? 'true' : 'false'}</span>
       </span>
     )
   }
@@ -42,20 +46,31 @@ function estimateColWidth(name: string, rows: Record<string, unknown>[], maxRows
   return Math.min(400, Math.max(80, Math.max(headerLen, maxDataLen) * charWidth + padding))
 }
 
+// Row number column sticky style
+const ROW_NUM_STYLE: React.CSSProperties = {
+  background: '#1C1C20',
+  borderRight: '1px solid rgba(255,255,255,0.08)',
+  position: 'sticky',
+  left: 0,
+  zIndex: 1,
+}
+
 export function ResultsGrid({ result }: ResultsGridProps) {
   const parentRef = useRef<HTMLDivElement>(null)
 
   const columns: ColumnDef<Record<string, unknown>>[] = [
-    // Row number column
+    // Sticky row number column — 42px
     {
       id: '__rownum__',
-      header: () => <span style={{ color: 'var(--color-text-muted)' }}>#</span>,
+      header: () => (
+        <span style={{ color: '#555560', fontVariantNumeric: 'tabular-nums' }}>#</span>
+      ),
       cell: ({ row }) => (
-        <span style={{ color: 'var(--color-text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ color: '#555560', fontVariantNumeric: 'tabular-nums' }}>
           {row.index + 1}
         </span>
       ),
-      size: 52,
+      size: 42,
       enableResizing: false,
     },
     ...result.columns.map((col) => ({
@@ -63,10 +78,22 @@ export function ResultsGrid({ result }: ResultsGridProps) {
       accessorKey: col.name,
       header: () => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <span style={{ fontWeight: 600, fontSize: 12, textTransform: 'uppercase' as const, letterSpacing: '0.05em', color: 'var(--color-text-secondary)' }}>
+          <span style={{
+            fontWeight: 600,
+            fontSize: 11,
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.06em',
+            color: '#8B8B8B',
+          }}>
             {col.name}
           </span>
-          <span style={{ fontSize: 10, color: 'var(--color-text-muted)', fontFamily: 'var(--font-sans)', textTransform: 'none' as const, letterSpacing: 0 }}>
+          <span style={{
+            fontSize: 10,
+            color: '#555560',
+            fontFamily: 'inherit',
+            textTransform: 'none' as const,
+            letterSpacing: 0,
+          }}>
             {col.dataType}
           </span>
         </div>
@@ -88,7 +115,7 @@ export function ResultsGrid({ result }: ResultsGridProps) {
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 28,
+    estimateSize: () => 27,
     overscan: 15,
   })
 
@@ -97,22 +124,19 @@ export function ResultsGrid({ result }: ResultsGridProps) {
   const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
   const paddingBottom = virtualRows.length > 0 ? totalSize - virtualRows[virtualRows.length - 1].end : 0
 
-  const ROW_NUM_STYLE: React.CSSProperties = {
-    background: 'var(--color-bg-overlay)',
-    borderRight: '1px solid var(--color-border)',
-    position: 'sticky',
-    left: 0,
-    zIndex: 1,
-  }
-
   return (
     <div
       ref={parentRef}
       className="h-full overflow-auto"
-      style={{ background: 'var(--color-bg-elevated)', fontFamily: 'var(--font-mono)', fontSize: 13 }}
+      style={{
+        background: '#131316',
+        fontFamily: "ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code', monospace",
+        fontSize: 13,
+      }}
     >
       <table style={{ width: '100%', borderCollapse: 'collapse', lineHeight: '1.0' }}>
-        <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--color-bg-overlay)' }}>
+        {/* Header — 32px, #222227 bg */}
+        <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: '#222227' }}>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((header, i) => (
@@ -120,31 +144,32 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                   key={header.id}
                   style={{
                     width: header.getSize(),
-                    height: 34,
-                    borderBottom: '2px solid var(--color-border)',
-                    borderRight: '1px solid var(--color-border)',
+                    height: 32,
+                    borderBottom: '1px solid rgba(255,255,255,0.10)',
+                    borderRight: '1px solid rgba(255,255,255,0.06)',
                     padding: '0 10px',
                     textAlign: 'left',
-                    fontFamily: 'var(--font-sans)',
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
                     verticalAlign: 'middle',
                     whiteSpace: 'nowrap',
-                    ...(i === 0 ? ROW_NUM_STYLE : {}),
+                    background: i === 0 ? '#222227' : undefined,
+                    ...(i === 0 ? { ...ROW_NUM_STYLE, background: '#222227', zIndex: 11 } : {}),
                     position: i === 0 ? 'sticky' : 'relative',
                     left: i === 0 ? 0 : 'auto',
                     zIndex: i === 0 ? 11 : 'auto',
                   }}
                 >
                   {flexRender(header.column.columnDef.header, header.getContext())}
-                  {/* Resize handle */}
+                  {/* Column resize handle */}
                   {header.column.getCanResize() && (
                     <div
                       onMouseDown={header.getResizeHandler()}
                       style={{
                         position: 'absolute', right: 0, top: 0, bottom: 0,
                         width: 4, cursor: 'col-resize', userSelect: 'none',
-                        background: header.column.getIsResizing() ? 'var(--color-primary)' : 'transparent',
+                        background: header.column.getIsResizing() ? '#5B8AF0' : 'transparent',
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-primary)'}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
                       onMouseLeave={(e) => {
                         if (!header.column.getIsResizing()) e.currentTarget.style.background = 'transparent'
                       }}
@@ -160,12 +185,12 @@ export function ResultsGrid({ result }: ResultsGridProps) {
           {virtualRows.map((vRow) => {
             const row = rows[vRow.index]
             const isOdd = vRow.index % 2 === 1
-            const rowBg = isOdd ? 'rgba(255,255,255,0.018)' : 'transparent'
+            const rowBg = isOdd ? 'rgba(255,255,255,0.015)' : 'transparent'
             return (
               <tr
                 key={row.id}
                 style={{ background: rowBg }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(59,130,246,0.08)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(91,138,240,0.08)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = rowBg }}
               >
                 {row.getVisibleCells().map((cell, i) => {
@@ -176,7 +201,7 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                       key={cell.id}
                       style={{
                         width: cell.column.getSize(),
-                        height: 28,
+                        height: 27,
                         borderBottom: '1px solid rgba(255,255,255,0.04)',
                         borderRight: '1px solid rgba(255,255,255,0.04)',
                         padding: '0 10px',
@@ -184,13 +209,14 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         textAlign: isNum ? 'right' : 'left',
-                        color: 'var(--color-text-primary)',
+                        color: '#ECECEC',
                         verticalAlign: 'middle',
                         ...(i === 0 ? {
                           ...ROW_NUM_STYLE,
                           textAlign: 'right',
                           padding: '0 8px',
                           fontSize: 11,
+                          color: '#555560',
                         } : {}),
                       }}
                     >

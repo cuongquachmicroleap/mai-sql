@@ -12,7 +12,7 @@ import { ResultsToolbar } from '../results/ResultsToolbar'
 import { ERDiagram } from '../er-diagram/ERDiagram'
 import { BackupRestore } from '../backup/BackupRestore'
 import { StatusBar } from './StatusBar'
-import { Database, Settings, ChevronLeft, ChevronRight, Network, ArchiveRestore } from 'lucide-react'
+import { Database, Settings, ChevronRight, Network, ArchiveRestore } from 'lucide-react'
 
 type ActiveView = 'editor' | 'er-diagram' | 'backup'
 
@@ -84,63 +84,80 @@ export function MainLayout() {
   return (
     <div
       className="flex flex-col h-screen overflow-hidden"
-      style={{ background: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
+      style={{ background: '#0C0C0E', color: '#ECECEC' }}
     >
       <div className="flex flex-1 overflow-hidden min-h-0">
 
-        {/* Activity bar */}
+        {/* Activity bar — 44px */}
         <div
           className="flex flex-col items-center gap-0.5 py-2 shrink-0"
-          style={{ width: 44, background: 'var(--color-bg-base)', borderRight: '1px solid var(--color-border)' }}
+          style={{
+            width: 44,
+            background: '#0C0C0E',
+            borderRight: '1px solid rgba(255,255,255,0.07)',
+          }}
         >
           <ActivityBtn
-            icon={<Database size={18} />}
-            active={!sidebarCollapsed}
-            onClick={() => { setSidebarCollapsed((v) => !v); setActiveView('editor') }}
+            icon={<Database size={17} />}
+            active={!sidebarCollapsed && activeView === 'editor'}
+            onClick={() => {
+              if (!sidebarCollapsed && activeView === 'editor') {
+                setSidebarCollapsed(true)
+              } else {
+                setSidebarCollapsed(false)
+                setActiveView('editor')
+              }
+            }}
             title="Explorer"
           />
           <ActivityBtn
-            icon={<Network size={18} />}
+            icon={<Network size={17} />}
             active={activeView === 'er-diagram'}
             onClick={() => setActiveView((v) => v === 'er-diagram' ? 'editor' : 'er-diagram')}
             title="ER Diagram"
           />
           <ActivityBtn
-            icon={<ArchiveRestore size={18} />}
+            icon={<ArchiveRestore size={17} />}
             active={activeView === 'backup'}
             onClick={() => setActiveView((v) => v === 'backup' ? 'editor' : 'backup')}
             title="Backup & Restore"
           />
           <div className="flex-1" />
-          <ActivityBtn icon={<Settings size={17} />} title="Settings" />
+          <ActivityBtn icon={<Settings size={16} />} title="Settings" />
         </div>
 
         {/* Sidebar */}
         {!sidebarCollapsed && (
           <div
             className="flex flex-col shrink-0 overflow-hidden relative"
-            style={{ width: sidebarWidth, background: 'var(--color-bg-overlay)', borderRight: '1px solid var(--color-border)' }}
+            style={{
+              width: sidebarWidth,
+              background: '#1C1C20',
+              borderRight: '1px solid rgba(255,255,255,0.07)',
+            }}
           >
             {/* Header */}
             <div
               className="flex items-center justify-between shrink-0"
-              style={{ height: 40, padding: '0 12px', borderBottom: '1px solid var(--color-border)' }}
+              style={{
+                height: 40,
+                padding: '0 12px',
+                borderBottom: '1px solid rgba(255,255,255,0.07)',
+              }}
             >
-              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+              <span style={{
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: '#555560',
+              }}>
                 Explorer
               </span>
-              <button
-                onClick={() => setSidebarCollapsed(true)}
-                style={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', borderRadius: 4, padding: 2 }}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
-              >
-                <ChevronLeft size={14} />
-              </button>
             </div>
 
             {/* New connection */}
-            <div className="px-2 py-2 shrink-0" style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <div className="px-2 py-2 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
               <ConnectionForm />
               {editingConnection && (
                 <ConnectionForm initialConnection={editingConnection} onClose={() => setEditingConnection(null)} />
@@ -158,19 +175,26 @@ export function MainLayout() {
               onMouseDown={handleSidebarDrag}
               className="absolute top-0 right-0 bottom-0"
               style={{ width: 4, cursor: 'col-resize' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-primary)'}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             />
           </div>
         )}
 
-        {/* Collapsed sidebar strip */}
+        {/* Collapsed sidebar — thin expand strip */}
         {sidebarCollapsed && (
           <button
             onClick={() => setSidebarCollapsed(false)}
-            style={{ width: 4, background: 'var(--color-border)', cursor: 'col-resize', flexShrink: 0 }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-primary)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-border)'}
+            style={{
+              width: 4,
+              background: 'rgba(255,255,255,0.07)',
+              cursor: 'col-resize',
+              flexShrink: 0,
+              border: 'none',
+              padding: 0,
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
             title="Expand sidebar"
           >
             <ChevronRight size={8} style={{ color: 'transparent' }} />
@@ -178,7 +202,7 @@ export function MainLayout() {
         )}
 
         {/* Main area */}
-        <main className="flex flex-1 flex-col overflow-hidden min-w-0" style={{ background: 'var(--color-bg-surface)' }}>
+        <main className="flex flex-1 flex-col overflow-hidden min-w-0" style={{ background: '#131316' }}>
           {activeView === 'backup' ? (
             <BackupRestore />
           ) : activeView === 'er-diagram' ? (
@@ -199,9 +223,12 @@ export function MainLayout() {
                   {/* Results panel with drag-to-resize handle on top */}
                   <div
                     className="flex flex-col shrink-0 overflow-hidden"
-                    style={{ height: resultsHeight, borderTop: '1px solid var(--color-border)' }}
+                    style={{
+                      height: resultsHeight,
+                      borderTop: '1px solid rgba(255,255,255,0.07)',
+                    }}
                   >
-                    {/* Drag handle */}
+                    {/* Drag handle — 4px */}
                     <div
                       onMouseDown={handleResultsDrag}
                       style={{
@@ -210,7 +237,7 @@ export function MainLayout() {
                         flexShrink: 0,
                         background: 'transparent',
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-primary)'}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     />
 
@@ -225,7 +252,7 @@ export function MainLayout() {
                       ) : (
                         <div
                           className="flex h-full items-center justify-center"
-                          style={{ color: 'var(--color-text-muted)', fontSize: 13 }}
+                          style={{ color: '#555560', fontSize: 13 }}
                         >
                           {activeTab.error ? null : 'Run a query to see results'}
                         </div>
@@ -234,11 +261,11 @@ export function MainLayout() {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-1 items-center justify-center" style={{ color: 'var(--color-text-muted)' }}>
-                  <div className="text-center" style={{ gap: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Database size={36} style={{ opacity: 0.15 }} />
-                    <p style={{ fontSize: 14 }}>Connect to a database to get started</p>
-                    <p style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Select a connection in the sidebar or create a new one</p>
+                <div className="flex flex-1 items-center justify-center" style={{ color: '#555560' }}>
+                  <div className="text-center" style={{ gap: 12, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Database size={40} style={{ opacity: 0.12, color: '#8B8B8B' }} />
+                    <p style={{ fontSize: 14, color: '#8B8B8B', margin: 0 }}>Connect to a database to get started</p>
+                    <p style={{ fontSize: 12, color: '#555560', margin: 0 }}>Select a connection in the sidebar or create a new one</p>
                   </div>
                 </div>
               )}
@@ -264,14 +291,30 @@ function ActivityBtn({
     <button
       onClick={onClick}
       title={title}
-      className="flex items-center justify-center rounded transition-colors"
+      className="flex items-center justify-center"
       style={{
-        width: 36, height: 36,
-        color: active ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-        borderLeft: active ? '2px solid var(--color-primary)' : '2px solid transparent',
+        width: 36,
+        height: 36,
+        borderRadius: 6,
+        color: active ? '#ECECEC' : '#555560',
+        background: active ? 'rgba(91,138,240,0.12)' : 'transparent',
+        borderLeft: active ? '2px solid #5B8AF0' : '2px solid transparent',
+        border: 'none',
+        cursor: 'pointer',
+        transition: 'color 0.15s, background 0.15s',
       }}
-      onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = 'var(--color-text-primary)' }}
-      onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'var(--color-text-muted)' }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.color = '#8B8B8B'
+          e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.color = '#555560'
+          e.currentTarget.style.background = 'transparent'
+        }
+      }}
     >
       {icon}
     </button>
@@ -280,7 +323,14 @@ function ActivityBtn({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ padding: '10px 12px 4px', fontSize: 11, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+    <div style={{
+      padding: '10px 12px 4px',
+      fontSize: 10,
+      fontWeight: 600,
+      letterSpacing: '0.09em',
+      textTransform: 'uppercase',
+      color: '#555560',
+    }}>
       {children}
     </div>
   )

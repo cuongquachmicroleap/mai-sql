@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Play, Square } from 'lucide-react'
 import { useEditorStore } from '../../stores/editor-store'
 import { useConnectionStore } from '../../stores/connection-store'
@@ -8,60 +9,75 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
   const { tabs, executeQuery } = useEditorStore()
   const { activeConnectionId, connections } = useConnectionStore()
   const tab = tabs.find((t) => t.id === tabId)
+  const [btnHovered, setBtnHovered] = useState(false)
+
   if (!tab) return null
 
   const canExecute = !!activeConnectionId && !!tab.content.trim() && !tab.isExecuting
   const activeConn = connections.find((c) => c.id === activeConnectionId)
 
+  const runBgDefault = tab.isExecuting ? '#F87171' : '#5B8AF0'
+  const runBgHover   = tab.isExecuting ? '#ef5350' : '#4A7AE0'
+
   return (
     <div
       className="flex items-center gap-2 px-3 shrink-0"
       style={{
-        height: 36,
-        borderBottom: '1px solid var(--color-border)',
-        background: 'var(--color-bg-elevated)',
+        height: 38,
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: '#1C1C20',
       }}
     >
-      {/* Run button */}
+      {/* Run / Stop button */}
       <button
-        disabled={!canExecute}
+        disabled={!canExecute && !tab.isExecuting}
         onClick={() => executeQuery(tabId, activeConnectionId!, tab.content)}
-        className="flex items-center gap-1.5 rounded px-2.5 py-1 font-medium transition-all disabled:opacity-40"
+        onMouseEnter={() => setBtnHovered(true)}
+        onMouseLeave={() => setBtnHovered(false)}
+        className="flex items-center gap-1.5"
         style={{
           fontSize: 12,
-          background: '#3B82F6',
+          fontWeight: 500,
+          background: btnHovered && (canExecute || tab.isExecuting) ? runBgHover : runBgDefault,
           color: '#ffffff',
-          opacity: canExecute ? 1 : 0.4,
+          borderRadius: 6,
+          padding: '0 10px',
+          height: 26,
+          border: 'none',
+          cursor: canExecute || tab.isExecuting ? 'pointer' : 'default',
+          opacity: canExecute || tab.isExecuting ? 1 : 0.35,
+          transition: 'background 0.15s',
         }}
-        onMouseEnter={(e) => { if (canExecute) e.currentTarget.style.background = '#2563EB' }}
-        onMouseLeave={(e) => { if (canExecute) e.currentTarget.style.background = '#3B82F6' }}
       >
-        {tab.isExecuting ? <Square size={11} /> : <Play size={11} />}
+        {tab.isExecuting ? <Square size={10} /> : <Play size={10} />}
         <span>{tab.isExecuting ? 'Stop' : 'Run'}</span>
-        <span className="opacity-50 ml-0.5" style={{ fontSize: 10 }}>⌘↵</span>
+        <span style={{ opacity: 0.55, marginLeft: 2, fontSize: 10 }}>⌘↵</span>
       </button>
 
-      <div className="h-4 w-px mx-1" style={{ background: 'var(--color-border)' }} />
+      <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
 
       {/* Active connection chip */}
       {activeConn ? (
         <div
-          className="flex items-center gap-1.5 rounded px-2 py-1"
+          className="flex items-center gap-1.5"
           style={{
             fontSize: 12,
-            background: 'var(--color-bg-subtle)',
-            color: 'var(--color-text-primary)',
+            background: '#222227',
+            color: '#ECECEC',
+            borderRadius: 6,
+            padding: '0 8px',
+            height: 24,
           }}
         >
           <span
             className="h-1.5 w-1.5 rounded-full shrink-0"
-            style={{ background: '#22C55E' }}
+            style={{ background: '#34D399' }}
           />
-          <span>{activeConn.name}</span>
-          <span style={{ color: 'var(--color-text-muted)' }}>{activeConn.type}</span>
+          <span style={{ color: '#ECECEC' }}>{activeConn.name}</span>
+          <span style={{ color: '#555560' }}>{activeConn.type}</span>
         </div>
       ) : (
-        <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+        <span style={{ fontSize: 12, color: '#555560' }}>
           No connection
         </span>
       )}

@@ -13,11 +13,11 @@ export function StatusBar({ result }: StatusBarProps) {
     <div
       className="flex items-center justify-between px-3 shrink-0 select-none"
       style={{
-        height: 24,
-        background: 'var(--color-bg-base)',
-        borderTop: '1px solid var(--color-border)',
+        height: 22,
+        background: '#0C0C0E',
+        borderTop: '1px solid rgba(255,255,255,0.07)',
         fontSize: 11,
-        color: 'var(--color-text-muted)',
+        color: '#555560',
       }}
     >
       {/* Left: connection info */}
@@ -25,22 +25,22 @@ export function StatusBar({ result }: StatusBarProps) {
         {activeConn ? (
           <>
             <span
-              className="h-1.5 w-1.5 rounded-full shrink-0"
-              style={{ background: 'var(--color-success)' }}
+              className="rounded-full shrink-0"
+              style={{ width: 6, height: 6, background: '#34D399', display: 'inline-block' }}
             />
-            <span style={{ color: 'var(--color-text-secondary)' }}>
+            <span style={{ color: '#8B8B8B' }}>
               {activeConn.name}
             </span>
-            <span style={{ color: 'var(--color-text-muted)' }}>·</span>
-            <span style={{ color: 'var(--color-text-muted)' }}>
+            <span style={{ color: '#555560' }}>·</span>
+            <span style={{ color: '#555560' }}>
               {activeConn.database}@{activeConn.host}
             </span>
           </>
         ) : (
           <>
             <span
-              className="h-1.5 w-1.5 rounded-full shrink-0"
-              style={{ background: 'var(--color-text-muted)' }}
+              className="rounded-full shrink-0"
+              style={{ width: 6, height: 6, background: '#3A3A45', display: 'inline-block' }}
             />
             <span>No connection</span>
           </>
@@ -51,7 +51,7 @@ export function StatusBar({ result }: StatusBarProps) {
       {result && (
         <div className="flex items-center gap-2">
           <span>{result.rowCount.toLocaleString()} rows</span>
-          <span style={{ color: 'var(--color-border)' }}>·</span>
+          <span style={{ color: '#3A3A45' }}>·</span>
           <span>{result.executionTimeMs}ms</span>
         </div>
       )}

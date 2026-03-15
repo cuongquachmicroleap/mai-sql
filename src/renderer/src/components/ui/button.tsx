@@ -1,34 +1,99 @@
-import { cva, type VariantProps } from 'class-variance-authority'
+import { forwardRef, type ButtonHTMLAttributes, useState } from 'react'
 import { cn } from '../../lib/utils'
-import { forwardRef, type ButtonHTMLAttributes } from 'react'
 
-const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded text-xs font-medium transition-all focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none cursor-pointer',
-  {
-    variants: {
-      variant: {
-        default: 'bg-primary text-primary-foreground hover:opacity-90',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-accent',
-        outline: 'border border-border bg-transparent hover:bg-muted text-foreground',
-        ghost: 'bg-transparent hover:bg-muted text-muted-foreground hover:text-foreground',
-        destructive: 'bg-destructive text-destructive-foreground hover:opacity-90',
-      },
-      size: {
-        default: 'h-8 px-3 py-1.5',
-        sm: 'h-7 px-2.5 py-1',
-        lg: 'h-9 px-4',
-        icon: 'h-8 w-8',
-      },
-    },
-    defaultVariants: { variant: 'default', size: 'default' },
+type ButtonVariant = 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive'
+type ButtonSize = 'default' | 'sm' | 'lg' | 'icon'
+
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant
+  size?: ButtonSize
+}
+
+const SIZE_STYLES: Record<ButtonSize, React.CSSProperties> = {
+  default: { height: 32, padding: '0 12px' },
+  sm:      { height: 28, padding: '0 10px' },
+  lg:      { height: 36, padding: '0 16px' },
+  icon:    { height: 32, width: 32, padding: 0 },
+}
+
+function getVariantStyle(variant: ButtonVariant, hovered: boolean, disabled: boolean): React.CSSProperties {
+  if (disabled) {
+    return {
+      background: 'rgba(255,255,255,0.04)',
+      color: '#555560',
+      border: '1px solid rgba(255,255,255,0.06)',
+    }
   }
-)
-
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {}
+  switch (variant) {
+    case 'default':
+      return {
+        background: hovered ? '#4A7AE0' : '#5B8AF0',
+        color: '#ffffff',
+        border: 'none',
+      }
+    case 'secondary':
+      return {
+        background: hovered ? '#2A2A30' : '#222227',
+        color: '#ECECEC',
+        border: '1px solid rgba(255,255,255,0.08)',
+      }
+    case 'outline':
+      return {
+        background: hovered ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
+        color: hovered ? '#ECECEC' : '#8B8B8B',
+        border: '1px solid rgba(255,255,255,0.12)',
+      }
+    case 'ghost':
+      return {
+        background: hovered ? 'rgba(255,255,255,0.06)' : 'transparent',
+        color: hovered ? '#ECECEC' : '#8B8B8B',
+        border: 'none',
+      }
+    case 'destructive':
+      return {
+        background: hovered ? '#ef5350' : '#F87171',
+        color: '#ffffff',
+        border: 'none',
+      }
+    default:
+      return {
+        background: hovered ? '#4A7AE0' : '#5B8AF0',
+        color: '#ffffff',
+        border: 'none',
+      }
+  }
+}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => (
-    <button ref={ref} className={cn(buttonVariants({ variant, size, className }))} {...props} />
-  )
+  ({ className, variant = 'default', size = 'default', style, disabled, ...props }, ref) => {
+    const [hovered, setHovered] = useState(false)
+
+    const variantStyle = getVariantStyle(variant, hovered, !!disabled)
+    const sizeStyle = SIZE_STYLES[size]
+
+    return (
+      <button
+        ref={ref}
+        disabled={disabled}
+        className={cn('inline-flex items-center justify-center rounded', className)}
+        style={{
+          fontSize: 12,
+          fontWeight: 500,
+          fontFamily: 'inherit',
+          borderRadius: 6,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.5 : 1,
+          transition: 'background 0.15s, color 0.15s',
+          outline: 'none',
+          ...sizeStyle,
+          ...variantStyle,
+          ...style,
+        }}
+        onMouseEnter={() => { if (!disabled) setHovered(true) }}
+        onMouseLeave={() => setHovered(false)}
+        {...props}
+      />
+    )
+  }
 )
 Button.displayName = 'Button'
