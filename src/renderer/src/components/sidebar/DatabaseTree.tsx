@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronRight, ChevronDown, Database, Table2, Columns3 } from 'lucide-react'
+import { ChevronRight, ChevronDown, Database, Table2, Columns3, Loader2, AlertCircle } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useEditorStore } from '../../stores/editor-store'
 import type { TableInfo, ColumnInfo } from '@shared/types/schema'
@@ -11,30 +11,78 @@ interface DatabaseTreeProps {
 
 export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
   const [schemas, setSchemas] = useState<string[]>([])
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(['public']))
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [tablesBySchema, setTablesBySchema] = useState<Record<string, TableInfo[]>>({})
   const [columnsByTable, setColumnsByTable] = useState<Record<string, ColumnInfo[]>>({})
+  const [loadingKeys, setLoadingKeys] = useState<Set<string>>(new Set())
+  const [error, setError] = useState<string | null>(null)
   const { activeTabId, updateTabContent } = useEditorStore()
 
   useEffect(() => {
-    invoke('schema:databases', connectionId).then((dbs) => {
-      if (dbs[0]) {
-        invoke('schema:schemas', connectionId, dbs[0]).then(setSchemas)
+    setSchemas([])
+    setExpanded(new Set())
+    setTablesBySchema({})
+    setColumnsByTable({})
+    setError(null)
+
+    const load = async () => {
+      setLoadingKeys((prev) => new Set(prev).add('root'))
+      try {
+        const dbs = await invoke('schema:databases', connectionId)
+        const db = dbs[0]
+        if (!db) {
+          setError('No databases found')
+          return
+        }
+        const schemaList = await invoke('schema:schemas', connectionId, db)
+        setSchemas(schemaList)
+
+        // Auto-expand 'public' schema and load its tables
+        const defaultSchema = schemaList.includes('public') ? 'public' : schemaList[0]
+        if (defaultSchema) {
+          setExpanded(new Set([defaultSchema]))
+          setLoadingKeys((prev) => new Set(prev).add(defaultSchema))
+          try {
+            const tables = await invoke('schema:tables', connectionId, defaultSchema)
+            setTablesBySchema({ [defaultSchema]: tables })
+          } finally {
+            setLoadingKeys((prev) => { const n = new Set(prev); n.delete(defaultSchema); return n })
+          }
+        }
+      } catch (err) {
+        setError((err as Error).message)
+      } finally {
+        setLoadingKeys((prev) => { const n = new Set(prev); n.delete('root'); return n })
       }
-    })
+    }
+    load()
   }, [connectionId])
 
   const loadTables = async (schema: string) => {
     if (tablesBySchema[schema]) return
-    const tables = await invoke('schema:tables', connectionId, schema)
-    setTablesBySchema((prev) => ({ ...prev, [schema]: tables }))
+    setLoadingKeys((prev) => new Set(prev).add(schema))
+    try {
+      const tables = await invoke('schema:tables', connectionId, schema)
+      setTablesBySchema((prev) => ({ ...prev, [schema]: tables }))
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoadingKeys((prev) => { const n = new Set(prev); n.delete(schema); return n })
+    }
   }
 
   const loadColumns = async (schema: string, table: string) => {
     const key = `${schema}.${table}`
     if (columnsByTable[key]) return
-    const columns = await invoke('schema:columns', connectionId, table)
-    setColumnsByTable((prev) => ({ ...prev, [key]: columns }))
+    setLoadingKeys((prev) => new Set(prev).add(key))
+    try {
+      const columns = await invoke('schema:columns', connectionId, table)
+      setColumnsByTable((prev) => ({ ...prev, [key]: columns }))
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoadingKeys((prev) => { const n = new Set(prev); n.delete(key); return n })
+    }
   }
 
   const toggle = async (key: string, onExpand?: () => Promise<void>) => {
@@ -53,19 +101,50 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     updateTabContent(activeTabId, `SELECT *\nFROM ${schema}.${table}\nLIMIT 100;`)
   }
 
+  if (loadingKeys.has('root')) {
+    return (
+      <div className="flex items-center gap-2 px-2 py-2" style={{ color: 'var(--color-muted-foreground)' }}>
+        <Loader2 size={11} className="animate-spin shrink-0" />
+        <span className="text-xs">Loading schema...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-start gap-1.5 px-2 py-2" style={{ color: 'var(--color-destructive)' }}>
+        <AlertCircle size={11} className="shrink-0 mt-0.5" />
+        <span className="text-xs break-all">{error}</span>
+      </div>
+    )
+  }
+
+  if (schemas.length === 0) {
+    return (
+      <div className="px-2 py-2" style={{ color: 'var(--color-muted-foreground)', fontSize: 11 }}>
+        No schemas found
+      </div>
+    )
+  }
+
   return (
-    <div className="select-none text-sm">
+    <div className="select-none" style={{ fontSize: 12 }}>
       {schemas.map((schema) => (
         <div key={schema}>
           <button
             onClick={() => toggle(schema, () => loadTables(schema))}
-            className="flex w-full items-center gap-1 px-2 py-1 hover:bg-muted"
+            className="flex w-full items-center gap-1 px-2 py-0.5 transition-colors"
+            style={{ color: 'var(--color-muted-foreground)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-muted)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
-            {expanded.has(schema)
-              ? <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-              : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
-            <Database className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="font-medium">{schema}</span>
+            {loadingKeys.has(schema)
+              ? <Loader2 size={11} className="animate-spin shrink-0" />
+              : expanded.has(schema)
+                ? <ChevronDown size={11} className="shrink-0" />
+                : <ChevronRight size={11} className="shrink-0" />}
+            <Database size={11} className="shrink-0" />
+            <span className="font-medium truncate">{schema}</span>
           </button>
 
           {expanded.has(schema) && (tablesBySchema[schema] ?? []).map((table) => {
@@ -75,23 +154,41 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                 <button
                   onClick={() => toggle(tableKey, () => loadColumns(schema, table.name))}
                   onDoubleClick={() => insertTableQuery(schema, table.name)}
-                  className="flex w-full items-center gap-1 py-0.5 pl-6 pr-2 hover:bg-muted"
+                  className="flex w-full items-center gap-1 py-0.5 pl-5 pr-2 transition-colors"
+                  style={{ color: 'var(--color-muted-foreground)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-muted)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  title="Double-click to SELECT * from this table"
                 >
-                  {expanded.has(tableKey)
-                    ? <ChevronDown className="h-3 w-3 shrink-0" />
-                    : <ChevronRight className="h-3 w-3 shrink-0" />}
-                  <Table2 className={cn('h-3.5 w-3.5 shrink-0', table.type === 'view' ? 'text-blue-500' : 'text-orange-500')} />
-                  <span>{table.name}</span>
+                  {loadingKeys.has(tableKey)
+                    ? <Loader2 size={10} className="animate-spin shrink-0" />
+                    : expanded.has(tableKey)
+                      ? <ChevronDown size={10} className="shrink-0" />
+                      : <ChevronRight size={10} className="shrink-0" />}
+                  <Table2
+                    size={11}
+                    className="shrink-0"
+                    style={{ color: table.type === 'view' ? '#60a5fa' : '#f97316' }}
+                  />
+                  <span className="truncate" style={{ color: 'var(--color-foreground)' }}>{table.name}</span>
                 </button>
 
                 {expanded.has(tableKey) && (columnsByTable[tableKey] ?? []).map((col) => (
                   <div
                     key={col.name}
-                    className="flex items-center gap-1 py-0.5 pl-12 pr-2 text-xs text-muted-foreground hover:bg-muted"
+                    className="flex items-center gap-1 py-0.5 pl-10 pr-2"
+                    style={{ color: 'var(--color-muted-foreground)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-muted)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <Columns3 className="h-3 w-3 shrink-0" />
-                    <span className={cn(col.isPrimaryKey && 'text-yellow-500 font-medium')}>{col.name}</span>
-                    <span className="ml-auto text-[10px]">{col.type}</span>
+                    <Columns3 size={10} className="shrink-0" />
+                    <span
+                      className={cn('truncate', col.isPrimaryKey && 'font-semibold')}
+                      style={{ color: col.isPrimaryKey ? '#eab308' : col.isForeignKey ? '#f97316' : 'var(--color-foreground)', fontSize: 11 }}
+                    >
+                      {col.name}
+                    </span>
+                    <span className="ml-auto shrink-0" style={{ fontSize: 10, color: 'var(--color-muted-foreground)' }}>{col.type}</span>
                   </div>
                 ))}
               </div>

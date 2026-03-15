@@ -21,8 +21,10 @@ export class ConnectionManager {
   }
 
   async saveConnection(config: ConnectionConfig): Promise<void> {
-    // Store password securely in OS keychain
-    await keychain.setPassword(`conn-${config.id}`, config.password)
+    // Only update keychain if a non-empty password was provided (edit mode may omit it)
+    if (config.password) {
+      await keychain.setPassword(`conn-${config.id}`, config.password)
+    }
 
     // Save everything except password to electron-store
     const { password: _password, ...rest } = config

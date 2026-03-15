@@ -278,7 +278,12 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                 {testResult.success ? '✓ Connection successful' : `✗ ${testResult.error}`}
               </p>
             )}
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-2 justify-end items-center">
+              {isEditing && !form.password && (
+                <span className="text-xs mr-auto" style={{ color: 'var(--color-muted-foreground)' }}>
+                  Enter password to test
+                </span>
+              )}
               <Button variant="outline" onClick={handleTest} disabled={testing || !canTest}>
                 {testing ? 'Testing...' : 'Test Connection'}
               </Button>
