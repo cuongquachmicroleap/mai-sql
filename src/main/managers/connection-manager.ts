@@ -50,13 +50,18 @@ export class ConnectionManager {
 
   async testConnection(config: ConnectionConfig): Promise<{ success: boolean; error?: string }> {
     const driver = createDriver(config)
+    let connected = false
     try {
       await driver.connect()
+      connected = true
       const ok = await driver.testConnection()
-      await driver.disconnect()
       return { success: ok }
     } catch (err) {
       return { success: false, error: (err as Error).message }
+    } finally {
+      if (connected) {
+        await driver.disconnect().catch(() => {/* ignore disconnect errors */})
+      }
     }
   }
 
