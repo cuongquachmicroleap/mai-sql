@@ -1,4 +1,5 @@
 import { type ReactNode, type CSSProperties } from 'react'
+import { X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 interface DialogProps {
@@ -13,10 +14,43 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
         className="fixed inset-0"
-        style={{ background: 'rgba(0,0,0,0.6)' }}
+        style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(2px)' }}
         onClick={() => onOpenChange(false)}
       />
-      <div className="relative z-50">{children}</div>
+      <div className="relative z-50" style={{ width: '100%', maxWidth: 480, margin: '0 16px' }}>
+        {children}
+        {/* Close button — top right of modal */}
+        <button
+          onClick={() => onOpenChange(false)}
+          style={{
+            position: 'absolute',
+            top: 14,
+            right: 14,
+            width: 24,
+            height: 24,
+            borderRadius: 6,
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#555560',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background 0.12s, color 0.12s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+            e.currentTarget.style.color = '#ECECEC'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = '#555560'
+          }}
+          title="Close"
+        >
+          <X size={14} />
+        </button>
+      </div>
     </div>
   )
 }

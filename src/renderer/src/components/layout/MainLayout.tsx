@@ -86,6 +86,25 @@ export function MainLayout() {
       className="flex flex-col h-screen overflow-hidden"
       style={{ background: '#0C0C0E', color: '#ECECEC' }}
     >
+      {/* Custom titlebar drag region — sits above everything, draggable */}
+      <div
+        style={{
+          height: 40,
+          background: '#0C0C0E',
+          flexShrink: 0,
+          // @ts-ignore electron CSS
+          WebkitAppRegion: 'drag',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <span style={{ fontSize: 12, color: '#555560', fontWeight: 500, letterSpacing: '0.02em', userSelect: 'none' }}>
+          MAI SQL
+        </span>
+      </div>
+
       <div className="flex flex-1 overflow-hidden min-h-0">
 
         {/* Activity bar — 44px */}
