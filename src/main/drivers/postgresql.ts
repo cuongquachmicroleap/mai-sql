@@ -87,12 +87,12 @@ export class PostgreSQLDriver implements IDataSource {
     return result.rows.map((r) => String(r['datname']))
   }
 
-  async getSchemas(database: string): Promise<string[]> {
+  async getSchemas(_database: string): Promise<string[]> {
     const result = await this.execute(
       `SELECT schema_name FROM information_schema.schemata
-       WHERE catalog_name = $1 AND schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
-       ORDER BY schema_name`,
-      [database]
+       WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast', 'pg_temp_1', 'pg_toast_temp_1')
+         AND schema_name NOT LIKE 'pg_%'
+       ORDER BY schema_name`
     )
     return result.rows.map((r) => String(r['schema_name']))
   }
