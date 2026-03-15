@@ -14,11 +14,12 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
       style={{
         height: 32,
         borderBottom: '1px solid var(--color-border)',
-        background: '#0a0a0a',
+        background: 'var(--color-bg-elevated)',
         fontSize: 11,
+        fontFamily: 'var(--font-sans)',
       }}
     >
-      <div className="flex items-center gap-1.5 font-medium" style={{ color: 'var(--color-muted-foreground)' }}>
+      <div className="flex items-center gap-1.5 font-medium" style={{ color: 'var(--color-text-muted)' }}>
         <Table2 size={12} />
         <span>Results</span>
       </div>
@@ -33,24 +34,38 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
       )}
 
       {error && !isExecuting && (
-        <div className="flex items-center gap-1.5 min-w-0" style={{ color: 'var(--color-destructive)' }}>
-          <XCircle size={11} className="shrink-0" />
-          <span className="truncate">{error}</span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          {/* Status pill: error */}
+          <span
+            className="flex items-center gap-1 rounded-full px-1.5 py-0.5"
+            style={{ background: 'rgba(239,68,68,0.15)', color: '#EF4444' }}
+          >
+            <XCircle size={10} className="shrink-0" />
+            <span>Error</span>
+          </span>
+          <span className="truncate" style={{ color: 'var(--color-text-secondary)' }}>{error}</span>
         </div>
       )}
 
       {result && !error && !isExecuting && (
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5" style={{ color: '#22c55e' }}>
-            <CheckCircle2 size={11} />
-            <span>{result.rowCount.toLocaleString()} rows</span>
-          </div>
-          <span style={{ color: 'var(--color-muted-foreground)' }}>{result.executionTimeMs}ms</span>
+          {/* Status pill: success */}
+          <span
+            className="flex items-center gap-1 rounded-full px-1.5 py-0.5"
+            style={{ background: 'rgba(34,197,94,0.15)', color: '#22C55E' }}
+          >
+            <CheckCircle2 size={10} />
+            <span>OK</span>
+          </span>
+          <span style={{ color: 'var(--color-text-secondary)' }}>
+            {result.rowCount.toLocaleString()} rows
+          </span>
+          <span style={{ color: 'var(--color-text-muted)' }}>{result.executionTimeMs}ms</span>
         </div>
       )}
 
       {!result && !error && !isExecuting && (
-        <span style={{ color: 'var(--color-muted-foreground)' }}>Ready</span>
+        <span style={{ color: 'var(--color-text-muted)' }}>Ready</span>
       )}
     </div>
   )

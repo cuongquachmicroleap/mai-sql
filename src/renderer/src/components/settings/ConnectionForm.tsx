@@ -119,6 +119,20 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
   const canSave = !!form.host && !!form.database && !!form.username && (isEditing || !!form.password)
   const canTest = !!form.host && !!form.database && !!form.username && !!form.password
 
+  const inputStyle: React.CSSProperties = {
+    height: 34,
+    background: 'var(--color-bg-subtle)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 6,
+    padding: '0 10px',
+    fontSize: 13,
+    color: 'var(--color-text-primary)',
+    width: '100%',
+    outline: 'none',
+    fontFamily: 'var(--font-sans)',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+  }
+
   return (
     <>
       {!isEditing && (
@@ -139,7 +153,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                   setField('type', type)
                   setField('port', DIALECT_DEFAULTS[type].port)
                 }}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                style={inputStyle}
               >
                 {(Object.entries(DIALECT_DEFAULTS) as [SQLDialect, { port: number; label: string }][]).map(([k, v]) => (
                   <option key={k} value={k}>{v.label}</option>
@@ -224,7 +238,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                             placeholder="bastion.example.com"
                             value={form.sshTunnel?.host ?? ''}
                             onChange={(e) => setSshField('host', e.target.value)}
-                            className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                            style={inputStyle}
                           />
                         </div>
                         <div className="grid gap-1.5">
@@ -233,7 +247,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                             type="number"
                             value={form.sshTunnel?.port ?? 22}
                             onChange={(e) => setSshField('port', Number(e.target.value))}
-                            className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                            style={inputStyle}
                           />
                         </div>
                       </div>
@@ -244,7 +258,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                           placeholder="ubuntu"
                           value={form.sshTunnel?.username ?? ''}
                           onChange={(e) => setSshField('username', e.target.value)}
-                          className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                          style={inputStyle}
                         />
                       </div>
                       <div className="grid gap-1.5">
@@ -254,7 +268,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                           placeholder="~/.ssh/id_rsa"
                           value={form.sshTunnel?.privateKey ?? ''}
                           onChange={(e) => setSshField('privateKey', e.target.value)}
-                          className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                          style={inputStyle}
                         />
                       </div>
                       <div className="grid gap-1.5">
@@ -264,7 +278,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                           placeholder="Leave blank for key-based auth"
                           value={form.sshTunnel?.password ?? ''}
                           onChange={(e) => setSshField('password', e.target.value)}
-                          className="bg-[var(--color-input)] border border-[var(--color-border)] rounded text-xs px-2 py-1.5 text-[var(--color-foreground)] w-full outline-none focus:ring-1 focus:ring-[var(--color-ring)]"
+                          style={inputStyle}
                         />
                       </div>
                     </div>

@@ -35,8 +35,8 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 px-3 py-3">
-        <Loader2 size={12} className="animate-spin" style={{ color: 'var(--color-muted-foreground)' }} />
-        <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>Loading...</span>
+        <Loader2 size={12} className="animate-spin" style={{ color: 'var(--color-text-muted)' }} />
+        <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>Loading...</span>
       </div>
     )
   }
@@ -44,8 +44,8 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
   if (connections.length === 0) {
     return (
       <div className="px-3 py-4 text-center">
-        <Database size={24} className="mx-auto mb-2 opacity-20" style={{ color: 'var(--color-muted-foreground)' }} />
-        <p className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>No connections yet</p>
+        <Database size={24} className="mx-auto mb-2 opacity-20" style={{ color: 'var(--color-text-muted)' }} />
+        <p style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>No connections yet</p>
       </div>
     )
   }
@@ -60,13 +60,20 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
         return (
           <div key={conn.id}>
             <div
-              className="group flex items-center gap-2 px-2 py-1.5 mx-1 rounded cursor-pointer transition-colors"
+              className="group flex items-center gap-2 px-2 mx-1 rounded cursor-pointer transition-colors"
               style={{
-                background: isActive ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent',
+                height: 30,
+                background: isActive ? 'rgba(59,130,246,0.12)' : 'transparent',
               }}
-              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'var(--color-muted)' }}
+              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'var(--color-bg-subtle)' }}
               onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
             >
+              {/* Connection status dot */}
+              <span
+                className="h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{ background: isActive ? '#22C55E' : 'var(--color-text-muted)' }}
+              />
+
               {/* DB type badge */}
               <div
                 className="flex h-5 w-7 shrink-0 items-center justify-center rounded text-white"
@@ -81,20 +88,19 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
                 className="flex flex-1 items-center gap-1.5 min-w-0 text-left"
               >
                 <span
-                  className="truncate text-xs"
-                  style={{ color: isActive ? 'var(--color-foreground)' : 'var(--color-muted-foreground)' }}
+                  className="truncate"
+                  style={{
+                    fontSize: 12,
+                    fontFamily: 'var(--font-sans)',
+                    color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                  }}
                 >
                   {conn.name}
                 </span>
-                {isActive ? (
+                {!isActive && (
                   <span
-                    className="h-1.5 w-1.5 shrink-0 rounded-full"
-                    style={{ background: '#22c55e' }}
-                  />
-                ) : (
-                  <span
-                    className="shrink-0 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity px-1 rounded"
-                    style={{ color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}
+                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity px-1 rounded"
+                    style={{ fontSize: 10, color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}
                   >
                     Connect
                   </span>
@@ -106,9 +112,9 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
                 <button
                   onClick={(e) => { e.stopPropagation(); onEdit(conn) }}
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ color: 'var(--color-muted-foreground)' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-foreground)'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-muted-foreground)'}
+                  style={{ color: 'var(--color-text-muted)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
                   title="Edit connection"
                 >
                   <Pencil size={11} />
@@ -119,9 +125,9 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
               <button
                 onClick={(e) => { e.stopPropagation(); deleteConnection(conn.id) }}
                 className="flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ color: 'var(--color-muted-foreground)' }}
+                style={{ color: 'var(--color-text-muted)' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-destructive)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-muted-foreground)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
                 title="Delete connection"
               >
                 <Trash2 size={11} />

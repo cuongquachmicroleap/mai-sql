@@ -102,15 +102,20 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
 
   const header = (
     <div className="flex items-center justify-between px-2 py-1 group">
-      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-muted-foreground)', fontSize: 10 }}>Schema</span>
+      <span
+        className="font-semibold uppercase tracking-wider"
+        style={{ color: 'var(--color-text-muted)', fontSize: 10 }}
+      >
+        Schema
+      </span>
       <button
         onClick={loadSchema}
         disabled={isRefreshing}
         title="Refresh schema"
         className="flex items-center justify-center h-4 w-4 rounded transition-colors"
-        style={{ color: 'var(--color-muted-foreground)' }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-foreground)')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-muted-foreground)')}
+        style={{ color: 'var(--color-text-muted)' }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-text-muted)')}
       >
         <RefreshCw size={11} className={isRefreshing ? 'animate-spin' : ''} />
       </button>
@@ -121,9 +126,9 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     return (
       <>
         {header}
-        <div className="flex items-center gap-2 px-2 py-2" style={{ color: 'var(--color-muted-foreground)' }}>
+        <div className="flex items-center gap-2 px-2 py-2" style={{ color: 'var(--color-text-muted)' }}>
           <Loader2 size={11} className="animate-spin shrink-0" />
-          <span className="text-xs">Loading schema...</span>
+          <span style={{ fontSize: 12 }}>Loading schema...</span>
         </div>
       </>
     )
@@ -135,7 +140,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
         {header}
         <div className="flex items-start gap-1.5 px-2 py-2" style={{ color: 'var(--color-destructive)' }}>
           <AlertCircle size={11} className="shrink-0 mt-0.5" />
-          <span className="text-xs break-all">{error}</span>
+          <span className="break-all" style={{ fontSize: 12 }}>{error}</span>
         </div>
       </>
     )
@@ -145,7 +150,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     return (
       <>
         {header}
-        <div className="px-2 py-2" style={{ color: 'var(--color-muted-foreground)', fontSize: 11 }}>
+        <div className="px-2 py-2" style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>
           No schemas found
         </div>
       </>
@@ -153,15 +158,16 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
   }
 
   return (
-    <div className="select-none" style={{ fontSize: 12 }}>
+    <div className="select-none" style={{ fontSize: 12, fontFamily: 'var(--font-sans)' }}>
       {header}
       {schemas.map((schema) => (
         <div key={schema}>
+          {/* Schema row — 0px indent */}
           <button
             onClick={() => toggle(schema, () => loadTables(schema))}
-            className="flex w-full items-center gap-1 px-2 py-0.5 transition-colors"
-            style={{ color: 'var(--color-muted-foreground)' }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-muted)')}
+            className="flex w-full items-center gap-1 px-2 transition-colors"
+            style={{ height: 28, color: 'var(--color-text-secondary)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-bg-subtle)')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             {loadingKeys.has(schema)
@@ -169,7 +175,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
               : expanded.has(schema)
                 ? <ChevronDown size={11} className="shrink-0" />
                 : <ChevronRight size={11} className="shrink-0" />}
-            <Database size={11} className="shrink-0" />
+            <Database size={11} className="shrink-0" style={{ color: '#60a5fa' }} />
             <span className="font-medium truncate">{schema}</span>
           </button>
 
@@ -177,12 +183,13 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
             const tableKey = `${schema}.${table.name}`
             return (
               <div key={table.name}>
+                {/* Table row — 14px indent */}
                 <button
                   onClick={() => toggle(tableKey, () => loadColumns(schema, table.name))}
                   onDoubleClick={() => insertTableQuery(schema, table.name)}
-                  className="flex w-full items-center gap-1 py-0.5 pl-5 pr-2 transition-colors"
-                  style={{ color: 'var(--color-muted-foreground)' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-muted)')}
+                  className="flex w-full items-center gap-1 pr-2 transition-colors"
+                  style={{ height: 28, paddingLeft: 14, color: 'var(--color-text-secondary)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-bg-subtle)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   title="Double-click to SELECT * from this table"
                 >
@@ -196,25 +203,31 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                     className="shrink-0"
                     style={{ color: table.type === 'view' ? '#60a5fa' : '#f97316' }}
                   />
-                  <span className="truncate" style={{ color: 'var(--color-foreground)' }}>{table.name}</span>
+                  <span className="truncate" style={{ color: 'var(--color-text-primary)' }}>{table.name}</span>
                 </button>
 
                 {expanded.has(tableKey) && (columnsByTable[tableKey] ?? []).map((col) => (
+                  /* Column row — 28px indent */
                   <div
                     key={col.name}
-                    className="flex items-center gap-1 py-0.5 pl-10 pr-2"
-                    style={{ color: 'var(--color-muted-foreground)' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-muted)')}
+                    className="flex items-center gap-1 pr-2"
+                    style={{ height: 28, paddingLeft: 28, color: 'var(--color-text-muted)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-bg-subtle)')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <Columns3 size={10} className="shrink-0" />
+                    <Columns3 size={10} className="shrink-0" style={{ color: '#606068' }} />
                     <span
                       className={cn('truncate', col.isPrimaryKey && 'font-semibold')}
-                      style={{ color: col.isPrimaryKey ? '#eab308' : col.isForeignKey ? '#f97316' : 'var(--color-foreground)', fontSize: 11 }}
+                      style={{
+                        color: col.isPrimaryKey ? '#eab308' : col.isForeignKey ? '#f97316' : 'var(--color-text-primary)',
+                        fontSize: 11,
+                      }}
                     >
                       {col.name}
                     </span>
-                    <span className="ml-auto shrink-0" style={{ fontSize: 10, color: 'var(--color-muted-foreground)' }}>{col.type}</span>
+                    <span className="ml-auto shrink-0" style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>
+                      {col.type}
+                    </span>
                   </div>
                 ))}
               </div>
