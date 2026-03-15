@@ -42,14 +42,10 @@ export class PostgreSQLDriver implements IDataSource {
   }
 
   async testConnection(): Promise<boolean> {
-    try {
-      const client = await this.pool!.connect()
-      await client.query('SELECT 1')
-      client.release()
-      return true
-    } catch {
-      return false
-    }
+    const client = await this.pool!.connect()
+    await client.query('SELECT 1')
+    client.release()
+    return true
   }
 
   async execute(query: string, params?: unknown[]): Promise<QueryResult> {

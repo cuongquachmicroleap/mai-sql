@@ -73,12 +73,16 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
     }))
 
   const handleTest = async () => {
-    if (!form.host || !form.database || !form.username || !form.password) return
     setTesting(true)
     setTestResult(null)
-    const result = await invoke('connection:test', form as ConnectionConfig)
-    setTestResult(result)
-    setTesting(false)
+    try {
+      const result = await invoke('connection:test', form as ConnectionConfig)
+      setTestResult(result)
+    } catch (err) {
+      setTestResult({ success: false, error: (err as Error).message })
+    } finally {
+      setTesting(false)
+    }
   }
 
   const handleClose = () => {
@@ -113,7 +117,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
   }
 
   const canSave = !!form.host && !!form.database && !!form.username && (isEditing || !!form.password)
-  const canTest = !!form.host && !!form.password
+  const canTest = !!form.host && !!form.database && !!form.username && !!form.password
 
   return (
     <>
