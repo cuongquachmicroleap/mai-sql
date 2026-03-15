@@ -16,110 +16,103 @@ import { Database, Settings, ChevronLeft, ChevronRight, Network, ArchiveRestore 
 
 type ActiveView = 'editor' | 'er-diagram' | 'backup'
 
-const MIN_SIDEBAR_WIDTH = 180
-const MAX_SIDEBAR_WIDTH = 420
-const DEFAULT_SIDEBAR_WIDTH = 240
+const MIN_SIDEBAR = 160
+const MAX_SIDEBAR = 480
+const DEFAULT_SIDEBAR = 240
+const MIN_RESULTS = 120
+const MAX_RESULTS = 600
+const DEFAULT_RESULTS = 240
 
 export function MainLayout() {
   useConnectionStore()
   const { tabs, activeTabId } = useEditorStore()
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0]
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH)
-  const [resultsHeight] = useState(260)
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR)
+  const [resultsHeight, setResultsHeight] = useState(DEFAULT_RESULTS)
   const [activeView, setActiveView] = useState<ActiveView>('editor')
   const [editingConnection, setEditingConnection] = useState<SavedConnection | null>(null)
 
-  const isDragging = useRef(false)
-  const dragStartX = useRef(0)
-  const dragStartWidth = useRef(DEFAULT_SIDEBAR_WIDTH)
-
-  const handleDragMouseDown = useCallback((e: React.MouseEvent) => {
+  // Sidebar resize
+  const sidebarDragging = useRef(false)
+  const handleSidebarDrag = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
-    isDragging.current = true
-    dragStartX.current = e.clientX
-    dragStartWidth.current = sidebarWidth
-
-    const onMouseMove = (ev: MouseEvent) => {
-      if (!isDragging.current) return
-      const delta = ev.clientX - dragStartX.current
-      const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, dragStartWidth.current + delta))
-      setSidebarWidth(newWidth)
+    sidebarDragging.current = true
+    const startX = e.clientX
+    const startW = sidebarWidth
+    const onMove = (ev: MouseEvent) => {
+      if (!sidebarDragging.current) return
+      setSidebarWidth(Math.min(MAX_SIDEBAR, Math.max(MIN_SIDEBAR, startW + ev.clientX - startX)))
     }
-
-    const onMouseUp = () => {
-      isDragging.current = false
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mouseup', onMouseUp)
+    const onUp = () => {
+      sidebarDragging.current = false
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
     }
-
-    document.addEventListener('mousemove', onMouseMove)
-    document.addEventListener('mouseup', onMouseUp)
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'
   }, [sidebarWidth])
+
+  // Results panel resize
+  const resultsDragging = useRef(false)
+  const handleResultsDrag = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    resultsDragging.current = true
+    const startY = e.clientY
+    const startH = resultsHeight
+    const onMove = (ev: MouseEvent) => {
+      if (!resultsDragging.current) return
+      setResultsHeight(Math.min(MAX_RESULTS, Math.max(MIN_RESULTS, startH - (ev.clientY - startY))))
+    }
+    const onUp = () => {
+      resultsDragging.current = false
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+    document.body.style.cursor = 'row-resize'
+    document.body.style.userSelect = 'none'
+  }, [resultsHeight])
 
   return (
     <div
       className="flex flex-col h-screen overflow-hidden"
       style={{ background: 'var(--color-bg-base)', color: 'var(--color-text-primary)' }}
     >
-      {/* Top area: activity bar + sidebar + main */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden min-h-0">
 
-        {/* Activity bar (far left, icon strip) */}
+        {/* Activity bar */}
         <div
-          className="flex flex-col items-center gap-1 py-2 shrink-0"
-          style={{
-            width: 40,
-            background: 'var(--color-bg-base)',
-            borderRight: '1px solid var(--color-border)',
-          }}
+          className="flex flex-col items-center gap-0.5 py-2 shrink-0"
+          style={{ width: 44, background: 'var(--color-bg-base)', borderRight: '1px solid var(--color-border)' }}
         >
-          <button
+          <ActivityBtn
+            icon={<Database size={18} />}
+            active={!sidebarCollapsed}
             onClick={() => { setSidebarCollapsed((v) => !v); setActiveView('editor') }}
-            className="flex h-9 w-9 items-center justify-center rounded transition-colors"
-            style={{
-              color: (!sidebarCollapsed || activeView === 'editor') ? 'var(--color-primary)' : 'var(--color-text-muted)',
-            }}
-            onMouseEnter={(e) => { if (sidebarCollapsed) e.currentTarget.style.color = 'var(--color-text-primary)' }}
-            onMouseLeave={(e) => { if (sidebarCollapsed) e.currentTarget.style.color = 'var(--color-text-muted)' }}
-            title="Toggle sidebar"
-          >
-            <Database size={18} />
-          </button>
-          <button
+            title="Explorer"
+          />
+          <ActivityBtn
+            icon={<Network size={18} />}
+            active={activeView === 'er-diagram'}
             onClick={() => setActiveView((v) => v === 'er-diagram' ? 'editor' : 'er-diagram')}
-            className="flex h-9 w-9 items-center justify-center rounded transition-colors"
-            style={{ color: activeView === 'er-diagram' ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
-            onMouseEnter={(e) => { if (activeView !== 'er-diagram') e.currentTarget.style.color = 'var(--color-text-primary)' }}
-            onMouseLeave={(e) => { if (activeView !== 'er-diagram') e.currentTarget.style.color = 'var(--color-text-muted)' }}
             title="ER Diagram"
-          >
-            <Network size={18} />
-          </button>
-          <button
+          />
+          <ActivityBtn
+            icon={<ArchiveRestore size={18} />}
+            active={activeView === 'backup'}
             onClick={() => setActiveView((v) => v === 'backup' ? 'editor' : 'backup')}
-            className="flex h-9 w-9 items-center justify-center rounded transition-colors"
-            style={{ color: activeView === 'backup' ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
-            onMouseEnter={(e) => { if (activeView !== 'backup') e.currentTarget.style.color = 'var(--color-text-primary)' }}
-            onMouseLeave={(e) => { if (activeView !== 'backup') e.currentTarget.style.color = 'var(--color-text-muted)' }}
             title="Backup & Restore"
-          >
-            <ArchiveRestore size={18} />
-          </button>
+          />
           <div className="flex-1" />
-          <button
-            className="flex h-9 w-9 items-center justify-center rounded transition-colors mb-1"
-            style={{ color: 'var(--color-text-muted)' }}
-            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
-            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
-            title="Settings"
-          >
-            <Settings size={18} />
-          </button>
+          <ActivityBtn icon={<Settings size={17} />} title="Settings" />
         </div>
 
         {/* Sidebar */}
@@ -128,124 +121,124 @@ export function MainLayout() {
             className="flex flex-col shrink-0 overflow-hidden relative"
             style={{ width: sidebarWidth, background: 'var(--color-bg-overlay)', borderRight: '1px solid var(--color-border)' }}
           >
-            {/* Sidebar header */}
+            {/* Header */}
             <div
-              className="flex items-center justify-between px-3 py-2 shrink-0"
-              style={{ borderBottom: '1px solid var(--color-border)', minHeight: 40 }}
+              className="flex items-center justify-between shrink-0"
+              style={{ height: 40, padding: '0 12px', borderBottom: '1px solid var(--color-border)' }}
             >
-              <span
-                className="font-semibold tracking-widest uppercase"
-                style={{ color: 'var(--color-text-muted)', fontSize: 10, letterSpacing: '0.1em' }}
-              >
+              <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
                 Explorer
               </span>
               <button
                 onClick={() => setSidebarCollapsed(true)}
-                className="flex h-5 w-5 items-center justify-center rounded transition-colors"
-                style={{ color: 'var(--color-text-muted)' }}
+                style={{ color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', borderRadius: 4, padding: 2 }}
                 onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
                 onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
               >
-                <ChevronLeft size={13} />
+                <ChevronLeft size={14} />
               </button>
             </div>
 
-            {/* New connection button */}
+            {/* New connection */}
             <div className="px-2 py-2 shrink-0" style={{ borderBottom: '1px solid var(--color-border)' }}>
               <ConnectionForm />
               {editingConnection && (
-                <ConnectionForm
-                  initialConnection={editingConnection}
-                  onClose={() => setEditingConnection(null)}
-                />
+                <ConnectionForm initialConnection={editingConnection} onClose={() => setEditingConnection(null)} />
               )}
             </div>
 
-            {/* Connections section */}
-            <div className="flex-1 overflow-y-auto">
-              <SectionHeader label="Connections" />
+            {/* Connections + schema tree */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <SectionLabel>Connections</SectionLabel>
               <ConnectionList onEdit={setEditingConnection} />
             </div>
 
-            {/* Drag handle */}
+            {/* Sidebar drag handle */}
             <div
-              onMouseDown={handleDragMouseDown}
-              className="absolute top-0 right-0 bottom-0 w-1 cursor-col-resize transition-colors"
-              style={{ background: 'transparent' }}
+              onMouseDown={handleSidebarDrag}
+              className="absolute top-0 right-0 bottom-0"
+              style={{ width: 4, cursor: 'col-resize' }}
               onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-primary)'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-              title="Drag to resize"
             />
           </div>
         )}
 
-        {/* Collapsed sidebar toggle */}
+        {/* Collapsed sidebar strip */}
         {sidebarCollapsed && (
           <button
             onClick={() => setSidebarCollapsed(false)}
-            className="flex items-center justify-center w-4 shrink-0 transition-all"
-            style={{ background: 'var(--color-border)', cursor: 'col-resize' }}
+            style={{ width: 4, background: 'var(--color-border)', cursor: 'col-resize', flexShrink: 0 }}
             onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-primary)'}
             onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-border)'}
             title="Expand sidebar"
           >
-            <ChevronRight size={10} style={{ color: 'var(--color-text-muted)' }} />
+            <ChevronRight size={8} style={{ color: 'transparent' }} />
           </button>
         )}
 
-        {/* Main editor area */}
-        <main className="flex flex-1 flex-col overflow-hidden" style={{ background: 'var(--color-bg-surface)' }}>
+        {/* Main area */}
+        <main className="flex flex-1 flex-col overflow-hidden min-w-0" style={{ background: 'var(--color-bg-surface)' }}>
           {activeView === 'backup' ? (
             <BackupRestore />
           ) : activeView === 'er-diagram' ? (
             <ERDiagram />
           ) : (
             <>
-              {/* Tab bar */}
               <TabBar />
 
               {activeTab ? (
-                <div className="flex flex-1 flex-col overflow-hidden">
-                  {/* Toolbar */}
+                <div className="flex flex-1 flex-col overflow-hidden min-h-0">
                   <EditorToolbar tabId={activeTab.id} />
 
-                  {/* Editor */}
-                  <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+                  {/* Editor — takes remaining space */}
+                  <div className="flex-1 overflow-hidden min-h-0">
                     <QueryEditor tabId={activeTab.id} />
                   </div>
 
-                  {/* Results panel */}
+                  {/* Results panel with drag-to-resize handle on top */}
                   <div
                     className="flex flex-col shrink-0 overflow-hidden"
                     style={{ height: resultsHeight, borderTop: '1px solid var(--color-border)' }}
                   >
+                    {/* Drag handle */}
+                    <div
+                      onMouseDown={handleResultsDrag}
+                      style={{
+                        height: 4,
+                        cursor: 'row-resize',
+                        flexShrink: 0,
+                        background: 'transparent',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-primary)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    />
+
                     <ResultsToolbar
                       result={activeTab.result}
                       error={activeTab.error}
                       isExecuting={activeTab.isExecuting}
                     />
-                    <div className="flex-1 overflow-hidden">
+                    <div className="flex-1 overflow-hidden min-h-0">
                       {activeTab.result ? (
                         <ResultsGrid result={activeTab.result} />
                       ) : (
                         <div
                           className="flex h-full items-center justify-center"
-                          style={{ color: 'var(--color-text-muted)', fontSize: 12 }}
+                          style={{ color: 'var(--color-text-muted)', fontSize: 13 }}
                         >
-                          Run a query to see results
+                          {activeTab.error ? null : 'Run a query to see results'}
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div
-                  className="flex flex-1 items-center justify-center"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  <div className="text-center space-y-2">
-                    <Database size={40} className="mx-auto opacity-20" />
-                    <p className="text-sm">Connect to a database to get started</p>
+                <div className="flex flex-1 items-center justify-center" style={{ color: 'var(--color-text-muted)' }}>
+                  <div className="text-center" style={{ gap: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Database size={36} style={{ opacity: 0.15 }} />
+                    <p style={{ fontSize: 14 }}>Connect to a database to get started</p>
+                    <p style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Select a connection in the sidebar or create a new one</p>
                   </div>
                 </div>
               )}
@@ -254,21 +247,41 @@ export function MainLayout() {
         </main>
       </div>
 
-      {/* Status bar at the bottom */}
       <StatusBar result={activeTab?.result} />
     </div>
   )
 }
 
-function SectionHeader({ label }: { label: string }) {
+function ActivityBtn({
+  icon, active, onClick, title
+}: {
+  icon: React.ReactNode
+  active?: boolean
+  onClick?: () => void
+  title?: string
+}) {
   return (
-    <div className="px-3 py-1.5 mt-1">
-      <span
-        className="font-semibold uppercase tracking-widest"
-        style={{ color: 'var(--color-text-muted)', fontSize: 10 }}
-      >
-        {label}
-      </span>
+    <button
+      onClick={onClick}
+      title={title}
+      className="flex items-center justify-center rounded transition-colors"
+      style={{
+        width: 36, height: 36,
+        color: active ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+        borderLeft: active ? '2px solid var(--color-primary)' : '2px solid transparent',
+      }}
+      onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = 'var(--color-text-primary)' }}
+      onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = 'var(--color-text-muted)' }}
+    >
+      {icon}
+    </button>
+  )
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ padding: '10px 12px 4px', fontSize: 11, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+      {children}
     </div>
   )
 }
