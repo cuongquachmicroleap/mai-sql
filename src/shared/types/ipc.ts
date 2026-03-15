@@ -22,6 +22,12 @@ export interface IPCChannels {
   'schema:tables': (connectionId: string, schema: string) => Promise<TableInfo[]>
   'schema:columns': (connectionId: string, table: string) => Promise<ColumnInfo[]>
   'schema:relationships': (connectionId: string, schema: string) => Promise<Relationship[]>
+
+  // Backup / Restore
+  'backup:export': (connectionId: string, database: string, tables: string[], outputPath: string) => Promise<{ success: boolean; rowCount: number; error?: string }>
+  'backup:import': (connectionId: string, database: string, filePath: string) => Promise<{ success: boolean; tablesRestored: number; error?: string }>
+  'backup:choose-save-path': (defaultName: string) => Promise<string | null>
+  'backup:choose-open-path': () => Promise<string | null>
 }
 
 // Helper to make IPC calls type-safe in the renderer

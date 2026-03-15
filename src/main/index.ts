@@ -58,3 +58,4 @@ app.on('window-all-closed', () => {
 import './ipc/connections'
 import './ipc/queries'
 import './ipc/schema'
+import './ipc/backup'

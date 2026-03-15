@@ -21,6 +21,12 @@ const api: IPCChannels = {
   'schema:tables': (connectionId, schema) => ipcRenderer.invoke('schema:tables', connectionId, schema),
   'schema:columns': (connectionId, table) => ipcRenderer.invoke('schema:columns', connectionId, table),
   'schema:relationships': (connectionId, schema) => ipcRenderer.invoke('schema:relationships', connectionId, schema),
+
+  // Backup / Restore
+  'backup:export': (connectionId, database, tables, outputPath) => ipcRenderer.invoke('backup:export', connectionId, database, tables, outputPath),
+  'backup:import': (connectionId, database, filePath) => ipcRenderer.invoke('backup:import', connectionId, database, filePath),
+  'backup:choose-save-path': (defaultName) => ipcRenderer.invoke('backup:choose-save-path', defaultName),
+  'backup:choose-open-path': () => ipcRenderer.invoke('backup:choose-open-path'),
 }
 
 contextBridge.exposeInMainWorld('api', api)

@@ -10,9 +10,10 @@ import { EditorToolbar } from '../editor/EditorToolbar'
 import { ResultsGrid } from '../results/ResultsGrid'
 import { ResultsToolbar } from '../results/ResultsToolbar'
 import { ERDiagram } from '../er-diagram/ERDiagram'
-import { Database, Settings, ChevronLeft, ChevronRight, Network } from 'lucide-react'
+import { BackupRestore } from '../backup/BackupRestore'
+import { Database, Settings, ChevronLeft, ChevronRight, Network, ArchiveRestore } from 'lucide-react'
 
-type ActiveView = 'editor' | 'er-diagram'
+type ActiveView = 'editor' | 'er-diagram' | 'backup'
 
 export function MainLayout() {
   const { activeConnectionId } = useConnectionStore()
@@ -43,6 +44,14 @@ export function MainLayout() {
           title="ER Diagram"
         >
           <Network size={16} />
+        </button>
+        <button
+          onClick={() => setActiveView((v) => v === 'backup' ? 'editor' : 'backup')}
+          className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:text-white"
+          style={{ color: activeView === 'backup' ? 'var(--color-primary)' : 'var(--color-muted-foreground)' }}
+          title="Backup & Restore"
+        >
+          <ArchiveRestore size={16} />
         </button>
         <div className="flex-1" />
         <button
@@ -108,7 +117,9 @@ export function MainLayout() {
 
       {/* Main editor area */}
       <main className="flex flex-1 flex-col overflow-hidden">
-        {activeView === 'er-diagram' ? (
+        {activeView === 'backup' ? (
+          <BackupRestore />
+        ) : activeView === 'er-diagram' ? (
           <ERDiagram />
         ) : (
           <>
