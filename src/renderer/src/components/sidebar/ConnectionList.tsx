@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
-import { Database, Loader2, Trash2 } from 'lucide-react'
+import { Database, Loader2, Pencil, Trash2 } from 'lucide-react'
 import { useConnectionStore } from '../../stores/connection-store'
+import { DatabaseTree } from './DatabaseTree'
+import type { SavedConnection } from '@shared/types/connection'
 
 const DIALECT_COLORS: Record<string, string> = {
   postgresql: '#336791',
@@ -20,7 +22,11 @@ const DIALECT_LABELS: Record<string, string> = {
   mssql: 'MS',
 }
 
-export function ConnectionList() {
+interface ConnectionListProps {
+  onEdit?: (connection: SavedConnection) => void
+}
+
+export function ConnectionList({ onEdit }: ConnectionListProps) {
   const { connections, activeConnectionId, loading, loadConnections, connectTo, disconnectFrom, deleteConnection } =
     useConnectionStore()
 
@@ -52,52 +58,82 @@ export function ConnectionList() {
         const label = DIALECT_LABELS[conn.type] ?? '??'
 
         return (
-          <div
-            key={conn.id}
-            className="group flex items-center gap-2 px-2 py-1.5 mx-1 rounded cursor-pointer transition-colors"
-            style={{
-              background: isActive ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent',
-            }}
-            onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'var(--color-muted)' }}
-            onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
-          >
-            {/* DB type badge */}
+          <div key={conn.id}>
             <div
-              className="flex h-5 w-7 shrink-0 items-center justify-center rounded text-white"
-              style={{ background: color, fontSize: 9, fontWeight: 700, letterSpacing: '0.03em' }}
+              className="group flex items-center gap-2 px-2 py-1.5 mx-1 rounded cursor-pointer transition-colors"
+              style={{
+                background: isActive ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent',
+              }}
+              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'var(--color-muted)' }}
+              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
             >
-              {label}
+              {/* DB type badge */}
+              <div
+                className="flex h-5 w-7 shrink-0 items-center justify-center rounded text-white"
+                style={{ background: color, fontSize: 9, fontWeight: 700, letterSpacing: '0.03em' }}
+              >
+                {label}
+              </div>
+
+              {/* Connection name / connect toggle */}
+              <button
+                onClick={() => isActive ? disconnectFrom(conn.id) : connectTo(conn.id)}
+                className="flex flex-1 items-center gap-1.5 min-w-0 text-left"
+              >
+                <span
+                  className="truncate text-xs"
+                  style={{ color: isActive ? 'var(--color-foreground)' : 'var(--color-muted-foreground)' }}
+                >
+                  {conn.name}
+                </span>
+                {isActive ? (
+                  <span
+                    className="h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ background: '#22c55e' }}
+                  />
+                ) : (
+                  <span
+                    className="shrink-0 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity px-1 rounded"
+                    style={{ color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}
+                  >
+                    Connect
+                  </span>
+                )}
+              </button>
+
+              {/* Edit */}
+              {onEdit && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(conn) }}
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ color: 'var(--color-muted-foreground)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-foreground)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-muted-foreground)'}
+                  title="Edit connection"
+                >
+                  <Pencil size={11} />
+                </button>
+              )}
+
+              {/* Delete */}
+              <button
+                onClick={(e) => { e.stopPropagation(); deleteConnection(conn.id) }}
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ color: 'var(--color-muted-foreground)' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-destructive)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-muted-foreground)'}
+                title="Delete connection"
+              >
+                <Trash2 size={11} />
+              </button>
             </div>
 
-            {/* Connection name */}
-            <button
-              onClick={() => isActive ? disconnectFrom(conn.id) : connectTo(conn.id)}
-              className="flex flex-1 items-center gap-1.5 min-w-0 text-left"
-            >
-              <span
-                className="truncate text-xs"
-                style={{ color: isActive ? 'var(--color-foreground)' : 'var(--color-muted-foreground)' }}
-              >
-                {conn.name}
-              </span>
-              {isActive && (
-                <span
-                  className="h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ background: '#22c55e' }}
-                />
-              )}
-            </button>
-
-            {/* Delete */}
-            <button
-              onClick={(e) => { e.stopPropagation(); deleteConnection(conn.id) }}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ color: 'var(--color-muted-foreground)' }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-destructive)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-muted-foreground)'}
-            >
-              <Trash2 size={11} />
-            </button>
+            {/* Inline schema tree for active connection */}
+            {isActive && (
+              <div className="ml-2 mt-0.5 mb-1">
+                <DatabaseTree connectionId={conn.id} />
+              </div>
+            )}
           </div>
         )
       })}

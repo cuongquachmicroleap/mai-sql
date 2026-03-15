@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useConnectionStore } from '../../stores/connection-store'
 import { useEditorStore } from '../../stores/editor-store'
 import { ConnectionList } from '../sidebar/ConnectionList'
-import { DatabaseTree } from '../sidebar/DatabaseTree'
 import { ConnectionForm } from '../settings/ConnectionForm'
+import type { SavedConnection } from '@shared/types/connection'
 import { TabBar } from '../editor/TabBar'
 import { QueryEditor } from '../editor/QueryEditor'
 import { EditorToolbar } from '../editor/EditorToolbar'
@@ -16,13 +16,14 @@ import { Database, Settings, ChevronLeft, ChevronRight, Network, ArchiveRestore 
 type ActiveView = 'editor' | 'er-diagram' | 'backup'
 
 export function MainLayout() {
-  const { activeConnectionId } = useConnectionStore()
+  useConnectionStore()
   const { tabs, activeTabId } = useEditorStore()
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0]
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [sidebarWidth] = useState(260)
   const [resultsHeight] = useState(260)
   const [activeView, setActiveView] = useState<ActiveView>('editor')
+  const [editingConnection, setEditingConnection] = useState<SavedConnection | null>(null)
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--color-background)', color: 'var(--color-foreground)' }}>
@@ -86,19 +87,18 @@ export function MainLayout() {
           {/* New connection button */}
           <div className="px-2 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
             <ConnectionForm />
+            {editingConnection && (
+              <ConnectionForm
+                initialConnection={editingConnection}
+                onClose={() => setEditingConnection(null)}
+              />
+            )}
           </div>
 
           {/* Connections section */}
           <div className="flex-1 overflow-y-auto">
             <SectionHeader label="Connections" />
-            <ConnectionList />
-
-            {activeConnectionId && (
-              <>
-                <SectionHeader label="Schema" />
-                <DatabaseTree connectionId={activeConnectionId} />
-              </>
-            )}
+            <ConnectionList onEdit={setEditingConnection} />
           </div>
         </div>
       )}

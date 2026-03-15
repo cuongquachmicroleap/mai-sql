@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
@@ -7,7 +7,7 @@ import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
-import type { ConnectionConfig, SQLDialect, SSHTunnelConfig } from '@shared/types/connection'
+import type { ConnectionConfig, SQLDialect, SSHTunnelConfig, SavedConnection } from '@shared/types/connection'
 
 const DIALECT_DEFAULTS: Record<SQLDialect, { port: number; label: string }> = {
   postgresql: { port: 5432, label: 'PostgreSQL' },
@@ -18,8 +18,15 @@ const DIALECT_DEFAULTS: Record<SQLDialect, { port: number; label: string }> = {
   mssql: { port: 1433, label: 'SQL Server' },
 }
 
-export function ConnectionForm() {
-  const [open, setOpen] = useState(false)
+interface ConnectionFormProps {
+  initialConnection?: SavedConnection | null
+  onClose?: () => void
+}
+
+export function ConnectionForm({ initialConnection, onClose }: ConnectionFormProps) {
+  const isEditing = !!initialConnection
+
+  const [open, setOpen] = useState(isEditing)
   const [form, setForm] = useState<Partial<ConnectionConfig>>({
     type: 'postgresql', host: 'localhost', port: 5432, ssl: false
   })
@@ -28,6 +35,33 @@ export function ConnectionForm() {
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [sshEnabled, setSshEnabled] = useState(false)
   const { loadConnections } = useConnectionStore()
+
+  // When editing, pre-fill form from the saved connection
+  useEffect(() => {
+    if (initialConnection) {
+      setOpen(true)
+      setForm({
+        id: initialConnection.id,
+        type: initialConnection.type,
+        name: initialConnection.name,
+        host: initialConnection.host,
+        port: initialConnection.port,
+        database: initialConnection.database,
+        username: initialConnection.username,
+        ssl: initialConnection.ssl,
+        sshTunnel: initialConnection.sshTunnel,
+        // password intentionally left blank — user must re-enter
+      })
+      setSshEnabled(!!initialConnection.sshTunnel)
+      setAdvancedOpen(!!initialConnection.ssl || !!initialConnection.sshTunnel)
+    } else {
+      setOpen(false)
+      setForm({ type: 'postgresql', host: 'localhost', port: 5432, ssl: false })
+      setSshEnabled(false)
+      setAdvancedOpen(false)
+    }
+    setTestResult(null)
+  }, [initialConnection])
 
   const setField = (key: keyof ConnectionConfig, value: unknown) =>
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -47,8 +81,20 @@ export function ConnectionForm() {
     setTesting(false)
   }
 
+  const handleClose = () => {
+    setOpen(false)
+    setTestResult(null)
+    if (!isEditing) {
+      setForm({ type: 'postgresql', host: 'localhost', port: 5432, ssl: false })
+      setSshEnabled(false)
+      setAdvancedOpen(false)
+    }
+    onClose?.()
+  }
+
   const handleSave = async () => {
-    if (!form.host || !form.database || !form.username || !form.password) return
+    if (!form.host || !form.database || !form.username) return
+    if (!isEditing && !form.password) return
     const config: ConnectionConfig = {
       id: form.id ?? nanoid(),
       name: form.name || `${form.host}/${form.database}`,
@@ -57,26 +103,27 @@ export function ConnectionForm() {
       port: form.port ?? DIALECT_DEFAULTS[form.type as SQLDialect].port,
       database: form.database,
       username: form.username,
-      password: form.password,
+      password: form.password ?? '',
       ssl: form.ssl,
       sshTunnel: sshEnabled ? form.sshTunnel : undefined,
     }
     await invoke('connection:save', config)
     await loadConnections()
-    setOpen(false)
-    setForm({ type: 'postgresql', host: 'localhost', port: 5432, ssl: false })
-    setSshEnabled(false)
-    setAdvancedOpen(false)
-    setTestResult(null)
+    handleClose()
   }
+
+  const canSave = !!form.host && !!form.database && !!form.username && (isEditing || !!form.password)
+  const canTest = !!form.host && !!form.password
 
   return (
     <>
-      <Button size="sm" className="w-full" onClick={() => setOpen(true)}>+ New Connection</Button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      {!isEditing && (
+        <Button size="sm" className="w-full" onClick={() => setOpen(true)}>+ New Connection</Button>
+      )}
+      <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose() }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>New Connection</DialogTitle>
+            <DialogTitle>{isEditing ? 'Edit Connection' : 'New Connection'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid gap-1.5">
@@ -119,8 +166,13 @@ export function ConnectionForm() {
                 <Input value={form.username ?? ''} onChange={(e) => setField('username', e.target.value)} />
               </div>
               <div className="grid gap-1.5">
-                <Label>Password</Label>
-                <Input type="password" value={form.password ?? ''} onChange={(e) => setField('password', e.target.value)} />
+                <Label>Password{isEditing && <span className="font-normal text-muted-foreground ml-1">(required)</span>}</Label>
+                <Input
+                  type="password"
+                  placeholder={isEditing ? 'Enter password to save' : ''}
+                  value={form.password ?? ''}
+                  onChange={(e) => setField('password', e.target.value)}
+                />
               </div>
             </div>
             {/* Advanced section */}
@@ -223,11 +275,11 @@ export function ConnectionForm() {
               </p>
             )}
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={handleTest} disabled={testing || !form.host || !form.password}>
+              <Button variant="outline" onClick={handleTest} disabled={testing || !canTest}>
                 {testing ? 'Testing...' : 'Test Connection'}
               </Button>
-              <Button onClick={handleSave} disabled={!form.host || !form.database || !form.username || !form.password}>
-                Save
+              <Button onClick={handleSave} disabled={!canSave}>
+                {isEditing ? 'Save Changes' : 'Save'}
               </Button>
             </div>
           </div>
