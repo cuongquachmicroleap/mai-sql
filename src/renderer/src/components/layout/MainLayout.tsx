@@ -9,7 +9,10 @@ import { QueryEditor } from '../editor/QueryEditor'
 import { EditorToolbar } from '../editor/EditorToolbar'
 import { ResultsGrid } from '../results/ResultsGrid'
 import { ResultsToolbar } from '../results/ResultsToolbar'
-import { Database, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ERDiagram } from '../er-diagram/ERDiagram'
+import { Database, Settings, ChevronLeft, ChevronRight, Network } from 'lucide-react'
+
+type ActiveView = 'editor' | 'er-diagram'
 
 export function MainLayout() {
   const { activeConnectionId } = useConnectionStore()
@@ -18,6 +21,7 @@ export function MainLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [sidebarWidth] = useState(260)
   const [resultsHeight] = useState(260)
+  const [activeView, setActiveView] = useState<ActiveView>('editor')
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--color-background)', color: 'var(--color-foreground)' }}>
@@ -25,12 +29,20 @@ export function MainLayout() {
       {/* Activity bar (far left, icon strip) */}
       <div className="flex flex-col items-center gap-1 py-2 w-10 shrink-0" style={{ background: '#0a0a0a', borderRight: '1px solid var(--color-border)' }}>
         <button
-          onClick={() => setSidebarCollapsed((v) => !v)}
+          onClick={() => { setSidebarCollapsed((v) => !v); setActiveView('editor') }}
           className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:text-white"
-          style={{ color: sidebarCollapsed ? 'var(--color-muted-foreground)' : 'var(--color-primary)' }}
+          style={{ color: (!sidebarCollapsed || activeView === 'editor') ? 'var(--color-primary)' : 'var(--color-muted-foreground)' }}
           title="Toggle sidebar"
         >
           <Database size={16} />
+        </button>
+        <button
+          onClick={() => setActiveView((v) => v === 'er-diagram' ? 'editor' : 'er-diagram')}
+          className="flex h-8 w-8 items-center justify-center rounded transition-colors hover:text-white"
+          style={{ color: activeView === 'er-diagram' ? 'var(--color-primary)' : 'var(--color-muted-foreground)' }}
+          title="ER Diagram"
+        >
+          <Network size={16} />
         </button>
         <div className="flex-1" />
         <button
@@ -96,47 +108,53 @@ export function MainLayout() {
 
       {/* Main editor area */}
       <main className="flex flex-1 flex-col overflow-hidden">
-        {/* Tab bar */}
-        <TabBar />
-
-        {activeTab ? (
-          <div className="flex flex-1 flex-col overflow-hidden">
-            {/* Toolbar */}
-            <EditorToolbar tabId={activeTab.id} />
-
-            {/* Editor */}
-            <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
-              <QueryEditor tabId={activeTab.id} />
-            </div>
-
-            {/* Results panel */}
-            <div
-              className="flex flex-col shrink-0 overflow-hidden"
-              style={{ height: resultsHeight, borderTop: '1px solid var(--color-border)' }}
-            >
-              <ResultsToolbar
-                result={activeTab.result}
-                error={activeTab.error}
-                isExecuting={activeTab.isExecuting}
-              />
-              <div className="flex-1 overflow-hidden">
-                {activeTab.result ? (
-                  <ResultsGrid result={activeTab.result} />
-                ) : (
-                  <div className="flex h-full items-center justify-center" style={{ color: 'var(--color-muted-foreground)', fontSize: 12 }}>
-                    Run a query to see results
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+        {activeView === 'er-diagram' ? (
+          <ERDiagram />
         ) : (
-          <div className="flex flex-1 items-center justify-center" style={{ color: 'var(--color-muted-foreground)' }}>
-            <div className="text-center space-y-2">
-              <Database size={40} className="mx-auto opacity-20" />
-              <p className="text-sm">Connect to a database to get started</p>
-            </div>
-          </div>
+          <>
+            {/* Tab bar */}
+            <TabBar />
+
+            {activeTab ? (
+              <div className="flex flex-1 flex-col overflow-hidden">
+                {/* Toolbar */}
+                <EditorToolbar tabId={activeTab.id} />
+
+                {/* Editor */}
+                <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+                  <QueryEditor tabId={activeTab.id} />
+                </div>
+
+                {/* Results panel */}
+                <div
+                  className="flex flex-col shrink-0 overflow-hidden"
+                  style={{ height: resultsHeight, borderTop: '1px solid var(--color-border)' }}
+                >
+                  <ResultsToolbar
+                    result={activeTab.result}
+                    error={activeTab.error}
+                    isExecuting={activeTab.isExecuting}
+                  />
+                  <div className="flex-1 overflow-hidden">
+                    {activeTab.result ? (
+                      <ResultsGrid result={activeTab.result} />
+                    ) : (
+                      <div className="flex h-full items-center justify-center" style={{ color: 'var(--color-muted-foreground)', fontSize: 12 }}>
+                        Run a query to see results
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-1 items-center justify-center" style={{ color: 'var(--color-muted-foreground)' }}>
+                <div className="text-center space-y-2">
+                  <Database size={40} className="mx-auto opacity-20" />
+                  <p className="text-sm">Connect to a database to get started</p>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
