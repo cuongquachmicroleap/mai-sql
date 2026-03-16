@@ -369,17 +369,17 @@ export function ERDiagram() {
     setLoading(true)
     setError(null)
     try {
-      const tables = await invoke('schema:tables', activeConnectionId, schema)
+      const tables = await invoke('schema:tables', activeConnectionId, schema, db)
 
       const columnEntries = await Promise.all(
         tables.map(async (t) => {
-          const cols = await invoke('schema:columns', activeConnectionId, t.name, schema)
+          const cols = await invoke('schema:columns', activeConnectionId, t.name, schema, db)
           return [t.name, cols] as [string, ColumnInfo[]]
         })
       )
       const columnsByTable: Record<string, ColumnInfo[]> = Object.fromEntries(columnEntries)
 
-      const relationships = await invoke('schema:relationships', activeConnectionId, schema)
+      const relationships = await invoke('schema:relationships', activeConnectionId, schema, db)
 
       const layouted = layoutNodes(tables, columnsByTable)
 
@@ -415,9 +415,12 @@ export function ERDiagram() {
     try {
       let targetDb = db
       if (!targetDb) {
-        const dbs = await invoke('schema:databases', activeConnectionId)
+        const [dbs, defDb] = await Promise.all([
+          invoke('schema:databases', activeConnectionId),
+          invoke('schema:default-database', activeConnectionId),
+        ])
         setDatabases(dbs)
-        targetDb = dbs[0] ?? ''
+        targetDb = defDb || dbs[0] || ''
         setSelectedDb(targetDb)
       }
       if (!targetDb) {

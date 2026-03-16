@@ -11,16 +11,16 @@ import {
   type NodeTypes,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { Loader2, AlertCircle, RefreshCw, GitBranch, Network } from 'lucide-react'
+import { Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useConnectionStore } from '../../stores/connection-store'
 import { useEditorStore } from '../../stores/editor-store'
 import { getLayoutedElements } from './layout'
-import { EDGE_STYLE, EDGE_STYLE_FK } from './styles'
+import { EDGE_STYLE } from './styles'
 import { DatabaseNode } from './nodes/DatabaseNode'
 import { SchemaNode } from './nodes/SchemaNode'
 import { TableNode } from './nodes/TableNode'
-import type { TableInfo, ColumnInfo, Relationship } from '@shared/types/schema'
+import type { TableInfo } from '@shared/types/schema'
 
 const nodeTypes: NodeTypes = {
   database: DatabaseNode,
@@ -28,149 +28,109 @@ const nodeTypes: NodeTypes = {
   table: TableNode,
 }
 
-type ViewMode = 'hierarchy' | 'relationships'
-
 interface MindmapViewProps {
   scopeDatabase?: string
   scopeSchema?: string
 }
 
-export function MindmapView({ scopeDatabase, scopeSchema }: MindmapViewProps) {
+export function MindmapView({ scopeDatabase }: MindmapViewProps) {
   const { activeConnectionId } = useConnectionStore()
   const connectionId = activeConnectionId
 
-  const [viewMode, setViewMode] = useState<ViewMode>(scopeSchema ? 'relationships' : 'hierarchy')
   const [databases, setDatabases] = useState<string[]>([])
   const [defaultDb, setDefaultDb] = useState('postgres')
-  const [selectedDb, setSelectedDb] = useState<string>(scopeDatabase ?? '')
-  const [selectedSchema, setSelectedSchema] = useState<string>(scopeSchema ?? '')
-  const [schemas, setSchemas] = useState<string[]>([])
-  const [tables, setTables] = useState<Record<string, TableInfo[]>>({})
-  const [columns, setColumns] = useState<Record<string, ColumnInfo[]>>({})
-  const [relationships, setRelationships] = useState<Record<string, Relationship[]>>({})
+  const [schemasMap, setSchemasMap] = useState<Record<string, string[]>>({})
+  const [tablesMap, setTablesMap] = useState<Record<string, TableInfo[]>>({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
-  // Load databases on mount
-  useEffect(() => {
+  // Load all databases, schemas, and tables
+  const loadData = useCallback(async () => {
     if (!connectionId) return
     setLoading(true)
     setError(null)
-    Promise.all([
-      invoke('schema:databases', connectionId),
-      invoke('schema:default-database', connectionId),
-    ]).then(([dbs, defDb]) => {
+    try {
+      const [allDbs, defDb] = await Promise.all([
+        invoke('schema:databases', connectionId),
+        invoke('schema:default-database', connectionId),
+      ])
+      if (allDbs.length === 0) { setError('No databases found'); return }
+
+      const dbs = scopeDatabase ? allDbs.filter((db) => db === scopeDatabase) : allDbs
       setDatabases(dbs)
       setDefaultDb(defDb)
-      if (!selectedDb) setSelectedDb(scopeDatabase ?? defDb)
-    }).catch((err) => setError((err as Error).message))
-      .finally(() => setLoading(false))
-  }, [connectionId])
 
-  // Load schemas when database changes
-  useEffect(() => {
-    if (!connectionId || !selectedDb) return
-    setLoading(true)
-    invoke('schema:schemas', connectionId, selectedDb)
-      .then((s) => {
-        const list = s.length ? s : ['public']
-        setSchemas(list)
-        if (!selectedSchema && viewMode === 'relationships') {
-          setSelectedSchema(scopeSchema ?? list[0] ?? 'public')
-        }
-      })
-      .catch(() => setSchemas([]))
-      .finally(() => setLoading(false))
-  }, [connectionId, selectedDb])
-
-  // Load tables for schemas
-  useEffect(() => {
-    if (!connectionId || !selectedDb || schemas.length === 0) return
-    setLoading(true)
-    const schemasToLoad = viewMode === 'relationships' && selectedSchema
-      ? [selectedSchema]
-      : schemas
-
-    Promise.all(
-      schemasToLoad.map(async (schema) => {
-        const tbls = await invoke('schema:tables', connectionId, schema, selectedDb)
-        return { schema, tables: tbls }
-      })
-    ).then((results) => {
+      // Load schemas for each database
+      const newSchemas: Record<string, string[]> = {}
       const newTables: Record<string, TableInfo[]> = {}
-      for (const r of results) newTables[r.schema] = r.tables
-      setTables(newTables)
-    }).catch(() => {})
-      .finally(() => setLoading(false))
-  }, [connectionId, selectedDb, schemas, viewMode, selectedSchema])
 
-  // Load columns + relationships for relationship mode
-  useEffect(() => {
-    if (viewMode !== 'relationships' || !connectionId || !selectedDb || !selectedSchema) return
-    const schemaTables = tables[selectedSchema]
-    if (!schemaTables?.length) return
+      for (const db of dbs) {
+        try {
+          let schemaList = await invoke('schema:schemas', connectionId, db)
+          if (schemaList.length === 0) schemaList = ['public']
+          newSchemas[db] = schemaList
 
-    setLoading(true)
-    Promise.all([
-      ...schemaTables.map(async (t) => {
-        const cols = await invoke('schema:columns', connectionId, t.name, selectedSchema, selectedDb)
-        return { table: t.name, cols }
-      }),
-      invoke('schema:relationships', connectionId, selectedSchema, selectedDb),
-    ]).then((results) => {
-      const rels = results[results.length - 1] as Relationship[]
-      setRelationships((prev) => ({ ...prev, [selectedSchema]: rels }))
-      const newCols: Record<string, ColumnInfo[]> = {}
-      for (let i = 0; i < results.length - 1; i++) {
-        const r = results[i] as { table: string; cols: ColumnInfo[] }
-        newCols[`${selectedSchema}.${r.table}`] = r.cols
+          // Load tables for each schema
+          for (const schema of schemaList) {
+            try {
+              const tables = await invoke('schema:tables', connectionId, schema, db)
+              newTables[`${db}/${schema}`] = tables
+            } catch {
+              newTables[`${db}/${schema}`] = []
+            }
+          }
+        } catch {
+          newSchemas[db] = []
+        }
       }
-      setColumns((prev) => ({ ...prev, ...newCols }))
-    }).catch(() => {})
-      .finally(() => setLoading(false))
-  }, [connectionId, selectedDb, selectedSchema, tables, viewMode])
 
-  // Build nodes and edges
-  const buildGraph = useCallback(() => {
+      setSchemasMap(newSchemas)
+      setTablesMap(newTables)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }, [connectionId, scopeDatabase])
+
+  useEffect(() => { loadData() }, [loadData])
+
+  // Build the graph whenever data changes
+  useEffect(() => {
     const newNodes: Node[] = []
     const newEdges: Edge[] = []
 
-    if (viewMode === 'hierarchy') {
-      // Database nodes
-      const dbsToShow = scopeDatabase ? [scopeDatabase] : databases
-      for (const db of dbsToShow) {
-        newNodes.push({
-          id: `db:${db}`,
-          type: 'database',
-          position: { x: 0, y: 0 },
-          data: { label: db, isDefault: db === defaultDb },
-        })
-      }
+    for (const db of databases) {
+      const dbId = `db:${db}`
+      newNodes.push({
+        id: dbId,
+        type: 'database',
+        position: { x: 0, y: 0 },
+        data: { label: db, isDefault: db === defaultDb },
+      })
 
-      // Schema nodes + edges from selected db
-      const dbSchemas = selectedDb && schemas.length ? schemas : []
-      for (const schema of dbSchemas) {
-        const schemaId = `schema:${selectedDb}/${schema}`
-        const schemaTables = tables[schema] ?? []
+      const schemas = schemasMap[db] ?? []
+      for (const schema of schemas) {
+        const schemaId = `schema:${db}/${schema}`
+        const tables = tablesMap[`${db}/${schema}`] ?? []
         newNodes.push({
           id: schemaId,
           type: 'schema',
           position: { x: 0, y: 0 },
-          data: { label: schema, tableCount: schemaTables.length },
+          data: { label: schema, tableCount: tables.length },
         })
         newEdges.push({
-          id: `e:db-schema:${selectedDb}-${schema}`,
-          source: `db:${selectedDb}`,
+          id: `e:${dbId}-${schemaId}`,
+          source: dbId,
           target: schemaId,
           style: EDGE_STYLE,
         })
 
-        // Table nodes
-        for (const t of schemaTables) {
-          const tableId = `table:${selectedDb}/${schema}.${t.name}`
+        for (const t of tables) {
+          const tableId = `table:${db}/${schema}.${t.name}`
           newNodes.push({
             id: tableId,
             type: 'table',
@@ -178,71 +138,40 @@ export function MindmapView({ scopeDatabase, scopeSchema }: MindmapViewProps) {
             data: { label: t.name, tableType: t.type, columns: [], expanded: false },
           })
           newEdges.push({
-            id: `e:schema-table:${schema}-${t.name}`,
+            id: `e:${schemaId}-${tableId}`,
             source: schemaId,
             target: tableId,
             style: EDGE_STYLE,
           })
         }
       }
-    } else {
-      // Relationship mode — tables with FK edges
-      const schemaTables = tables[selectedSchema] ?? []
-      for (const t of schemaTables) {
-        const tableId = `table:${t.name}`
-        const tableCols = columns[`${selectedSchema}.${t.name}`] ?? []
-        newNodes.push({
-          id: tableId,
-          type: 'table',
-          position: { x: 0, y: 0 },
-          data: { label: t.name, tableType: t.type, columns: tableCols, expanded: true },
-        })
-      }
-
-      const rels = relationships[selectedSchema] ?? []
-      for (const rel of rels) {
-        newEdges.push({
-          id: `fk:${rel.constraintName}`,
-          source: `table:${rel.sourceTable}`,
-          target: `table:${rel.targetTable}`,
-          label: rel.constraintName,
-          style: EDGE_STYLE_FK,
-          animated: true,
-          labelStyle: { fontSize: 9, fill: '#555560' },
-          labelBgStyle: { fill: '#131316', fillOpacity: 0.9 },
-        })
-      }
     }
 
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      newNodes,
-      newEdges,
-      {
-        direction: 'LR',
-        ranksep: viewMode === 'hierarchy' ? 100 : 120,
-        nodesep: viewMode === 'hierarchy' ? 30 : 50,
-      }
+    const { nodes: layouted, edges: layoutedEdges } = getLayoutedElements(
+      newNodes, newEdges,
+      { direction: 'LR', ranksep: 100, nodesep: 20 }
     )
-
-    setNodes(layoutedNodes)
+    setNodes(layouted)
     setEdges(layoutedEdges)
-  }, [viewMode, databases, defaultDb, selectedDb, schemas, tables, columns, relationships, selectedSchema, scopeDatabase])
-
-  useEffect(() => { buildGraph() }, [buildGraph])
+  }, [databases, defaultDb, schemasMap, tablesMap])
 
   // Double-click table node → open query tab
   const handleNodeDoubleClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    if (node.type === 'table') {
-      const tableName = (node.data as { label: string }).label
-      const schema = selectedSchema || 'public'
-      const db = selectedDb || defaultDb
+    if (node.type === 'table' && node.id.startsWith('table:')) {
+      // Parse db/schema.table from node id
+      const rest = node.id.slice('table:'.length) // "db/schema.table"
+      const slashIdx = rest.indexOf('/')
+      const db = rest.slice(0, slashIdx)
+      const dotIdx = rest.indexOf('.', slashIdx)
+      const schema = rest.slice(slashIdx + 1, dotIdx)
+      const tableName = rest.slice(dotIdx + 1)
       useEditorStore.getState().addTabWithContent(
         tableName,
         `SELECT *\nFROM ${schema}.${tableName}\nLIMIT 100;`,
         db
       )
     }
-  }, [selectedSchema, selectedDb, defaultDb])
+  }, [])
 
   if (!connectionId) {
     return (
@@ -260,67 +189,13 @@ export function MindmapView({ scopeDatabase, scopeSchema }: MindmapViewProps) {
         borderBottom: '1px solid rgba(255,255,255,0.07)',
         background: '#1C1C20', flexShrink: 0, height: 38,
       }}>
-        {/* View mode toggle */}
-        <div style={{ display: 'flex', borderRadius: 5, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
-          <button
-            onClick={() => setViewMode('hierarchy')}
-            style={{
-              padding: '0 10px', height: 26, fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer',
-              background: viewMode === 'hierarchy' ? '#5B8AF0' : 'transparent',
-              color: viewMode === 'hierarchy' ? '#fff' : '#8B8B8B',
-              display: 'flex', alignItems: 'center', gap: 4,
-            }}
-          >
-            <Network size={10} /> Hierarchy
-          </button>
-          <button
-            onClick={() => setViewMode('relationships')}
-            style={{
-              padding: '0 10px', height: 26, fontSize: 11, fontWeight: 500, border: 'none', cursor: 'pointer',
-              background: viewMode === 'relationships' ? '#5B8AF0' : 'transparent',
-              color: viewMode === 'relationships' ? '#fff' : '#8B8B8B',
-              display: 'flex', alignItems: 'center', gap: 4,
-            }}
-          >
-            <GitBranch size={10} /> Relationships
-          </button>
-        </div>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#8B8B8B' }}>Mindmap</span>
 
         <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
 
-        {/* Database selector */}
-        {!scopeDatabase && (
-          <select
-            value={selectedDb}
-            onChange={(e) => { setSelectedDb(e.target.value); setSelectedSchema('') }}
-            style={{
-              height: 26, padding: '0 6px', borderRadius: 5, fontSize: 11,
-              border: '1px solid rgba(255,255,255,0.1)', background: '#222227',
-              color: '#ECECEC', cursor: 'pointer', outline: 'none',
-            }}
-          >
-            {databases.map((db) => <option key={db} value={db}>{db}</option>)}
-          </select>
-        )}
-
-        {/* Schema selector (relationship mode) */}
-        {viewMode === 'relationships' && (
-          <select
-            value={selectedSchema}
-            onChange={(e) => setSelectedSchema(e.target.value)}
-            style={{
-              height: 26, padding: '0 6px', borderRadius: 5, fontSize: 11,
-              border: '1px solid rgba(255,255,255,0.1)', background: '#222227',
-              color: '#ECECEC', cursor: 'pointer', outline: 'none',
-            }}
-          >
-            {schemas.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        )}
-
         {/* Refresh */}
         <button
-          onClick={buildGraph}
+          onClick={loadData}
           disabled={loading}
           title="Refresh"
           style={{
@@ -338,6 +213,11 @@ export function MindmapView({ scopeDatabase, scopeSchema }: MindmapViewProps) {
             <AlertCircle size={11} /> {error}
           </span>
         )}
+
+        <div style={{ flex: 1 }} />
+        <span style={{ fontSize: 11, color: '#555560' }}>
+          {databases.length} db{databases.length !== 1 ? 's' : ''} · {Object.values(schemasMap).flat().length} schemas · {Object.values(tablesMap).flat().length} tables
+        </span>
       </div>
 
       {/* React Flow canvas */}
