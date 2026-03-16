@@ -24,11 +24,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     const aiConfig = ((await invoke('settings:get', 'aiConfig')) as AIProviderConfig) || null
     set({ theme, aiConfig, loaded: true })
     document.documentElement.classList.toggle('light', theme === 'light')
+    document.documentElement.classList.toggle('dark', theme === 'dark')
   },
 
   setTheme: async (theme: Theme) => {
     await invoke('settings:set', 'theme', theme)
     document.documentElement.classList.toggle('light', theme === 'light')
+    document.documentElement.classList.toggle('dark', theme === 'dark')
     set({ theme })
   },
 

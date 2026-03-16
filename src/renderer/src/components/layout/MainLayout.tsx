@@ -118,23 +118,23 @@ export function MainLayout() {
   return (
     <div
       className="flex flex-col h-screen overflow-hidden"
-      style={{ background: '#0C0C0E', color: '#ECECEC' }}
+      style={{ background: 'var(--mai-bg-deep)', color: 'var(--mai-text-1)' }}
     >
       {/* Custom titlebar drag region */}
       <div
         style={{
           height: 40,
-          background: '#0C0C0E',
+          background: 'var(--mai-bg-deep)',
           flexShrink: 0,
           // @ts-ignore electron CSS
           WebkitAppRegion: 'drag',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid var(--mai-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <span style={{ fontSize: 12, color: '#555560', fontWeight: 500, letterSpacing: '0.02em', userSelect: 'none' }}>
+        <span style={{ fontSize: 12, color: 'var(--mai-text-3)', fontWeight: 500, letterSpacing: '0.02em', userSelect: 'none' }}>
           MAI SQL
         </span>
       </div>
@@ -146,8 +146,8 @@ export function MainLayout() {
           className="flex flex-col items-center gap-0.5 py-2 shrink-0"
           style={{
             width: 44,
-            background: '#0C0C0E',
-            borderRight: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--mai-bg-deep)',
+            borderRight: '1px solid var(--mai-border)',
           }}
         >
           <ActivityBtn
@@ -213,8 +213,8 @@ export function MainLayout() {
             className="flex flex-col shrink-0 overflow-hidden relative"
             style={{
               width: sidebarWidth,
-              background: '#1C1C20',
-              borderRight: '1px solid rgba(255,255,255,0.07)',
+              background: 'var(--mai-bg-panel)',
+              borderRight: '1px solid var(--mai-border)',
             }}
           >
             {sidebarView === 'explorer' && (
@@ -225,7 +225,7 @@ export function MainLayout() {
                   style={{
                     height: 40,
                     padding: '0 12px',
-                    borderBottom: '1px solid rgba(255,255,255,0.07)',
+                    borderBottom: '1px solid var(--mai-border)',
                   }}
                 >
                   <span style={{
@@ -233,7 +233,7 @@ export function MainLayout() {
                     fontWeight: 600,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
-                    color: '#555560',
+                    color: 'var(--mai-text-3)',
                   }}>
                     Explorer
                   </span>
@@ -276,7 +276,7 @@ export function MainLayout() {
             onClick={() => setSidebarCollapsed(false)}
             style={{
               width: 4,
-              background: 'rgba(255,255,255,0.07)',
+              background: 'var(--mai-border)',
               cursor: 'col-resize',
               flexShrink: 0,
               border: 'none',
@@ -291,7 +291,7 @@ export function MainLayout() {
         )}
 
         {/* Main area */}
-        <main className="flex flex-1 flex-col overflow-hidden min-w-0" style={{ background: '#131316' }}>
+        <main className="flex flex-1 flex-col overflow-hidden min-w-0" style={{ background: 'var(--mai-bg-base)' }}>
           {mainView === 'backup' ? (
             <BackupRestore />
           ) : mainView === 'er-diagram' ? (
@@ -321,7 +321,7 @@ export function MainLayout() {
                     className="flex flex-col shrink-0 overflow-hidden"
                     style={{
                       height: resultsHeight,
-                      borderTop: '1px solid rgba(255,255,255,0.07)',
+                      borderTop: '1px solid var(--mai-border)',
                     }}
                   >
                     {/* Drag handle — 4px */}
@@ -345,7 +345,7 @@ export function MainLayout() {
 
                     {/* Results tab bar (grid / explain) */}
                     {activeTab.result && hasExplainResult && (
-                      <div className="flex items-center gap-0 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#1C1C20' }}>
+                      <div className="flex items-center gap-0 shrink-0" style={{ borderBottom: '1px solid var(--mai-border)', background: '#1C1C20' }}>
                         <ResultsTabBtn label="Grid" active={resultsTab === 'grid'} onClick={() => setResultsTab('grid')} />
                         <ResultsTabBtn label="Visual Plan" active={resultsTab === 'explain'} onClick={() => setResultsTab('explain')} />
                       </div>
@@ -363,7 +363,7 @@ export function MainLayout() {
                       ) : (
                         <div
                           className="flex h-full items-center justify-center"
-                          style={{ color: '#555560', fontSize: 13 }}
+                          style={{ color: 'var(--mai-text-3)', fontSize: 13 }}
                         >
                           {activeTab.error ? null : 'Run a query to see results'}
                         </div>
@@ -377,7 +377,7 @@ export function MainLayout() {
                   <div className="text-center" style={{ gap: 12, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <Database size={40} style={{ opacity: 0.12, color: '#8B8B8B' }} />
                     <p style={{ fontSize: 14, color: '#8B8B8B', margin: 0 }}>Connect to a database to get started</p>
-                    <p style={{ fontSize: 12, color: '#555560', margin: 0 }}>Select a connection in the sidebar or create a new one</p>
+                    <p style={{ fontSize: 12, color: 'var(--mai-text-3)', margin: 0 }}>Select a connection in the sidebar or create a new one</p>
                   </div>
                 </div>
               )}
@@ -408,7 +408,7 @@ function ActivityBtn({
         width: 36,
         height: 36,
         borderRadius: 6,
-        color: active ? '#ECECEC' : '#555560',
+        color: active ? 'var(--mai-text-1)' : 'var(--mai-text-3)',
         background: active ? 'rgba(91,138,240,0.12)' : 'transparent',
         border: 'none',
         cursor: 'pointer',
@@ -416,13 +416,13 @@ function ActivityBtn({
       }}
       onMouseEnter={(e) => {
         if (!active) {
-          e.currentTarget.style.color = '#8B8B8B'
-          e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+          e.currentTarget.style.color = 'var(--mai-text-2)'
+          e.currentTarget.style.background = 'var(--mai-bg-hover)'
         }
       }}
       onMouseLeave={(e) => {
         if (!active) {
-          e.currentTarget.style.color = '#555560'
+          e.currentTarget.style.color = 'var(--mai-text-3)'
           e.currentTarget.style.background = 'transparent'
         }
       }}
@@ -439,7 +439,7 @@ function ResultsTabBtn({ label, active, onClick }: { label: string; active: bool
       style={{
         padding: '4px 12px',
         fontSize: 11,
-        color: active ? '#ECECEC' : '#555560',
+        color: active ? 'var(--mai-text-1)' : 'var(--mai-text-3)',
         background: 'transparent',
         border: 'none',
         borderBottom: active ? '2px solid #5B8AF0' : '2px solid transparent',
@@ -459,7 +459,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       fontWeight: 600,
       letterSpacing: '0.09em',
       textTransform: 'uppercase',
-      color: '#555560',
+      color: 'var(--mai-text-3)',
     }}>
       {children}
     </div>

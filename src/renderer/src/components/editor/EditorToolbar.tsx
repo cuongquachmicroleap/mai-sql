@@ -29,8 +29,8 @@ const toolbarBtnStyle = (hovered: boolean): React.CSSProperties => ({
   fontSize: 12,
   border: 'none',
   cursor: 'pointer',
-  background: hovered ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)',
-  color: hovered ? '#ECECEC' : '#8B8B8B',
+  background: hovered ? 'var(--mai-bg-hover)' : 'var(--mai-bg-elevated)',
+  color: hovered ? 'var(--mai-text-1)' : 'var(--mai-text-2)',
   transition: 'background 0.12s, color 0.12s',
   display: 'flex',
   alignItems: 'center',
@@ -92,8 +92,8 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
       className="flex items-center gap-2 px-3 shrink-0"
       style={{
         height: 38,
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#1C1C20',
+        borderBottom: '1px solid var(--mai-border)',
+        background: 'var(--mai-bg-panel)',
       }}
     >
       {/* Run / Stop button */}
@@ -183,8 +183,8 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
             borderRadius: 5,
             fontSize: 11,
             border: '1px solid rgba(255,255,255,0.1)',
-            background: '#222227',
-            color: '#ECECEC',
+            background: 'var(--mai-bg-elevated)',
+            color: 'var(--mai-text-1)',
             cursor: 'pointer',
             outline: 'none',
           }}
@@ -220,8 +220,8 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
           className="flex items-center gap-1.5 ml-auto"
           style={{
             fontSize: 12,
-            background: '#222227',
-            color: '#ECECEC',
+            background: 'var(--mai-bg-elevated)',
+            color: 'var(--mai-text-1)',
             borderRadius: 6,
             padding: '0 8px',
             height: 24,

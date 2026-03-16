@@ -142,8 +142,8 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
       className="flex items-center gap-3 px-3 shrink-0"
       style={{
         height: 30,
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#1C1C20',
+        borderBottom: '1px solid var(--mai-border)',
+        background: 'var(--mai-bg-panel)',
         fontSize: 11,
       }}
     >

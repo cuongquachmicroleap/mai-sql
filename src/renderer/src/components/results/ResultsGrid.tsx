@@ -48,7 +48,7 @@ function estimateColWidth(name: string, rows: Record<string, unknown>[], maxRows
 
 // Row number column sticky style
 const ROW_NUM_STYLE: React.CSSProperties = {
-  background: '#1C1C20',
+  background: 'var(--mai-bg-panel)',
   borderRight: '1px solid rgba(255,255,255,0.08)',
   position: 'sticky',
   left: 0,
@@ -129,14 +129,14 @@ export function ResultsGrid({ result }: ResultsGridProps) {
       ref={parentRef}
       className="h-full overflow-auto"
       style={{
-        background: '#131316',
+        background: 'var(--mai-bg-base)',
         fontFamily: "ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code', monospace",
         fontSize: 13,
       }}
     >
       <table style={{ width: '100%', borderCollapse: 'collapse', lineHeight: '1.0' }}>
         {/* Header — 32px, #222227 bg */}
-        <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: '#222227' }}>
+        <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--mai-bg-elevated)' }}>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((header, i) => (
@@ -152,8 +152,8 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
                     verticalAlign: 'middle',
                     whiteSpace: 'nowrap',
-                    background: i === 0 ? '#222227' : undefined,
-                    ...(i === 0 ? { ...ROW_NUM_STYLE, background: '#222227', zIndex: 11 } : {}),
+                    background: i === 0 ? 'var(--mai-bg-elevated)' : undefined,
+                    ...(i === 0 ? { ...ROW_NUM_STYLE, background: 'var(--mai-bg-elevated)', zIndex: 11 } : {}),
                     position: i === 0 ? 'sticky' : 'relative',
                     left: i === 0 ? 0 : 'auto',
                     zIndex: i === 0 ? 11 : 'auto',
@@ -209,7 +209,7 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         textAlign: isNum ? 'right' : 'left',
-                        color: '#ECECEC',
+                        color: 'var(--mai-text-1)',
                         verticalAlign: 'middle',
                         ...(i === 0 ? {
                           ...ROW_NUM_STYLE,
