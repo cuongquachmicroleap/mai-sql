@@ -199,7 +199,8 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
             style={{ background: '#34D399' }}
           />
           <span style={{ color: '#ECECEC' }}>{activeConn.name}</span>
-          <span style={{ color: '#555560' }}>{activeConn.type}</span>
+          <span style={{ color: '#555560' }}>/</span>
+          <span style={{ color: '#8B8B8B' }}>{activeConn.database || 'postgres'}</span>
         </div>
       ) : (
         <span style={{ fontSize: 12, color: '#555560' }}>

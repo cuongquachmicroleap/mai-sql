@@ -33,7 +33,7 @@ export function StatusBar({ result }: StatusBarProps) {
             </span>
             <span style={{ color: '#555560' }}>·</span>
             <span style={{ color: '#555560' }}>
-              {activeConn.database}@{activeConn.host}
+              {activeConn.database || 'postgres'}@{activeConn.host}
             </span>
           </>
         ) : (
