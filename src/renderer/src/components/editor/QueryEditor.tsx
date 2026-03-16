@@ -150,12 +150,24 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
           endColumn: wordInfo.startColumn,
         })
 
+        // --- Alias resolution ---
+        // Parse "FROM table alias" and "JOIN table alias" patterns from the full query
+        const fullText = model.getValue()
+        const aliasMap = new Map<string, string>() // alias -> tableName
+        const aliasRegex = /\b(?:FROM|JOIN)\s+(\w+)\s+(?:AS\s+)?(\w+)/gi
+        let aliasMatch
+        while ((aliasMatch = aliasRegex.exec(fullText)) !== null) {
+          aliasMap.set(aliasMatch[2].toLowerCase(), aliasMatch[1])
+        }
+
         // --- Context detection ---
 
-        // 1. Column mode: "tablename." — suggest columns for that table
+        // 1. Column mode: "tablename." or "alias." - suggest columns for that table
         const dotMatch = lineTextBefore.match(/(\w+)\.$/)
         if (dotMatch) {
-          const tableName = dotMatch[1]
+          // Resolve alias to table name if possible
+          const rawName = dotMatch[1]
+          const tableName = aliasMap.get(rawName.toLowerCase()) ?? rawName
           const columnRange = {
             startLineNumber: position.lineNumber,
             endLineNumber: position.lineNumber,
@@ -213,7 +225,36 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
           }
         }
 
-        // 3. Index mode: after DROP INDEX / REINDEX → suggest all indexes (flat list)
+        // 2b. JOIN ON mode: after "JOIN table ON" suggest FK-based conditions
+        const joinOnMatch = fullText.match(/\bJOIN\s+(\w+)\s+(?:AS\s+)?(\w+)?\s+ON\s*$/i)
+        if (joinOnMatch && connId && cache) {
+          const joinTable = joinOnMatch[1]
+          const joinAlias = joinOnMatch[2] || joinTable
+          // Find FK relationships involving this table
+          try {
+            const rels = await invoke('schema:relationships', connId, 'public')
+            const suggestions = rels
+              .filter((r) => r.sourceTable === joinTable || r.targetTable === joinTable)
+              .map((r) => {
+                const isSource = r.sourceTable === joinTable
+                const otherTable = isSource ? r.targetTable : r.sourceTable
+                const otherAlias = Array.from(aliasMap.entries()).find(([, t]) => t === otherTable)?.[0] || otherTable
+                const joinCol = isSource ? r.sourceColumn : r.targetColumn
+                const otherCol = isSource ? r.targetColumn : r.sourceColumn
+                const text = `${joinAlias}.${joinCol} = ${otherAlias}.${otherCol}`
+                return {
+                  label: text,
+                  kind: monaco.languages.CompletionItemKind.Snippet,
+                  detail: `FK: ${r.constraintName}`,
+                  insertText: text,
+                  range,
+                }
+              })
+            if (suggestions.length > 0) return { suggestions }
+          } catch { /* ignore */ }
+        }
+
+        // 3. Index mode: after DROP INDEX / REINDEX - suggest all indexes (flat list)
         const indexKeywordMatch = /\b(DROP INDEX|REINDEX)\s+\w*$/i.test(lineTextBefore)
         if (indexKeywordMatch && connId && cache) {
           const allIndexResults = await Promise.all(

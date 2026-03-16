@@ -58,9 +58,36 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
     )
   }
 
+  // Group connections by group name
+  const grouped = new Map<string, typeof connections>()
+  for (const conn of connections) {
+    const group = conn.group || ''
+    if (!grouped.has(group)) grouped.set(group, [])
+    grouped.get(group)!.push(conn)
+  }
+  const sortedGroups = Array.from(grouped.entries()).sort(([a], [b]) => {
+    if (!a) return 1  // ungrouped last
+    if (!b) return -1
+    return a.localeCompare(b)
+  })
+
   return (
     <div className="py-0.5">
-      {connections.map((conn) => {
+      {sortedGroups.map(([group, groupConns]) => (
+        <div key={group || '__ungrouped__'}>
+          {group && (
+            <div style={{
+              padding: '6px 10px 2px',
+              fontSize: 9,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: group.toLowerCase() === 'production' ? '#F87171' : '#3A3A45',
+            }}>
+              {group}
+            </div>
+          )}
+          {groupConns.map((conn) => {
         const isActive = conn.id === activeConnectionId
         const isHovered = hoveredId === conn.id
         const color = DIALECT_COLORS[conn.type] ?? '#555560'
@@ -82,10 +109,10 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
               onMouseEnter={() => setHoveredId(conn.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              {/* Connection status dot */}
+              {/* Connection status dot (uses custom color if set) */}
               <span
                 className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ background: isActive ? '#34D399' : '#3A3A45' }}
+                style={{ background: isActive ? (conn.color || '#34D399') : '#3A3A45' }}
               />
 
               {/* DB type badge */}
@@ -190,6 +217,8 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
           </div>
         )
       })}
+        </div>
+      ))}
     </div>
   )
 }

@@ -31,6 +31,40 @@ const api: IPCChannels = {
   'backup:import': (connectionId, database, filePath) => ipcRenderer.invoke('backup:import', connectionId, database, filePath),
   'backup:choose-save-path': (defaultName) => ipcRenderer.invoke('backup:choose-save-path', defaultName),
   'backup:choose-open-path': () => ipcRenderer.invoke('backup:choose-open-path'),
+
+  // AI
+  'ai:chat': (config, request) => ipcRenderer.invoke('ai:chat', config, request),
+  'ai:test-key': (config) => ipcRenderer.invoke('ai:test-key', config),
+
+  // History
+  'history:list': (connectionId, limit) => ipcRenderer.invoke('history:list', connectionId, limit),
+  'history:search': (query, connectionId) => ipcRenderer.invoke('history:search', query, connectionId),
+  'history:toggle-favorite': (id) => ipcRenderer.invoke('history:toggle-favorite', id),
+  'history:delete': (id) => ipcRenderer.invoke('history:delete', id),
+  'history:clear': (connectionId) => ipcRenderer.invoke('history:clear', connectionId),
+
+  // Export
+  'export:csv': (data, filePath) => ipcRenderer.invoke('export:csv', data, filePath),
+  'export:xlsx': (data, filePath) => ipcRenderer.invoke('export:xlsx', data, filePath),
+  'export:sql-insert': (tableName, data, filePath) => ipcRenderer.invoke('export:sql-insert', tableName, data, filePath),
+  'export:choose-save-path': (defaultName, filters) => ipcRenderer.invoke('export:choose-save-path', defaultName, filters),
+
+  // Snippets
+  'snippet:list': () => ipcRenderer.invoke('snippet:list'),
+  'snippet:save': (snippet) => ipcRenderer.invoke('snippet:save', snippet),
+  'snippet:delete': (id) => ipcRenderer.invoke('snippet:delete', id),
+
+  // Settings
+  'settings:get': (key) => ipcRenderer.invoke('settings:get', key),
+  'settings:set': (key, value) => ipcRenderer.invoke('settings:set', key, value),
+
+  // SSH Tunnel
+  'ssh:connect': (connectionId, tunnelConfig, remoteHost, remotePort) => ipcRenderer.invoke('ssh:connect', connectionId, tunnelConfig, remoteHost, remotePort),
+  'ssh:disconnect': (connectionId) => ipcRenderer.invoke('ssh:disconnect', connectionId),
+
+  // Schema Diff
+  'diff:compare': (sourceConnectionId, targetConnectionId, sourceSchema, targetSchema, sourceDb, targetDb) => ipcRenderer.invoke('diff:compare', sourceConnectionId, targetConnectionId, sourceSchema, targetSchema, sourceDb, targetDb),
+  'diff:generate-migration': (diff, sourceConnectionId, sourceSchema, sourceDb) => ipcRenderer.invoke('diff:generate-migration', diff, sourceConnectionId, sourceSchema, sourceDb),
 }
 
 contextBridge.exposeInMainWorld('api', api)

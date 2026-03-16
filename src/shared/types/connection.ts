@@ -19,6 +19,8 @@ export interface ConnectionConfig {
   password: string // retrieved from OS keychain at runtime; stored here only in-memory
   ssl?: boolean
   sshTunnel?: SSHTunnelConfig
+  color?: string   // hex color for visual coding (e.g. '#EF4444' for production)
+  group?: string   // group name (e.g. 'Production', 'Staging', 'Development')
 }
 
 export interface SavedConnection extends Omit<ConnectionConfig, 'password'> {

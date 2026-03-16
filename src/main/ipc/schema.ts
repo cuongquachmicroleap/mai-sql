@@ -1,7 +1,5 @@
 import { ipcMain } from 'electron'
 import { connectionManager } from '../managers/connection-manager'
-import type { PostgreSQLDriver } from '../drivers/postgresql'
-
 ipcMain.handle('schema:databases', async (_event, connectionId: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
@@ -11,7 +9,7 @@ ipcMain.handle('schema:databases', async (_event, connectionId: string) => {
 ipcMain.handle('schema:default-database', async (_event, connectionId: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
-  return (driver as PostgreSQLDriver).getDefaultDatabase?.() ?? 'postgres'
+  return driver.getDefaultDatabase()
 })
 
 ipcMain.handle('schema:schemas', async (_event, connectionId: string, database?: string) => {

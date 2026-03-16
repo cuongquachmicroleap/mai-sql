@@ -27,6 +27,7 @@ export interface IDataSource {
   // Metadata
   getDialect(): SQLDialect
   getVersion(): Promise<string>
+  getDefaultDatabase(): string
 }
 
 // Thrown by all drivers on connection or query failure

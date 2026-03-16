@@ -104,6 +104,8 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
         username: initialConnection.username,
         ssl: initialConnection.ssl,
         sshTunnel: initialConnection.sshTunnel,
+        color: initialConnection.color,
+        group: initialConnection.group,
       })
       setSshEnabled(!!initialConnection.sshTunnel)
       setAdvancedOpen(!!initialConnection.ssl || !!initialConnection.sshTunnel)
@@ -163,6 +165,8 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
       password: form.password ?? '',
       ssl: form.ssl,
       sshTunnel: sshEnabled ? form.sshTunnel : undefined,
+      color: form.color,
+      group: form.group,
     }
     await invoke('connection:save', config)
     await loadConnections()
@@ -234,6 +238,47 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                 value={form.name ?? ''}
                 onChange={(e) => setField('name', e.target.value)}
               />
+            </div>
+
+            {/* Group + Color */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
+              <div>
+                <label style={LABEL_STYLE}>Group (optional)</label>
+                <FormInput
+                  placeholder="Production, Staging, Dev..."
+                  value={form.group ?? ''}
+                  onChange={(e) => setField('group', e.target.value)}
+                  list="connection-groups"
+                />
+                <datalist id="connection-groups">
+                  <option value="Production" />
+                  <option value="Staging" />
+                  <option value="Development" />
+                  <option value="Testing" />
+                </datalist>
+              </div>
+              <div>
+                <label style={LABEL_STYLE}>Color</label>
+                <div className="flex items-center gap-1" style={{ height: 34 }}>
+                  {['#34D399', '#5B8AF0', '#FBBF24', '#F97316', '#EF4444', '#A78BFA'].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setField('color', form.color === color ? undefined : color)}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        background: color,
+                        border: form.color === color ? '2px solid #ECECEC' : '2px solid transparent',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'border-color 0.12s',
+                      }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Host + Port */}
