@@ -22,7 +22,7 @@ function ContextMenu({
 }: {
   menu: ContextMenuState
   onClose: () => void
-  onAction: (action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable') => void
+  onAction: (action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable' | 'mindmap') => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -33,12 +33,13 @@ function ContextMenu({
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
 
-  const items: { label: string; action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable'; separator?: boolean }[] = [
+  const items: { label: string; action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable' | 'mindmap'; separator?: boolean }[] = [
     { label: 'Select Top 100', action: 'select100' },
     { label: 'Count Rows', action: 'countRows' },
     { label: 'Copy Name', action: 'copyName' },
     { label: 'Design Table', action: 'designTable', separator: true },
     { label: 'New Table...', action: 'newTable' },
+    { label: 'Open Mindmap', action: 'mindmap', separator: true },
   ]
   return (
     <div ref={ref} style={{ position: 'fixed', left: menu.x, top: menu.y, zIndex: 1000, background: '#222227', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', minWidth: 160 }}>
@@ -326,7 +327,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     setContextMenu({ x: e.clientX, y: e.clientY, database, schema, table })
   }
 
-  const handleContextAction = (action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable') => {
+  const handleContextAction = (action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable' | 'mindmap') => {
     if (!contextMenu) return
     const { database, schema, table } = contextMenu
     const fullName = `${schema}.${table}`
@@ -336,6 +337,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
       case 'copyName': navigator.clipboard.writeText(fullName).catch(() => {}); break
       case 'designTable': useEditorStore.getState().openTableDesigner(connectionId, schema, table, database); break
       case 'newTable': useEditorStore.getState().openTableDesigner(connectionId, schema, undefined, database); break
+      case 'mindmap': useEditorStore.getState().openMindmap(database, schema); break
     }
   }
 

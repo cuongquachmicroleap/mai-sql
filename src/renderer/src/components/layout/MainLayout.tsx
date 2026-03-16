@@ -13,9 +13,10 @@ import { ERDiagram } from '../er-diagram/ERDiagram'
 import { BackupRestore } from '../backup/BackupRestore'
 import { StatusBar } from './StatusBar'
 import { TableDesigner } from '../table-designer/TableDesigner'
-import { Database, Settings, ChevronRight, Network, ArchiveRestore } from 'lucide-react'
+import { MindmapView } from '../mindmap/MindmapView'
+import { Database, Settings, ChevronRight, Network, ArchiveRestore, GitBranch } from 'lucide-react'
 
-type ActiveView = 'editor' | 'er-diagram' | 'backup'
+type ActiveView = 'editor' | 'er-diagram' | 'backup' | 'mindmap'
 
 const MIN_SIDEBAR = 160
 const MAX_SIDEBAR = 480
@@ -137,6 +138,12 @@ export function MainLayout() {
             title="ER Diagram"
           />
           <ActivityBtn
+            icon={<GitBranch size={17} />}
+            active={activeView === 'mindmap'}
+            onClick={() => setActiveView((v) => v === 'mindmap' ? 'editor' : 'mindmap')}
+            title="Mindmap"
+          />
+          <ActivityBtn
             icon={<ArchiveRestore size={17} />}
             active={activeView === 'backup'}
             onClick={() => setActiveView((v) => v === 'backup' ? 'editor' : 'backup')}
@@ -227,12 +234,19 @@ export function MainLayout() {
             <BackupRestore />
           ) : activeView === 'er-diagram' ? (
             <ERDiagram />
+          ) : activeView === 'mindmap' ? (
+            <MindmapView />
           ) : (
             <>
               <TabBar />
 
               {activeTab ? (
-                activeTab.type === 'table-designer' ? (
+                activeTab.type === 'mindmap' ? (
+                  <MindmapView
+                    scopeDatabase={activeTab.mindmapDatabase}
+                    scopeSchema={activeTab.mindmapSchema}
+                  />
+                ) : activeTab.type === 'table-designer' ? (
                   <TableDesigner tabId={activeTab.id} />
                 ) : (
                 <div className="flex flex-1 flex-col overflow-hidden min-h-0">

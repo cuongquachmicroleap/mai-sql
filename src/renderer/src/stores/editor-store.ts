@@ -6,7 +6,7 @@ import type { TableDesignerState } from '@shared/types/schema'
 
 export interface Tab {
   id: string
-  type: 'query' | 'table-designer'
+  type: 'query' | 'table-designer' | 'mindmap'
   title: string
   content: string
   connectionId: string | null
@@ -16,6 +16,9 @@ export interface Tab {
   isExecuting: boolean
   rowLimit: number | null
   selectedText: string
+  // Mindmap fields
+  mindmapDatabase?: string
+  mindmapSchema?: string
   // Table designer fields
   designerState?: TableDesignerState
   designerOriginalState?: TableDesignerState
@@ -34,6 +37,7 @@ interface EditorState {
   setRowLimit: (id: string, limit: number | null) => void
   setSelectedText: (id: string, selectedText: string) => void
   executeQuery: (tabId: string, connectionId: string, sql: string) => Promise<void>
+  openMindmap: (database?: string, schema?: string) => void
   openTableDesigner: (connectionId: string, schema: string, tableName?: string, database?: string) => Promise<void>
   updateDesignerState: (tabId: string, state: TableDesignerState) => void
 }
@@ -136,6 +140,20 @@ export const useEditorStore = create<EditorState>((set, _get) => {
           ),
         }))
       }
+    },
+
+    openMindmap: (database?: string, schema?: string) => {
+      const id = nanoid()
+      const title = schema ? `Mindmap: ${database}/${schema}` : database ? `Mindmap: ${database}` : 'Mindmap'
+      const tab: Tab = {
+        ...createTab(),
+        id,
+        type: 'mindmap',
+        title,
+        mindmapDatabase: database,
+        mindmapSchema: schema,
+      }
+      set((state) => ({ tabs: [...state.tabs, tab], activeTabId: id }))
     },
 
     openTableDesigner: async (connectionId: string, schema: string, tableName?: string, database?: string) => {
