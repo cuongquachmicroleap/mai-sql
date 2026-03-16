@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import ReactDOM from 'react-dom'
 import { CheckCircle2, XCircle, Loader2, Table2, Download, Copy } from 'lucide-react'
 import type { QueryResult } from '@shared/types/query'
 
@@ -77,6 +78,7 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
   const [copyHovered, setCopyHovered] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const exportBtnRef = useRef<HTMLButtonElement>(null)
 
   const handleCopy = () => {
     if (!result) return
@@ -171,6 +173,7 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
           {/* Export dropdown */}
           <div style={{ position: 'relative' }}>
             <button
+              ref={exportBtnRef}
               onClick={() => setExportOpen((o) => !o)}
               onMouseEnter={() => setExportHovered(true)}
               onMouseLeave={() => setExportHovered(false)}
@@ -181,55 +184,59 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
               <span>Export</span>
             </button>
 
-            {exportOpen && (
-              <>
-                {/* Backdrop to close */}
-                <div
-                  style={{ position: 'fixed', inset: 0, zIndex: 999 }}
-                  onClick={() => setExportOpen(false)}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    right: 0,
-                    bottom: 28,
-                    zIndex: 1000,
-                    background: '#222227',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: 7,
-                    padding: 4,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                    minWidth: 140,
-                  }}
-                >
-                  {[
-                    { label: 'Export as CSV', action: () => { exportCSV(result); setExportOpen(false) } },
-                    { label: 'Export as JSON', action: () => { exportJSON(result); setExportOpen(false) } },
-                  ].map((item) => (
-                    <button
-                      key={item.label}
-                      onClick={item.action}
-                      className="flex w-full items-center"
-                      style={{
-                        height: 28,
-                        padding: '0 10px',
-                        fontSize: 12,
-                        color: '#ECECEC',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+            {exportOpen && (() => {
+              const rect = exportBtnRef.current?.getBoundingClientRect()
+              return ReactDOM.createPortal(
+                <>
+                  {/* Backdrop to close */}
+                  <div
+                    style={{ position: 'fixed', inset: 0, zIndex: 999 }}
+                    onClick={() => setExportOpen(false)}
+                  />
+                  <div
+                    style={{
+                      position: 'fixed',
+                      right: rect ? window.innerWidth - rect.right : 0,
+                      top: rect ? rect.bottom + 4 : 0,
+                      zIndex: 1000,
+                      background: '#222227',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      borderRadius: 7,
+                      padding: 4,
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                      minWidth: 140,
+                    }}
+                  >
+                    {[
+                      { label: 'Export as CSV', action: () => { exportCSV(result); setExportOpen(false) } },
+                      { label: 'Export as JSON', action: () => { exportJSON(result); setExportOpen(false) } },
+                    ].map((item) => (
+                      <button
+                        key={item.label}
+                        onClick={item.action}
+                        className="flex w-full items-center"
+                        style={{
+                          height: 28,
+                          padding: '0 10px',
+                          fontSize: 12,
+                          color: '#ECECEC',
+                          background: 'transparent',
+                          border: 'none',
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </>,
+                document.body
+              )
+            })()}
           </div>
         </div>
       )}

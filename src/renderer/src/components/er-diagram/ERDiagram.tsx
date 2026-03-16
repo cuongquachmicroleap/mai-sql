@@ -1,17 +1,60 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { RefreshCw, Network, AlertCircle } from 'lucide-react'
+import { RefreshCw, Network, AlertCircle, ZoomIn, ZoomOut, Maximize2, GripVertical, ChevronRight, ChevronDown } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useConnectionStore } from '../../stores/connection-store'
 import type { TableInfo, ColumnInfo, Relationship } from '@shared/types/schema'
 
 // ─── Layout constants ────────────────────────────────────────────────────────
-const NODE_WIDTH = 220
-const NODE_HEADER_HEIGHT = 32
-const NODE_ROW_HEIGHT = 22
+const NODE_WIDTH = 260
+const NODE_HEADER_HEIGHT = 30
+const NODE_ROW_HEIGHT = 24
 const NODE_PADDING_BOTTOM = 8
+const ICON_STRIP_WIDTH = 22
 const COLS = 4
-const H_GAP = 60
-const V_GAP = 80
+const H_GAP = 80
+const V_GAP = 100
+
+// ─── IndexedDB helpers ───────────────────────────────────────────────────────
+const DB_NAME = 'mai-sql-er'
+const DB_VERSION = 1
+const STORE_NAME = 'node-positions'
+
+function openDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION)
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE_NAME)
+    req.onsuccess = () => resolve(req.result)
+    req.onerror = () => reject(req.error)
+  })
+}
+
+async function loadPositions(key: string): Promise<Record<string, { x: number; y: number }> | null> {
+  try {
+    const db = await openDB()
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly')
+      const req = tx.objectStore(STORE_NAME).get(key)
+      req.onsuccess = () => resolve(req.result ?? null)
+      req.onerror = () => reject(req.error)
+    })
+  } catch {
+    return null
+  }
+}
+
+async function savePositions(key: string, positions: Record<string, { x: number; y: number }>) {
+  try {
+    const db = await openDB()
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      tx.objectStore(STORE_NAME).put(positions, key)
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+    })
+  } catch {
+    // silently ignore persistence errors
+  }
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface TableNode {
@@ -27,8 +70,6 @@ interface TableNode {
 interface Edge {
   id: string
   rel: Relationship
-  sourceNode: TableNode
-  targetNode: TableNode
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -59,11 +100,11 @@ function layoutNodes(
 /** Returns the centre-point of a node's right or left edge for edge routing */
 function edgeAnchor(
   node: TableNode,
-  col: 'left' | 'right',
+  side: 'left' | 'right',
   rowIndex: number
 ): { x: number; y: number } {
   const y = node.y + NODE_HEADER_HEIGHT + rowIndex * NODE_ROW_HEIGHT + NODE_ROW_HEIGHT / 2
-  const x = col === 'left' ? node.x : node.x + node.width
+  const x = side === 'left' ? node.x : node.x + node.width
   return { x, y }
 }
 
@@ -76,37 +117,69 @@ function buildPath(sx: number, sy: number, tx: number, ty: number): string {
   return `M ${sx} ${sy} C ${csx} ${sy}, ${ctx} ${ty}, ${tx} ${ty}`
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-function TableNodeCard({ node }: { node: TableNode }) {
+// ─── Key icon sub-components ─────────────────────────────────────────────────
+function KeyIconPK() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+      <circle cx="5" cy="5.5" r="3" stroke="#FACC15" strokeWidth="1.4"/>
+      <line x1="7.5" y1="5.5" x2="13" y2="5.5" stroke="#FACC15" strokeWidth="1.4"/>
+      <line x1="11"  y1="5.5" x2="11" y2="7.5" stroke="#FACC15" strokeWidth="1.4"/>
+      <line x1="9"   y1="5.5" x2="9"  y2="7"   stroke="#FACC15" strokeWidth="1.4"/>
+    </svg>
+  )
+}
+
+function KeyIconFK() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+      <circle cx="5" cy="5.5" r="3" stroke="#7B9FD4" strokeWidth="1.2"/>
+      <line x1="7.5" y1="5.5" x2="13" y2="5.5" stroke="#7B9FD4" strokeWidth="1.2"/>
+      <line x1="11"  y1="5.5" x2="11" y2="7.5" stroke="#7B9FD4" strokeWidth="1.2"/>
+      <line x1="9"   y1="5.5" x2="9"  y2="7"   stroke="#7B9FD4" strokeWidth="1.2"/>
+    </svg>
+  )
+}
+
+// ─── TableNodeCard ────────────────────────────────────────────────────────────
+interface TableNodeCardProps {
+  node: TableNode
+  onDragStart: (e: React.MouseEvent, nodeId: string) => void
+}
+
+function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
   return (
     <foreignObject x={node.x} y={node.y} width={node.width} height={node.height} overflow="visible">
       <div
         style={{
           width: node.width,
-          border: '1px solid var(--color-border)',
-          borderRadius: 6,
+          border: '1px solid rgba(255,255,255,0.10)',
+          borderRadius: 4,
           overflow: 'hidden',
-          background: '#111',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
-          fontFamily: 'var(--font-mono, monospace)',
+          background: '#1C1C20',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.6)',
+          fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         }}
       >
-        {/* Header */}
+        {/* Header — drag handle */}
         <div
+          onMouseDown={(e) => onDragStart(e, node.id)}
           style={{
             height: NODE_HEADER_HEIGHT,
-            background: '#1a1a1a',
-            borderBottom: '1px solid var(--color-border)',
+            background: '#252B3B',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
             display: 'flex',
             alignItems: 'center',
-            paddingLeft: 10,
+            paddingLeft: 6,
             paddingRight: 10,
+            cursor: 'move',
+            userSelect: 'none',
           }}
         >
+          <GripVertical size={10} style={{ color: 'rgba(200,216,240,0.35)', marginRight: 4, flexShrink: 0 }} />
           <span
             style={{
-              color: 'var(--color-primary)',
-              fontWeight: 600,
+              color: '#C8D8F0',
+              fontWeight: 700,
               fontSize: 12,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -139,47 +212,62 @@ function TableNodeCard({ node }: { node: TableNode }) {
               height: NODE_ROW_HEIGHT,
               display: 'flex',
               alignItems: 'center',
-              paddingLeft: 10,
-              paddingRight: 10,
-              gap: 4,
               borderBottom: '1px solid rgba(255,255,255,0.04)',
+              background: col.isPrimaryKey ? 'rgba(250,204,21,0.04)' : undefined,
             }}
           >
-            {col.isPrimaryKey && (
-              <span style={{ fontSize: 9, color: '#facc15', fontWeight: 700, minWidth: 16 }}>PK</span>
-            )}
-            {!col.isPrimaryKey && col.isForeignKey && (
-              <span style={{ fontSize: 9, color: '#fb923c', fontWeight: 700, minWidth: 16 }}>FK</span>
-            )}
-            {!col.isPrimaryKey && !col.isForeignKey && (
-              <span style={{ minWidth: 16 }} />
-            )}
-            <span
+            {/* Left icon strip */}
+            <div
               style={{
-                fontSize: 11,
-                color: col.isPrimaryKey
-                  ? '#fde68a'
-                  : col.isForeignKey
-                    ? '#fdba74'
-                    : 'var(--color-foreground)',
+                width: ICON_STRIP_WIDTH,
+                minWidth: ICON_STRIP_WIDTH,
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRight: '1px solid rgba(255,255,255,0.06)',
+                background: 'rgba(0,0,0,0.15)',
+              }}
+            >
+              {col.isPrimaryKey && <KeyIconPK />}
+              {col.isForeignKey && !col.isPrimaryKey && <KeyIconFK />}
+            </div>
+            {/* Content area */}
+            <div
+              style={{
                 flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                paddingLeft: 6,
+                paddingRight: 8,
+                gap: 4,
                 overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
               }}
             >
-              {col.name}
-            </span>
-            <span
-              style={{
-                fontSize: 10,
-                color: 'var(--color-muted-foreground)',
-                marginLeft: 'auto',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {col.type}
-            </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: col.isPrimaryKey ? '#FDE68A' : col.isForeignKey ? '#C8D8F0' : '#ECECEC',
+                  textDecoration: col.isPrimaryKey ? 'underline' : undefined,
+                  flex: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {col.name}
+              </span>
+              <span
+                style={{
+                  fontSize: 10,
+                  color: '#555560',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                {col.displayType}
+              </span>
+            </div>
           </div>
         ))}
       </div>
@@ -187,10 +275,18 @@ function TableNodeCard({ node }: { node: TableNode }) {
   )
 }
 
-function EdgeLine({ edge }: { edge: Edge }) {
-  const { sourceNode, targetNode, rel } = edge
+// ─── EdgeLine ─────────────────────────────────────────────────────────────────
+interface EdgeLineProps {
+  edge: Edge
+  nodeMap: Map<string, TableNode>
+}
 
-  // Find column row index in source/target
+function EdgeLine({ edge, nodeMap }: EdgeLineProps) {
+  const { rel } = edge
+  const sourceNode = nodeMap.get(rel.sourceTable)
+  const targetNode = nodeMap.get(rel.targetTable)
+  if (!sourceNode || !targetNode) return null
+
   const srcColIdx = sourceNode.columns.findIndex((c) => c.name === rel.sourceColumn)
   const tgtColIdx = targetNode.columns.findIndex((c) => c.name === rel.targetColumn)
 
@@ -201,18 +297,140 @@ function EdgeLine({ edge }: { edge: Edge }) {
   const tgt = edgeAnchor(targetNode, tgtAnchorSide, tgtColIdx >= 0 ? tgtColIdx : 0)
   const d = buildPath(src.x, src.y, tgt.x, tgt.y)
 
+  // Midpoint of cubic bezier at t=0.5
+  const dx = Math.abs(tgt.x - src.x)
+  const cx = Math.max(40, dx * 0.5)
+  const csx = src.x < tgt.x ? src.x + cx : src.x - cx
+  const ctx = src.x < tgt.x ? tgt.x - cx : tgt.x + cx
+  const midX = 0.125 * src.x + 0.375 * csx + 0.375 * ctx + 0.125 * tgt.x
+  const midY = 0.125 * src.y + 0.375 * src.y + 0.375 * tgt.y + 0.125 * tgt.y
+
   return (
     <g>
+      <path d={d} fill="none" stroke="transparent" strokeWidth={8} />
       <path
         d={d}
         fill="none"
-        stroke="#fb923c"
-        strokeWidth={1.5}
-        strokeOpacity={0.6}
-        strokeDasharray="none"
-        markerEnd="url(#arrowhead)"
+        stroke="#7B9FD4"
+        strokeWidth={1.2}
+        strokeOpacity={0.65}
+        markerStart="url(#crow-foot-many)"
+        markerEnd="url(#one-end)"
       />
+      <rect x={midX - 13} y={midY - 8} width={26} height={14} rx={3} fill="#1C1C20" stroke="rgba(123,159,212,0.35)" strokeWidth={1} />
+      <text x={midX} y={midY + 4} textAnchor="middle" fontSize={9} fontFamily="var(--font-sans, system-ui, sans-serif)" fill="#7B9FD4">
+        N:1
+      </text>
     </g>
+  )
+}
+
+// ─── Field List Panel ─────────────────────────────────────────────────────────
+function FieldListPanel({ nodes, edges }: { nodes: TableNode[]; edges: Edge[] }) {
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+
+  // Build a set of table names that have relationships
+  const relatedTables = new Set<string>()
+  edges.forEach((e) => {
+    relatedTables.add(e.rel.sourceTable)
+    relatedTables.add(e.rel.targetTable)
+  })
+
+  const toggle = (id: string) => setCollapsed((c) => ({ ...c, [id]: !c[id] }))
+
+  return (
+    <div
+      style={{
+        width: 220,
+        minWidth: 220,
+        borderRight: '1px solid rgba(255,255,255,0.07)',
+        background: '#141416',
+        overflowY: 'auto',
+        fontFamily: 'var(--font-sans, system-ui, sans-serif)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <div
+        style={{
+          padding: '8px 10px 6px',
+          fontSize: 10,
+          fontWeight: 700,
+          color: 'rgba(255,255,255,0.35)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
+        Tables &amp; Fields
+      </div>
+      {nodes.map((node) => {
+        const isOpen = !collapsed[node.id]
+        return (
+          <div key={node.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            {/* Table header row */}
+            <div
+              onClick={() => toggle(node.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '5px 8px',
+                cursor: 'pointer',
+                gap: 4,
+                background: isOpen ? 'rgba(37,43,59,0.6)' : undefined,
+              }}
+            >
+              {isOpen
+                ? <ChevronDown size={11} style={{ color: '#7B9FD4', flexShrink: 0 }} />
+                : <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+              }
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#C8D8F0', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {node.table.name}
+              </span>
+              {relatedTables.has(node.id) && (
+                <span style={{ fontSize: 9, color: '#7B9FD4', background: 'rgba(123,159,212,0.12)', borderRadius: 3, padding: '0 4px' }}>FK</span>
+              )}
+            </div>
+            {/* Column rows */}
+            {isOpen && node.columns.map((col) => (
+              <div
+                key={col.name}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  paddingLeft: 22,
+                  paddingRight: 8,
+                  height: 22,
+                  gap: 5,
+                  background: col.isPrimaryKey ? 'rgba(250,204,21,0.03)' : undefined,
+                }}
+              >
+                <div style={{ width: 12, flexShrink: 0 }}>
+                  {col.isPrimaryKey && <KeyIconPK />}
+                  {col.isForeignKey && !col.isPrimaryKey && <KeyIconFK />}
+                </div>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: col.isPrimaryKey ? '#FDE68A' : col.isForeignKey ? '#C8D8F0' : '#ADADB5',
+                    textDecoration: col.isPrimaryKey ? 'underline' : undefined,
+                    flex: 1,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {col.name}
+                </span>
+                <span style={{ fontSize: 10, color: '#3E3E48', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  {col.displayType}
+                </span>
+              </div>
+            ))}
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -224,44 +442,44 @@ export function ERDiagram() {
   const [nodes, setNodes] = useState<TableNode[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
 
+  // Schema/database selection state
+  const [databases, setDatabases] = useState<string[]>([])
+  const [schemas, setSchemas] = useState<string[]>([])
+  const [selectedDb, setSelectedDb] = useState<string>('')
+  const [selectedSchema, setSelectedSchema] = useState<string>('')
+
   // Pan / zoom state
   const [transform, setTransform] = useState({ x: 20, y: 20, scale: 1 })
+  const [cursorMode, setCursorMode] = useState<'default' | 'grabbing'>('default')
   const isPanning = useRef(false)
   const lastMouse = useRef({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const totalWidth = Math.max(
-    ...nodes.map((n) => n.x + n.width),
-    COLS * (NODE_WIDTH + H_GAP)
-  ) + H_GAP
+  // Node dragging state
+  const draggingNodeId = useRef<string | null>(null)
+  const dragNodeOffset = useRef({ x: 0, y: 0 })
+
+  // IDB key for current view
+  const idbKey = activeConnectionId && selectedSchema
+    ? `${activeConnectionId}:${selectedDb}:${selectedSchema}`
+    : null
+
+  const nodeMap = new Map(nodes.map((n) => [n.id, n]))
+
+  const totalWidth = Math.max(...nodes.map((n) => n.x + n.width), COLS * (NODE_WIDTH + H_GAP)) + H_GAP
   const totalHeight = Math.max(...nodes.map((n) => n.y + n.height), 400) + V_GAP
 
-  const loadDiagram = useCallback(async () => {
-    if (!activeConnectionId) return
+  const zoomIn = () => setTransform((t) => ({ ...t, scale: Math.min(t.scale * 1.2, 3) }))
+  const zoomOut = () => setTransform((t) => ({ ...t, scale: Math.max(t.scale / 1.2, 0.2) }))
+  const zoomReset = () => setTransform({ x: 20, y: 20, scale: 1 })
+
+  const loadDiagram = useCallback(async (schema: string, db: string) => {
+    if (!activeConnectionId || !schema) return
     setLoading(true)
     setError(null)
     try {
-      // 1. Get databases → schemas
-      const dbs = await invoke('schema:databases', activeConnectionId)
-      if (!dbs.length) {
-        setNodes([])
-        setEdges([])
-        setLoading(false)
-        return
-      }
-      const schemas = await invoke('schema:schemas', activeConnectionId, dbs[0])
-      const schema = schemas.includes('public') ? 'public' : schemas[0]
-      if (!schema) {
-        setNodes([])
-        setEdges([])
-        setLoading(false)
-        return
-      }
-
-      // 2. Get tables
       const tables = await invoke('schema:tables', activeConnectionId, schema)
 
-      // 3. Get columns for each table (parallel)
       const columnEntries = await Promise.all(
         tables.map(async (t) => {
           const cols = await invoke('schema:columns', activeConnectionId, t.name)
@@ -270,21 +488,25 @@ export function ERDiagram() {
       )
       const columnsByTable: Record<string, ColumnInfo[]> = Object.fromEntries(columnEntries)
 
-      // 4. Get relationships
       const relationships = await invoke('schema:relationships', activeConnectionId, schema)
 
-      // 5. Layout
       const layouted = layoutNodes(tables, columnsByTable)
-      const nodeMap = new Map(layouted.map((n) => [n.id, n]))
+
+      // Load saved positions from IndexedDB
+      const key = `${activeConnectionId}:${db}:${schema}`
+      const saved = await loadPositions(key)
+      if (saved) {
+        for (const node of layouted) {
+          if (saved[node.id]) {
+            node.x = saved[node.id].x
+            node.y = saved[node.id].y
+          }
+        }
+      }
 
       const builtEdges: Edge[] = relationships
-        .filter((r) => nodeMap.has(r.sourceTable) && nodeMap.has(r.targetTable))
-        .map((r) => ({
-          id: r.constraintName,
-          rel: r,
-          sourceNode: nodeMap.get(r.sourceTable)!,
-          targetNode: nodeMap.get(r.targetTable)!,
-        }))
+        .filter((r) => layouted.some((n) => n.id === r.sourceTable) && layouted.some((n) => n.id === r.targetTable))
+        .map((r) => ({ id: r.constraintName, rel: r }))
 
       setNodes(layouted)
       setEdges(builtEdges)
@@ -295,18 +517,95 @@ export function ERDiagram() {
     }
   }, [activeConnectionId])
 
-  useEffect(() => {
-    if (activeConnectionId) loadDiagram()
-  }, [activeConnectionId, loadDiagram])
+  const loadMeta = useCallback(async (db?: string) => {
+    if (!activeConnectionId) return
+    setLoading(true)
+    setError(null)
+    try {
+      let targetDb = db
+      if (!targetDb) {
+        const dbs = await invoke('schema:databases', activeConnectionId)
+        setDatabases(dbs)
+        targetDb = dbs[0] ?? ''
+        setSelectedDb(targetDb)
+      }
+      if (!targetDb) {
+        setNodes([])
+        setEdges([])
+        setLoading(false)
+        return
+      }
+      const schemaList = await invoke('schema:schemas', activeConnectionId, targetDb)
+      setSchemas(schemaList)
+      const defaultSchema = schemaList.includes('public') ? 'public' : (schemaList[0] ?? '')
+      setSelectedSchema(defaultSchema)
+    } catch (err) {
+      setError((err as Error).message ?? 'Failed to load metadata')
+      setLoading(false)
+    }
+  }, [activeConnectionId])
 
-  // ── Pan handlers ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (activeConnectionId) {
+      setDatabases([])
+      setSchemas([])
+      setSelectedDb('')
+      setSelectedSchema('')
+      setNodes([])
+      setEdges([])
+      loadMeta()
+    }
+  }, [activeConnectionId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (selectedSchema) {
+      loadDiagram(selectedSchema, selectedDb)
+    }
+  }, [selectedSchema, selectedDb]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDbChange = (db: string) => {
+    setSelectedDb(db)
+    setSchemas([])
+    setSelectedSchema('')
+    setNodes([])
+    setEdges([])
+    loadMeta(db)
+  }
+
+  const handleSchemaChange = (schema: string) => setSelectedSchema(schema)
+
+  // ── Node drag start (from card header mousedown) ──────────────────────────
+  const onNodeDragStart = useCallback((e: React.MouseEvent, nodeId: string) => {
+    e.stopPropagation() // prevent canvas pan
+    const node = nodes.find((n) => n.id === nodeId)
+    if (!node) return
+    draggingNodeId.current = nodeId
+    // offset in SVG space: mouse position converted via scale
+    const svgX = (e.clientX - transform.x) / transform.scale
+    const svgY = (e.clientY - transform.y) / transform.scale
+    dragNodeOffset.current = { x: svgX - node.x, y: svgY - node.y }
+    setCursorMode('grabbing')
+  }, [nodes, transform])
+
+  // ── Canvas mousedown (pan) ────────────────────────────────────────────────
   const onMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return
     isPanning.current = true
+    setCursorMode('grabbing')
     lastMouse.current = { x: e.clientX, y: e.clientY }
   }
 
   const onMouseMove = (e: React.MouseEvent) => {
+    if (draggingNodeId.current) {
+      const svgX = (e.clientX - transform.x) / transform.scale
+      const svgY = (e.clientY - transform.y) / transform.scale
+      const newX = svgX - dragNodeOffset.current.x
+      const newY = svgY - dragNodeOffset.current.y
+      setNodes((prev) => prev.map((n) =>
+        n.id === draggingNodeId.current ? { ...n, x: newX, y: newY } : n
+      ))
+      return
+    }
     if (!isPanning.current) return
     const dx = e.clientX - lastMouse.current.x
     const dy = e.clientY - lastMouse.current.y
@@ -314,17 +613,24 @@ export function ERDiagram() {
     setTransform((t) => ({ ...t, x: t.x + dx, y: t.y + dy }))
   }
 
-  const onMouseUp = () => {
+  const onMouseUp = useCallback(() => {
+    if (draggingNodeId.current && idbKey) {
+      // Persist all positions to IndexedDB
+      setNodes((prev) => {
+        const positions: Record<string, { x: number; y: number }> = {}
+        for (const n of prev) positions[n.id] = { x: n.x, y: n.y }
+        savePositions(idbKey, positions)
+        return prev
+      })
+      draggingNodeId.current = null
+    }
     isPanning.current = false
-  }
+    setCursorMode('default')
+  }, [idbKey])
 
+  // Wheel scrolls the canvas — use buttons for zoom
   const onWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
-    const delta = e.deltaY > 0 ? 0.9 : 1.1
-    setTransform((t) => {
-      const newScale = Math.min(Math.max(t.scale * delta, 0.2), 3)
-      return { ...t, scale: newScale }
-    })
+    setTransform((t) => ({ ...t, x: t.x - e.deltaX, y: t.y - e.deltaY }))
   }
 
   // ── Empty / loading states ───────────────────────────────────────────────
@@ -350,13 +656,52 @@ export function ERDiagram() {
         <span className="text-xs font-semibold" style={{ color: 'var(--color-foreground)' }}>
           ER Diagram
         </span>
+        {databases.length > 0 && (
+          <select
+            value={selectedDb}
+            onChange={(e) => handleDbChange(e.target.value)}
+            className="text-xs rounded px-1 py-0.5"
+            style={{ background: '#0d0d0d', color: 'var(--color-foreground)', border: '1px solid transparent', outline: 'none', cursor: 'pointer' }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = 'transparent' }}
+          >
+            {databases.map((db) => <option key={db} value={db}>{db}</option>)}
+          </select>
+        )}
+        {schemas.length > 0 && (
+          <select
+            value={selectedSchema}
+            onChange={(e) => handleSchemaChange(e.target.value)}
+            className="text-xs rounded px-1 py-0.5"
+            style={{ background: '#0d0d0d', color: 'var(--color-foreground)', border: '1px solid transparent', outline: 'none', cursor: 'pointer' }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = 'transparent' }}
+          >
+            {schemas.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        )}
         <div className="flex-1" />
         <span className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
           {nodes.length} tables · {edges.length} relationships
         </span>
+        {/* Zoom controls */}
+        <div className="flex items-center gap-0.5" style={{ borderLeft: '1px solid var(--color-border)', paddingLeft: 8, marginLeft: 4 }}>
+          <button onClick={zoomOut} className="flex items-center justify-center rounded p-1 hover:text-white" style={{ color: 'var(--color-muted-foreground)', background: 'transparent', border: 'none', cursor: 'pointer' }} title="Zoom out">
+            <ZoomOut size={13} />
+          </button>
+          <span className="text-xs tabular-nums" style={{ color: 'var(--color-muted-foreground)', minWidth: 36, textAlign: 'center' }}>
+            {Math.round(transform.scale * 100)}%
+          </span>
+          <button onClick={zoomIn} className="flex items-center justify-center rounded p-1 hover:text-white" style={{ color: 'var(--color-muted-foreground)', background: 'transparent', border: 'none', cursor: 'pointer' }} title="Zoom in">
+            <ZoomIn size={13} />
+          </button>
+          <button onClick={zoomReset} className="flex items-center justify-center rounded p-1 hover:text-white" style={{ color: 'var(--color-muted-foreground)', background: 'transparent', border: 'none', cursor: 'pointer' }} title="Reset view">
+            <Maximize2 size={13} />
+          </button>
+        </div>
         <button
-          onClick={loadDiagram}
-          disabled={loading}
+          onClick={() => selectedSchema && loadDiagram(selectedSchema, selectedDb)}
+          disabled={loading || !selectedSchema}
           className="flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors hover:text-white disabled:opacity-50"
           style={{ color: 'var(--color-muted-foreground)', background: 'transparent', border: 'none', cursor: 'pointer' }}
           title="Refresh"
@@ -368,10 +713,7 @@ export function ERDiagram() {
 
       {/* Error banner */}
       {error && (
-        <div
-          className="flex items-center gap-2 px-3 py-2 text-xs shrink-0"
-          style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', borderBottom: '1px solid rgba(239,68,68,0.2)' }}
-        >
+        <div className="flex items-center gap-2 px-3 py-2 text-xs shrink-0" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', borderBottom: '1px solid rgba(239,68,68,0.2)' }}>
           <AlertCircle size={12} />
           {error}
         </div>
@@ -387,66 +729,114 @@ export function ERDiagram() {
         </div>
       )}
 
-      {/* Canvas */}
+      {/* Main area: field list + canvas */}
       {!loading && (
-        <div
-          ref={containerRef}
-          className="flex-1 overflow-hidden"
-          style={{ cursor: 'grab', position: 'relative' }}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onMouseLeave={onMouseUp}
-          onWheel={onWheel}
-        >
-          {nodes.length === 0 && !error && (
-            <div
-              className="flex h-full items-center justify-center"
-              style={{ color: 'var(--color-muted-foreground)' }}
-            >
-              <p className="text-sm">No tables found in this schema</p>
-            </div>
-          )}
-
+        <div className="flex flex-1 overflow-hidden">
+          {/* Field list panel */}
           {nodes.length > 0 && (
-            <svg
-              style={{
-                transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
-                transformOrigin: '0 0',
-                overflow: 'visible',
-                width: totalWidth,
-                height: totalHeight,
-                display: 'block',
-              }}
-            >
-              <defs>
-                <marker
-                  id="arrowhead"
-                  markerWidth="8"
-                  markerHeight="8"
-                  refX="6"
-                  refY="3"
-                  orient="auto"
-                >
-                  <path d="M 0 0 L 6 3 L 0 6 z" fill="#fb923c" fillOpacity={0.7} />
-                </marker>
-              </defs>
-
-              {/* Edges drawn first (behind nodes) */}
-              <g>
-                {edges.map((edge) => (
-                  <EdgeLine key={edge.id} edge={edge} />
-                ))}
-              </g>
-
-              {/* Node cards */}
-              <g>
-                {nodes.map((node) => (
-                  <TableNodeCard key={node.id} node={node} />
-                ))}
-              </g>
-            </svg>
+            <FieldListPanel nodes={nodes} edges={edges} />
           )}
+
+          {/* Canvas */}
+          <div
+            ref={containerRef}
+            className="flex-1 overflow-hidden"
+            style={{ cursor: cursorMode === 'grabbing' ? 'grabbing' : 'grab', position: 'relative' }}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+            onWheel={onWheel}
+          >
+            {nodes.length === 0 && !error && (
+              <div className="flex h-full items-center justify-center" style={{ color: 'var(--color-muted-foreground)' }}>
+                <p className="text-sm">No tables found in this schema</p>
+              </div>
+            )}
+
+            {nodes.length > 0 && (
+              <>
+                <svg
+                  style={{
+                    transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+                    transformOrigin: '0 0',
+                    overflow: 'visible',
+                    width: totalWidth,
+                    height: totalHeight,
+                    display: 'block',
+                  }}
+                >
+                  <defs>
+                    <marker id="crow-foot-many" markerWidth="12" markerHeight="14" refX="10" refY="7" orient="auto-start-reverse">
+                      <line x1="0" y1="7"  x2="10" y2="2"  stroke="#7B9FD4" strokeWidth="1.5"/>
+                      <line x1="0" y1="7"  x2="10" y2="7"  stroke="#7B9FD4" strokeWidth="1.5"/>
+                      <line x1="0" y1="7"  x2="10" y2="12" stroke="#7B9FD4" strokeWidth="1.5"/>
+                    </marker>
+                    <marker id="one-end" markerWidth="8" markerHeight="14" refX="6" refY="7" orient="auto">
+                      <line x1="6" y1="1" x2="6" y2="13" stroke="#7B9FD4" strokeWidth="1.5"/>
+                    </marker>
+                    <pattern id="dot-grid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <circle cx="1" cy="1" r="0.8" fill="rgba(255,255,255,0.06)"/>
+                    </pattern>
+                  </defs>
+
+                  <rect x="-5000" y="-5000" width="10000" height="10000" fill="url(#dot-grid)"/>
+
+                  <g>
+                    {edges.map((edge) => (
+                      <EdgeLine key={edge.id} edge={edge} nodeMap={nodeMap} />
+                    ))}
+                  </g>
+
+                  <g>
+                    {nodes.map((node) => (
+                      <TableNodeCard key={node.id} node={node} onDragStart={onNodeDragStart} />
+                    ))}
+                  </g>
+                </svg>
+
+                {/* Canvas overlay: zoom + drag hint */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: 14,
+                    right: 14,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      background: 'rgba(0,0,0,0.55)',
+                      borderRadius: 6,
+                      padding: '4px 8px',
+                      pointerEvents: 'auto',
+                    }}
+                  >
+                    <button onClick={zoomOut} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)', padding: '2px 4px', fontSize: 14, lineHeight: 1 }} title="Zoom out">−</button>
+                    <span
+                      onClick={zoomReset}
+                      style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', minWidth: 34, textAlign: 'center', cursor: 'pointer', userSelect: 'none' }}
+                      title="Reset zoom"
+                    >
+                      {Math.round(transform.scale * 100)}%
+                    </span>
+                    <button onClick={zoomIn} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)', padding: '2px 4px', fontSize: 14, lineHeight: 1 }} title="Zoom in">+</button>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', userSelect: 'none' }}>
+                      drag header to move · scroll to pan
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>
