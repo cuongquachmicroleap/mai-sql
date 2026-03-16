@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronRight, ChevronDown, Database, Table2, Loader2, AlertCircle, RefreshCw, Key, FunctionSquare, List, Zap, ListOrdered, Server } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useEditorStore } from '../../stores/editor-store'
+import { useConnectionStore } from '../../stores/connection-store'
 import type { TableInfo, ColumnInfo, FunctionInfo, IndexInfo, TriggerInfo } from '@shared/types/schema'
 
 interface DatabaseTreeProps {
@@ -100,6 +101,9 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
   const { activeTabId, updateTabContent } = useEditorStore()
+  const configuredDatabase = useConnectionStore(
+    (s) => s.connections.find((c) => c.id === connectionId)?.database
+  )
 
   const fetchRowCount = useCallback(async (database: string, schema: string, tables: TableInfo[]) => {
     for (const table of tables) {
@@ -118,11 +122,16 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     setIndexesByTable({}); setTriggersByTable({}); setFunctionsBySchema({}); setEnumsBySchema({}); setRowCountByTable({})
     setError(null); setLoadingKeys(new Set(['root']))
     try {
-      const [dbs, defDb] = await Promise.all([
+      const [allDbs, defDb] = await Promise.all([
         invoke('schema:databases', connectionId),
         invoke('schema:default-database', connectionId),
       ])
-      if (dbs.length === 0) { setError('No databases found'); return }
+      if (allDbs.length === 0) { setError('No databases found'); return }
+      // If connection specifies a database, only show that one
+      const dbs = configuredDatabase
+        ? allDbs.filter((db) => db === configuredDatabase)
+        : allDbs
+      if (dbs.length === 0) { setError(`Database '${configuredDatabase}' not found`); return }
       setDatabases(dbs)
       setDefaultDatabase(defDb)
 
@@ -155,7 +164,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     } finally {
       setLoadingKeys((prev) => { const n = new Set(prev); n.delete('root'); n.delete(dbKey(defaultDatabase)); return n })
     }
-  }, [connectionId, fetchRowCount, defaultDatabase])
+  }, [connectionId, configuredDatabase, fetchRowCount, defaultDatabase])
 
   useEffect(() => { loadSchema() }, [loadSchema])
 
