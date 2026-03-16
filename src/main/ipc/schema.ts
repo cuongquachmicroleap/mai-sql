@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
 import { connectionManager } from '../managers/connection-manager'
+import type { PostgreSQLDriver } from '../drivers/postgresql'
 
 ipcMain.handle('schema:databases', async (_event, connectionId: string) => {
   const driver = connectionManager.getDriver(connectionId)
@@ -7,44 +8,50 @@ ipcMain.handle('schema:databases', async (_event, connectionId: string) => {
   return driver.getDatabases()
 })
 
-ipcMain.handle('schema:schemas', async (_event, connectionId: string, database: string) => {
+ipcMain.handle('schema:default-database', async (_event, connectionId: string) => {
+  const driver = connectionManager.getDriver(connectionId)
+  if (!driver) throw new Error(`Not connected to '${connectionId}'`)
+  return (driver as PostgreSQLDriver).getDefaultDatabase?.() ?? 'postgres'
+})
+
+ipcMain.handle('schema:schemas', async (_event, connectionId: string, database?: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
   return driver.getSchemas(database)
 })
 
-ipcMain.handle('schema:tables', async (_event, connectionId: string, schema: string) => {
+ipcMain.handle('schema:tables', async (_event, connectionId: string, schema: string, database?: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
-  return driver.getTables(schema)
+  return driver.getTables(schema, database)
 })
 
-ipcMain.handle('schema:columns', async (_event, connectionId: string, table: string, schema?: string) => {
+ipcMain.handle('schema:columns', async (_event, connectionId: string, table: string, schema?: string, database?: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
-  return driver.getColumns(table, schema)
+  return driver.getColumns(table, schema, database)
 })
 
-ipcMain.handle('schema:indexes', async (_event, connectionId: string, table: string, schema: string) => {
+ipcMain.handle('schema:indexes', async (_event, connectionId: string, table: string, schema: string, database?: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
-  return driver.getIndexes(table, schema)
+  return driver.getIndexes(table, schema, database)
 })
 
-ipcMain.handle('schema:triggers', async (_event, connectionId: string, table: string, schema: string) => {
+ipcMain.handle('schema:triggers', async (_event, connectionId: string, table: string, schema: string, database?: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
-  return driver.getTriggers(table, schema)
+  return driver.getTriggers(table, schema, database)
 })
 
-ipcMain.handle('schema:functions', async (_event, connectionId: string, schema: string) => {
+ipcMain.handle('schema:functions', async (_event, connectionId: string, schema: string, database?: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
-  return driver.getFunctions(schema)
+  return driver.getFunctions(schema, database)
 })
 
-ipcMain.handle('schema:relationships', async (_event, connectionId: string, schema: string) => {
+ipcMain.handle('schema:relationships', async (_event, connectionId: string, schema: string, database?: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)
-  return driver.getRelationships(schema)
+  return driver.getRelationships(schema, database)
 })

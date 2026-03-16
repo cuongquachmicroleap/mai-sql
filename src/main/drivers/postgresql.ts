@@ -18,7 +18,8 @@ function buildDisplayType(
 }
 
 export class PostgreSQLDriver implements IDataSource {
-  private pool: Pool | null = null
+  private pools = new Map<string, Pool>()
+  private defaultDatabase: string = 'postgres'
 
   constructor(private readonly config: ConnectionConfig) {}
 
@@ -28,10 +29,11 @@ export class PostgreSQLDriver implements IDataSource {
 
   async connect(): Promise<void> {
     try {
-      this.pool = new Pool({
+      this.defaultDatabase = this.config.database || 'postgres'
+      const pool = new Pool({
         host: this.config.host,
         port: this.config.port,
-        database: this.config.database,
+        database: this.defaultDatabase,
         user: this.config.username,
         password: this.config.password,
         ssl: this.config.ssl ? { rejectUnauthorized: false } : false,
@@ -39,33 +41,58 @@ export class PostgreSQLDriver implements IDataSource {
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 10000,
       })
-      const client = await this.pool.connect()
+      const client = await pool.connect()
       client.release()
+      this.pools.set(this.defaultDatabase, pool)
     } catch (err) {
       throw new DataSourceError(`Failed to connect: ${(err as Error).message}`, undefined, err)
     }
   }
 
   async disconnect(): Promise<void> {
-    if (this.pool) {
-      await this.pool.end()
-      this.pool = null
+    for (const pool of this.pools.values()) {
+      await pool.end()
     }
+    this.pools.clear()
+  }
+
+  private async getPool(database?: string): Promise<Pool> {
+    const db = database || this.defaultDatabase
+    const existing = this.pools.get(db)
+    if (existing) return existing
+    // Create a new pool for this database on-demand
+    const pool = new Pool({
+      host: this.config.host,
+      port: this.config.port,
+      database: db,
+      user: this.config.username,
+      password: this.config.password,
+      ssl: this.config.ssl ? { rejectUnauthorized: false } : false,
+      max: 3,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    })
+    const client = await pool.connect()
+    client.release()
+    this.pools.set(db, pool)
+    return pool
   }
 
   async testConnection(): Promise<boolean> {
-    const client = await this.pool!.connect()
+    const pool = await this.getPool()
+    const client = await pool.connect()
     await client.query('SELECT 1')
     client.release()
     return true
   }
 
-  async execute(query: string, params?: unknown[]): Promise<QueryResult> {
-    if (!this.pool) throw new DataSourceError('Not connected')
+  async execute(query: string, params?: unknown[], database?: string): Promise<QueryResult> {
+    if (this.pools.size === 0) throw new DataSourceError('Not connected')
+    const pool = await this.getPool(database)
     const start = Date.now()
     const queryId = nanoid()
     try {
-      const result: PGQueryResult = await this.pool.query(query, params)
+      const result: PGQueryResult = await pool.query(query, params)
       const columns: ColumnMeta[] = (result.fields ?? []).map((f) => ({
         name: f.name,
         dataType: String(f.dataTypeID),
@@ -99,23 +126,30 @@ export class PostgreSQLDriver implements IDataSource {
     return result.rows.map((r) => String(r['datname']))
   }
 
-  async getSchemas(_database: string): Promise<string[]> {
+  getDefaultDatabase(): string {
+    return this.defaultDatabase
+  }
+
+  async getSchemas(database?: string): Promise<string[]> {
     const result = await this.execute(
       `SELECT schema_name FROM information_schema.schemata
        WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast', 'pg_temp_1', 'pg_toast_temp_1')
          AND schema_name NOT LIKE 'pg_%'
-       ORDER BY schema_name`
+       ORDER BY schema_name`,
+      undefined,
+      database
     )
     return result.rows.map((r) => String(r['schema_name']))
   }
 
-  async getTables(schema: string): Promise<TableInfo[]> {
+  async getTables(schema: string, database?: string): Promise<TableInfo[]> {
     const result = await this.execute(
       `SELECT table_name, table_type
        FROM information_schema.tables
        WHERE table_schema = $1
        ORDER BY table_name`,
-      [schema]
+      [schema],
+      database
     )
     return result.rows.map((r) => ({
       name: String(r['table_name']),
@@ -124,7 +158,7 @@ export class PostgreSQLDriver implements IDataSource {
     }))
   }
 
-  async getColumns(table: string, schema = 'public'): Promise<ColumnInfo[]> {
+  async getColumns(table: string, schema = 'public', database?: string): Promise<ColumnInfo[]> {
     const result = await this.execute(
       `SELECT
          c.column_name, c.data_type, c.udt_name, c.is_nullable, c.column_default,
@@ -146,7 +180,8 @@ export class PostgreSQLDriver implements IDataSource {
        FROM information_schema.columns c
        WHERE c.table_schema = $1 AND c.table_name = $2
        ORDER BY c.ordinal_position`,
-      [schema, table]
+      [schema, table],
+      database
     )
     return result.rows.map((r) => {
       const type = String(r['data_type'])
@@ -169,7 +204,7 @@ export class PostgreSQLDriver implements IDataSource {
     })
   }
 
-  async getRelationships(schema: string): Promise<Relationship[]> {
+  async getRelationships(schema: string, database?: string): Promise<Relationship[]> {
     const result = await this.execute(
       `SELECT
          tc.constraint_name,
@@ -183,7 +218,8 @@ export class PostgreSQLDriver implements IDataSource {
        JOIN information_schema.constraint_column_usage ccu
          ON ccu.constraint_name = tc.constraint_name AND ccu.constraint_schema = tc.constraint_schema
        WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.constraint_schema = $1`,
-      [schema]
+      [schema],
+      database
     )
     return result.rows.map((r) => ({
       sourceTable: String(r['source_table']),
@@ -194,7 +230,7 @@ export class PostgreSQLDriver implements IDataSource {
     }))
   }
 
-  async getFunctions(schema = 'public'): Promise<FunctionInfo[]> {
+  async getFunctions(schema = 'public', database?: string): Promise<FunctionInfo[]> {
     const result = await this.execute(
       `SELECT p.proname AS name,
               pg_get_function_result(p.oid) AS return_type,
@@ -206,7 +242,8 @@ export class PostgreSQLDriver implements IDataSource {
        WHERE n.nspname = $1
          AND p.prokind IN ('f', 'p')
        ORDER BY p.proname`,
-      [schema]
+      [schema],
+      database
     )
     return result.rows.map((r) => ({
       name: String(r['name']),
@@ -216,13 +253,14 @@ export class PostgreSQLDriver implements IDataSource {
     }))
   }
 
-  async getTriggers(table: string, schema: string): Promise<TriggerInfo[]> {
+  async getTriggers(table: string, schema: string, database?: string): Promise<TriggerInfo[]> {
     const result = await this.execute(
       `SELECT trigger_name, event_manipulation, action_timing, action_orientation
        FROM information_schema.triggers
        WHERE event_object_schema = $1 AND event_object_table = $2
        ORDER BY trigger_name, event_manipulation`,
-      [schema, table]
+      [schema, table],
+      database
     )
     // Collapse multiple event rows for same trigger into one
     const map = new Map<string, TriggerInfo>()
@@ -242,7 +280,7 @@ export class PostgreSQLDriver implements IDataSource {
     return Array.from(map.values())
   }
 
-  async getIndexes(table: string, schema = 'public'): Promise<IndexInfo[]> {
+  async getIndexes(table: string, schema = 'public', database?: string): Promise<IndexInfo[]> {
     const result = await this.execute(
       `SELECT
          i.relname AS index_name,
@@ -256,7 +294,8 @@ export class PostgreSQLDriver implements IDataSource {
        JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey)
        WHERE t.relname = $1 AND n.nspname = $2
        GROUP BY i.relname, ix.indisunique, ix.indisprimary`,
-      [table, schema]
+      [table, schema],
+      database
     )
     return result.rows.map((r) => ({
       name: String(r['index_name']),

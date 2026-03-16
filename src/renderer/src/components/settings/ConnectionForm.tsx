@@ -150,15 +150,15 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
   }
 
   const handleSave = async () => {
-    if (!form.host || !form.database || !form.username) return
+    if (!form.host || !form.username) return
     if (!isEditing && !form.password) return
     const config: ConnectionConfig = {
       id: form.id ?? nanoid(),
-      name: form.name || `${form.host}/${form.database}`,
+      name: form.name || (form.database ? `${form.host}/${form.database}` : form.host),
       type: form.type as SQLDialect,
       host: form.host,
       port: form.port ?? DIALECT_DEFAULTS[form.type as SQLDialect].port,
-      database: form.database,
+      database: form.database || undefined,
       username: form.username,
       password: form.password ?? '',
       ssl: form.ssl,
@@ -169,8 +169,8 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
     handleClose()
   }
 
-  const canSave = !!form.host && !!form.database && !!form.username && (isEditing || !!form.password)
-  const canTest = !!form.host && !!form.database && !!form.username && !!form.password
+  const canSave = !!form.host && !!form.username && (isEditing || !!form.password)
+  const canTest = !!form.host && !!form.username && !!form.password
 
   return (
     <>
@@ -257,8 +257,12 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
 
             {/* Database */}
             <div>
-              <label style={LABEL_STYLE}>Database</label>
+              <label style={LABEL_STYLE}>
+                Database
+                <span style={{ fontWeight: 400, color: '#555560', marginLeft: 4 }}>(optional)</span>
+              </label>
               <FormInput
+                placeholder="postgres"
                 value={form.database ?? ''}
                 onChange={(e) => setField('database', e.target.value)}
               />

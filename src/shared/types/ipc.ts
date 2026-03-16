@@ -18,13 +18,14 @@ export interface IPCChannels {
 
   // Schema introspection
   'schema:databases': (connectionId: string) => Promise<string[]>
-  'schema:schemas': (connectionId: string, database: string) => Promise<string[]>
-  'schema:tables': (connectionId: string, schema: string) => Promise<TableInfo[]>
-  'schema:columns': (connectionId: string, table: string, schema?: string) => Promise<ColumnInfo[]>
-  'schema:indexes': (connectionId: string, table: string, schema: string) => Promise<IndexInfo[]>
-  'schema:triggers': (connectionId: string, table: string, schema: string) => Promise<TriggerInfo[]>
-  'schema:functions': (connectionId: string, schema: string) => Promise<FunctionInfo[]>
-  'schema:relationships': (connectionId: string, schema: string) => Promise<Relationship[]>
+  'schema:default-database': (connectionId: string) => Promise<string>
+  'schema:schemas': (connectionId: string, database?: string) => Promise<string[]>
+  'schema:tables': (connectionId: string, schema: string, database?: string) => Promise<TableInfo[]>
+  'schema:columns': (connectionId: string, table: string, schema?: string, database?: string) => Promise<ColumnInfo[]>
+  'schema:indexes': (connectionId: string, table: string, schema: string, database?: string) => Promise<IndexInfo[]>
+  'schema:triggers': (connectionId: string, table: string, schema: string, database?: string) => Promise<TriggerInfo[]>
+  'schema:functions': (connectionId: string, schema: string, database?: string) => Promise<FunctionInfo[]>
+  'schema:relationships': (connectionId: string, schema: string, database?: string) => Promise<Relationship[]>
 
   // Backup / Restore
   'backup:export': (connectionId: string, database: string, tables: string[], outputPath: string) => Promise<{ success: boolean; rowCount: number; error?: string }>

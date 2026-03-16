@@ -17,13 +17,14 @@ const api: IPCChannels = {
 
   // Schema
   'schema:databases': (connectionId) => ipcRenderer.invoke('schema:databases', connectionId),
+  'schema:default-database': (connectionId) => ipcRenderer.invoke('schema:default-database', connectionId),
   'schema:schemas': (connectionId, database) => ipcRenderer.invoke('schema:schemas', connectionId, database),
-  'schema:tables': (connectionId, schema) => ipcRenderer.invoke('schema:tables', connectionId, schema),
-  'schema:columns': (connectionId, table, schema) => ipcRenderer.invoke('schema:columns', connectionId, table, schema),
-  'schema:indexes': (connectionId, table, schema) => ipcRenderer.invoke('schema:indexes', connectionId, table, schema),
-  'schema:triggers': (connectionId, table, schema) => ipcRenderer.invoke('schema:triggers', connectionId, table, schema),
-  'schema:functions': (connectionId, schema) => ipcRenderer.invoke('schema:functions', connectionId, schema),
-  'schema:relationships': (connectionId, schema) => ipcRenderer.invoke('schema:relationships', connectionId, schema),
+  'schema:tables': (connectionId, schema, database) => ipcRenderer.invoke('schema:tables', connectionId, schema, database),
+  'schema:columns': (connectionId, table, schema, database) => ipcRenderer.invoke('schema:columns', connectionId, table, schema, database),
+  'schema:indexes': (connectionId, table, schema, database) => ipcRenderer.invoke('schema:indexes', connectionId, table, schema, database),
+  'schema:triggers': (connectionId, table, schema, database) => ipcRenderer.invoke('schema:triggers', connectionId, table, schema, database),
+  'schema:functions': (connectionId, schema, database) => ipcRenderer.invoke('schema:functions', connectionId, schema, database),
+  'schema:relationships': (connectionId, schema, database) => ipcRenderer.invoke('schema:relationships', connectionId, schema, database),
 
   // Backup / Restore
   'backup:export': (connectionId, database, tables, outputPath) => ipcRenderer.invoke('backup:export', connectionId, database, tables, outputPath),

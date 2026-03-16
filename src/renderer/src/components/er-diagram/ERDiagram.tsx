@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { RefreshCw, Network, AlertCircle, ZoomIn, ZoomOut, Maximize2, GripVertical, ChevronRight, ChevronDown } from 'lucide-react'
+import { RefreshCw, Network, AlertCircle, ZoomIn, ZoomOut, Maximize2, GripVertical } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useConnectionStore } from '../../stores/connection-store'
 import type { TableInfo, ColumnInfo, Relationship } from '@shared/types/schema'
@@ -325,115 +325,6 @@ function EdgeLine({ edge, nodeMap }: EdgeLineProps) {
   )
 }
 
-// ─── Field List Panel ─────────────────────────────────────────────────────────
-function FieldListPanel({ nodes, edges }: { nodes: TableNode[]; edges: Edge[] }) {
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
-
-  // Build a set of table names that have relationships
-  const relatedTables = new Set<string>()
-  edges.forEach((e) => {
-    relatedTables.add(e.rel.sourceTable)
-    relatedTables.add(e.rel.targetTable)
-  })
-
-  const toggle = (id: string) => setCollapsed((c) => ({ ...c, [id]: !c[id] }))
-
-  return (
-    <div
-      style={{
-        width: 220,
-        minWidth: 220,
-        borderRight: '1px solid rgba(255,255,255,0.07)',
-        background: '#141416',
-        overflowY: 'auto',
-        fontFamily: 'var(--font-sans, system-ui, sans-serif)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <div
-        style={{
-          padding: '8px 10px 6px',
-          fontSize: 10,
-          fontWeight: 700,
-          color: 'rgba(255,255,255,0.35)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}
-      >
-        Tables &amp; Fields
-      </div>
-      {nodes.map((node) => {
-        const isOpen = !collapsed[node.id]
-        return (
-          <div key={node.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-            {/* Table header row */}
-            <div
-              onClick={() => toggle(node.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '5px 8px',
-                cursor: 'pointer',
-                gap: 4,
-                background: isOpen ? 'rgba(37,43,59,0.6)' : undefined,
-              }}
-            >
-              {isOpen
-                ? <ChevronDown size={11} style={{ color: '#7B9FD4', flexShrink: 0 }} />
-                : <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
-              }
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#C8D8F0', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {node.table.name}
-              </span>
-              {relatedTables.has(node.id) && (
-                <span style={{ fontSize: 9, color: '#7B9FD4', background: 'rgba(123,159,212,0.12)', borderRadius: 3, padding: '0 4px' }}>FK</span>
-              )}
-            </div>
-            {/* Column rows */}
-            {isOpen && node.columns.map((col) => (
-              <div
-                key={col.name}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  paddingLeft: 22,
-                  paddingRight: 8,
-                  height: 22,
-                  gap: 5,
-                  background: col.isPrimaryKey ? 'rgba(250,204,21,0.03)' : undefined,
-                }}
-              >
-                <div style={{ width: 12, flexShrink: 0 }}>
-                  {col.isPrimaryKey && <KeyIconPK />}
-                  {col.isForeignKey && !col.isPrimaryKey && <KeyIconFK />}
-                </div>
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: col.isPrimaryKey ? '#FDE68A' : col.isForeignKey ? '#C8D8F0' : '#ADADB5',
-                    textDecoration: col.isPrimaryKey ? 'underline' : undefined,
-                    flex: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {col.name}
-                </span>
-                <span style={{ fontSize: 10, color: '#3E3E48', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  {col.displayType}
-                </span>
-              </div>
-            ))}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 // ─── Main component ──────────────────────────────────────────────────────────
 export function ERDiagram() {
   const { activeConnectionId } = useConnectionStore()
@@ -482,7 +373,7 @@ export function ERDiagram() {
 
       const columnEntries = await Promise.all(
         tables.map(async (t) => {
-          const cols = await invoke('schema:columns', activeConnectionId, t.name)
+          const cols = await invoke('schema:columns', activeConnectionId, t.name, schema)
           return [t.name, cols] as [string, ColumnInfo[]]
         })
       )
@@ -732,11 +623,6 @@ export function ERDiagram() {
       {/* Main area: field list + canvas */}
       {!loading && (
         <div className="flex flex-1 overflow-hidden">
-          {/* Field list panel */}
-          {nodes.length > 0 && (
-            <FieldListPanel nodes={nodes} edges={edges} />
-          )}
-
           {/* Canvas */}
           <div
             ref={containerRef}

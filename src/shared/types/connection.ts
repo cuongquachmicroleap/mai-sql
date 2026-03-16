@@ -14,7 +14,7 @@ export interface ConnectionConfig {
   type: SQLDialect
   host: string
   port: number
-  database: string
+  database?: string
   username: string
   password: string // retrieved from OS keychain at runtime; stored here only in-memory
   ssl?: boolean
