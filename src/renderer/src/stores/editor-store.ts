@@ -26,6 +26,7 @@ interface EditorState {
   activeTabId: string | null
 
   addTab: () => void
+  addTabWithContent: (title: string, content: string) => void
   closeTab: (id: string) => void
   setActiveTab: (id: string) => void
   updateTabContent: (id: string, content: string) => void
@@ -71,6 +72,11 @@ export const useEditorStore = create<EditorState>((set, _get) => {
 
     addTab: () => {
       const tab = createTab()
+      set((state) => ({ tabs: [...state.tabs, tab], activeTabId: tab.id }))
+    },
+
+    addTabWithContent: (title: string, content: string) => {
+      const tab: Tab = { ...createTab(), title, content }
       set((state) => ({ tabs: [...state.tabs, tab], activeTabId: tab.id }))
     },
 

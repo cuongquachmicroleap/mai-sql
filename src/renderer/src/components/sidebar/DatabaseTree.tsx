@@ -122,7 +122,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
   const [error, setError] = useState<string | null>(null)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
-  const { activeTabId, updateTabContent } = useEditorStore()
+  const { addTabWithContent } = useEditorStore()
   const configuredDatabase = useConnectionStore(
     (s) => s.connections.find((c) => c.id === connectionId)?.database
   )
@@ -318,8 +318,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
   }
 
   const insertTableQuery = (schema: string, table: string) => {
-    if (!activeTabId) return
-    updateTabContent(activeTabId, `SELECT *\nFROM ${schema}.${table}\nLIMIT 100;`)
+    addTabWithContent(table, `SELECT *\nFROM ${schema}.${table}\nLIMIT 100;`)
   }
 
   const handleContextMenu = (e: React.MouseEvent, database: string, schema: string, table: string) => {
@@ -332,8 +331,8 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     const { database, schema, table } = contextMenu
     const fullName = `${schema}.${table}`
     switch (action) {
-      case 'select100': if (activeTabId) updateTabContent(activeTabId, `SELECT * FROM ${fullName} LIMIT 100;`); break
-      case 'countRows': if (activeTabId) updateTabContent(activeTabId, `SELECT COUNT(*) FROM ${fullName};`); break
+      case 'select100': addTabWithContent(table, `SELECT * FROM ${fullName} LIMIT 100;`); break
+      case 'countRows': addTabWithContent(`COUNT ${table}`, `SELECT COUNT(*) FROM ${fullName};`); break
       case 'copyName': navigator.clipboard.writeText(fullName).catch(() => {}); break
       case 'designTable': useEditorStore.getState().openTableDesigner(connectionId, schema, table, database); break
       case 'newTable': useEditorStore.getState().openTableDesigner(connectionId, schema, undefined, database); break
