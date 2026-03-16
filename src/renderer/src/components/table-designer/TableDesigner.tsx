@@ -113,13 +113,25 @@ export function TableDesigner({ tabId }: TableDesignerProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Top bar — schema + table name */}
+      {/* Top bar — database + schema + table name */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
         background: '#1C1C20',
         flexShrink: 0,
       }}>
+        {state.database && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: '#8B8B8B' }}>Database</span>
+            <span style={{
+              height: 26, padding: '0 8px', display: 'flex', alignItems: 'center',
+              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: 4, color: '#6B6B7B', fontSize: 12, fontFamily: 'inherit',
+            }}>
+              {state.database}
+            </span>
+          </label>
+        )}
         <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 11, color: '#8B8B8B' }}>Schema</span>
           <input

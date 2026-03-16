@@ -307,14 +307,14 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
 
   const handleContextAction = (action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable') => {
     if (!contextMenu) return
-    const { schema, table } = contextMenu
+    const { database, schema, table } = contextMenu
     const fullName = `${schema}.${table}`
     switch (action) {
       case 'select100': if (activeTabId) updateTabContent(activeTabId, `SELECT * FROM ${fullName} LIMIT 100;`); break
       case 'countRows': if (activeTabId) updateTabContent(activeTabId, `SELECT COUNT(*) FROM ${fullName};`); break
       case 'copyName': navigator.clipboard.writeText(fullName).catch(() => {}); break
-      case 'designTable': useEditorStore.getState().openTableDesigner(connectionId, schema, table); break
-      case 'newTable': useEditorStore.getState().openTableDesigner(connectionId, schema); break
+      case 'designTable': useEditorStore.getState().openTableDesigner(connectionId, schema, table, database); break
+      case 'newTable': useEditorStore.getState().openTableDesigner(connectionId, schema, undefined, database); break
     }
   }
 

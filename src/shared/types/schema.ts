@@ -91,6 +91,7 @@ export interface TableDesignerEnum {
 }
 
 export interface TableDesignerState {
+  database?: string
   schema: string
   tableName: string
   columns: TableDesignerColumn[]

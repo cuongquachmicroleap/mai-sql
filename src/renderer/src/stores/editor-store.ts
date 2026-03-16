@@ -32,7 +32,7 @@ interface EditorState {
   setRowLimit: (id: string, limit: number | null) => void
   setSelectedText: (id: string, selectedText: string) => void
   executeQuery: (tabId: string, connectionId: string, sql: string) => Promise<void>
-  openTableDesigner: (connectionId: string, schema: string, tableName?: string) => Promise<void>
+  openTableDesigner: (connectionId: string, schema: string, tableName?: string, database?: string) => Promise<void>
   updateDesignerState: (tabId: string, state: TableDesignerState) => void
 }
 
@@ -51,8 +51,9 @@ function createTab(): Tab {
   }
 }
 
-function createEmptyDesignerState(schema: string): TableDesignerState {
+function createEmptyDesignerState(schema: string, database?: string): TableDesignerState {
   return {
+    database,
     schema,
     tableName: '',
     columns: [],
@@ -129,7 +130,7 @@ export const useEditorStore = create<EditorState>((set, _get) => {
       }
     },
 
-    openTableDesigner: async (connectionId: string, schema: string, tableName?: string) => {
+    openTableDesigner: async (connectionId: string, schema: string, tableName?: string, database?: string) => {
       const id = nanoid()
       const mode = tableName ? 'alter' : 'create'
       const title = tableName ? `Design: ${tableName}` : 'New Table'
@@ -138,9 +139,9 @@ export const useEditorStore = create<EditorState>((set, _get) => {
         // Load existing table structure
         try {
           const [columns, indexes, relationships] = await Promise.all([
-            invoke('schema:columns', connectionId, tableName, schema),
-            invoke('schema:indexes', connectionId, tableName, schema),
-            invoke('schema:relationships', connectionId, schema),
+            invoke('schema:columns', connectionId, tableName, schema, database),
+            invoke('schema:indexes', connectionId, tableName, schema, database),
+            invoke('schema:relationships', connectionId, schema, database),
           ])
 
           const designerColumns = columns.map((col) => ({
@@ -201,6 +202,7 @@ export const useEditorStore = create<EditorState>((set, _get) => {
           }
 
           const designerState: TableDesignerState = {
+            database,
             schema,
             tableName,
             columns: designerColumns,
@@ -229,7 +231,7 @@ export const useEditorStore = create<EditorState>((set, _get) => {
           console.error('Failed to load table for designer:', err)
         }
       } else {
-        const designerState = createEmptyDesignerState(schema)
+        const designerState = createEmptyDesignerState(schema, database)
         const tab: Tab = {
           id,
           type: 'table-designer',
