@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { ChevronRight, ChevronDown, Database, Table2, Loader2, AlertCircle, RefreshCw, Key, FunctionSquare, List, Zap, ListOrdered, Server } from 'lucide-react'
+import { ChevronRight, ChevronDown, Database, Table2, Loader2, AlertCircle, RefreshCw, Key, FunctionSquare, List, Zap, ListOrdered, Server, Plus } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useEditorStore } from '../../stores/editor-store'
 import { useConnectionStore } from '../../stores/connection-store'
@@ -56,19 +56,41 @@ function ContextMenu({
   )
 }
 
-function SectionRow({ label, icon, expanded, loading, onClick, indent }: {
+function SectionRow({ label, icon, expanded, loading, onClick, indent, onAction, actionIcon }: {
   label: string; icon: React.ReactNode; expanded: boolean; loading: boolean; onClick: () => void; indent: number
+  onAction?: () => void; actionIcon?: React.ReactNode
 }) {
   const [hovered, setHovered] = useState(false)
   return (
-    <button onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      className="flex w-full items-center gap-1"
-      style={{ height: 22, paddingLeft: indent, paddingRight: 8, color: '#6B6B7B', background: hovered ? 'rgba(255,255,255,0.03)' : 'transparent', border: 'none', cursor: 'pointer' }}
+    <div className="flex w-full items-center" style={{ position: 'relative' }}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
     >
-      {loading ? <Loader2 size={9} className="animate-spin shrink-0" /> : expanded ? <ChevronDown size={9} className="shrink-0" /> : <ChevronRight size={9} className="shrink-0" />}
-      <span style={{ marginLeft: 1 }}>{icon}</span>
-      <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</span>
-    </button>
+      <button onClick={onClick}
+        className="flex w-full items-center gap-1"
+        style={{ height: 22, paddingLeft: indent, paddingRight: onAction ? 24 : 8, color: '#6B6B7B', background: hovered ? 'rgba(255,255,255,0.03)' : 'transparent', border: 'none', cursor: 'pointer' }}
+      >
+        {loading ? <Loader2 size={9} className="animate-spin shrink-0" /> : expanded ? <ChevronDown size={9} className="shrink-0" /> : <ChevronRight size={9} className="shrink-0" />}
+        <span style={{ marginLeft: 1 }}>{icon}</span>
+        <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</span>
+      </button>
+      {onAction && hovered && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onAction() }}
+          title={`New ${label.replace(/s$/, '')}`}
+          className="flex items-center justify-center"
+          style={{
+            position: 'absolute', right: 4, top: 3,
+            width: 16, height: 16, borderRadius: 3,
+            background: 'transparent', border: 'none',
+            color: '#6B6B7B', cursor: 'pointer', transition: 'color 0.12s, background 0.12s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#ECECEC'; e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#6B6B7B'; e.currentTarget.style.background = 'transparent' }}
+        >
+          {actionIcon || <Plus size={10} />}
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -403,7 +425,8 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                     {/* ── Tables section ── */}
                     <SectionRow label="Tables" icon={<Table2 size={9} style={{ color: '#F97316' }} />}
                       expanded={expanded.has(tablesKey(database, schema))} loading={loadingKeys.has(schemaKey(database, schema))}
-                      onClick={() => toggle(tablesKey(database, schema), () => loadTables(database, schema))} indent={32} />
+                      onClick={() => toggle(tablesKey(database, schema), () => loadTables(database, schema))} indent={32}
+                      onAction={() => useEditorStore.getState().openTableDesigner(connectionId, schema, undefined, database)} />
 
                     {expanded.has(tablesKey(database, schema)) && (tables.length === 0
                       ? emptyHint('No tables found', 44)
