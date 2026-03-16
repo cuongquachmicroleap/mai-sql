@@ -11,7 +11,7 @@ export interface IDataSource {
   testConnection(): Promise<boolean>
 
   // Execution
-  execute(query: string, params?: unknown[]): Promise<QueryResult>
+  execute(query: string, params?: unknown[], database?: string): Promise<QueryResult>
   cancel(queryId: string): Promise<void>
 
   // Schema introspection

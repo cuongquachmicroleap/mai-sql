@@ -13,7 +13,7 @@ export interface IPCChannels {
   'connection:disconnect': (id: string) => Promise<void>
 
   // Query execution
-  'query:execute': (connectionId: string, sql: string) => Promise<QueryResult>
+  'query:execute': (connectionId: string, sql: string, database?: string) => Promise<QueryResult>
   'query:cancel': (queryId: string) => Promise<void>
 
   // Schema introspection

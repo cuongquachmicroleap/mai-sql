@@ -10,6 +10,7 @@ export interface Tab {
   title: string
   content: string
   connectionId: string | null
+  database?: string
   result: QueryResult | null
   error: string | null
   isExecuting: boolean
@@ -26,7 +27,7 @@ interface EditorState {
   activeTabId: string | null
 
   addTab: () => void
-  addTabWithContent: (title: string, content: string) => void
+  addTabWithContent: (title: string, content: string, database?: string) => void
   closeTab: (id: string) => void
   setActiveTab: (id: string) => void
   updateTabContent: (id: string, content: string) => void
@@ -75,8 +76,8 @@ export const useEditorStore = create<EditorState>((set, _get) => {
       set((state) => ({ tabs: [...state.tabs, tab], activeTabId: tab.id }))
     },
 
-    addTabWithContent: (title: string, content: string) => {
-      const tab: Tab = { ...createTab(), title, content }
+    addTabWithContent: (title: string, content: string, database?: string) => {
+      const tab: Tab = { ...createTab(), title, content, database }
       set((state) => ({ tabs: [...state.tabs, tab], activeTabId: tab.id }))
     },
 
@@ -119,7 +120,8 @@ export const useEditorStore = create<EditorState>((set, _get) => {
         ),
       }))
       try {
-        const result = await invoke('query:execute', connectionId, sql)
+        const tab = _get().tabs.find((t) => t.id === tabId)
+        const result = await invoke('query:execute', connectionId, sql, tab?.database)
         set((state) => ({
           tabs: state.tabs.map((t) =>
             t.id === tabId ? { ...t, isExecuting: false, result, connectionId } : t

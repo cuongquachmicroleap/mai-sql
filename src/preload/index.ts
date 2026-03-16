@@ -12,7 +12,7 @@ const api: IPCChannels = {
   'connection:disconnect': (id) => ipcRenderer.invoke('connection:disconnect', id),
 
   // Queries
-  'query:execute': (connectionId, sql) => ipcRenderer.invoke('query:execute', connectionId, sql),
+  'query:execute': (connectionId, sql, database) => ipcRenderer.invoke('query:execute', connectionId, sql, database),
   'query:cancel': (queryId) => ipcRenderer.invoke('query:cancel', queryId),
 
   // Schema

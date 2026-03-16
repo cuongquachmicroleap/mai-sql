@@ -317,8 +317,8 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     if (!isExpanded && onExpand) await onExpand()
   }
 
-  const insertTableQuery = (schema: string, table: string) => {
-    addTabWithContent(table, `SELECT *\nFROM ${schema}.${table}\nLIMIT 100;`)
+  const insertTableQuery = (database: string, schema: string, table: string) => {
+    addTabWithContent(table, `SELECT *\nFROM ${schema}.${table}\nLIMIT 100;`, database)
   }
 
   const handleContextMenu = (e: React.MouseEvent, database: string, schema: string, table: string) => {
@@ -331,8 +331,8 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     const { database, schema, table } = contextMenu
     const fullName = `${schema}.${table}`
     switch (action) {
-      case 'select100': addTabWithContent(table, `SELECT * FROM ${fullName} LIMIT 100;`); break
-      case 'countRows': addTabWithContent(`COUNT ${table}`, `SELECT COUNT(*) FROM ${fullName};`); break
+      case 'select100': addTabWithContent(table, `SELECT * FROM ${fullName} LIMIT 100;`, database); break
+      case 'countRows': addTabWithContent(`COUNT ${table}`, `SELECT COUNT(*) FROM ${fullName};`, database); break
       case 'copyName': navigator.clipboard.writeText(fullName).catch(() => {}); break
       case 'designTable': useEditorStore.getState().openTableDesigner(connectionId, schema, table, database); break
       case 'newTable': useEditorStore.getState().openTableDesigner(connectionId, schema, undefined, database); break
@@ -441,7 +441,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                             {/* Table row */}
                             <button
                               onClick={() => toggle(tk, () => loadColumns(database, schema, table.name))}
-                              onDoubleClick={() => insertTableQuery(schema, table.name)}
+                              onDoubleClick={() => insertTableQuery(database, schema, table.name)}
                               onContextMenu={(e) => handleContextMenu(e, database, schema, table.name)}
                               onMouseEnter={() => setHoveredRow(`table:${tk}`)}
                               onMouseLeave={() => setHoveredRow(null)}
