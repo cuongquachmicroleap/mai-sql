@@ -54,3 +54,47 @@ export interface SchemaContext {
   tables: Array<{ table: TableInfo; columns: ColumnInfo[] }>
   relationships: Relationship[]
 }
+
+// ── Table Designer types ──
+
+export interface TableDesignerColumn {
+  _tempId: string
+  name: string
+  type: string
+  nullable: boolean
+  defaultValue: string
+  isPrimaryKey: boolean
+  comment: string
+}
+
+export interface TableDesignerIndex {
+  _tempId: string
+  name: string
+  columns: string[]
+  isUnique: boolean
+}
+
+export interface TableDesignerForeignKey {
+  _tempId: string
+  constraintName: string
+  columns: string[]
+  targetTable: string
+  targetColumns: string[]
+  onDelete: string
+  onUpdate: string
+}
+
+export interface TableDesignerEnum {
+  _tempId: string
+  name: string
+  values: string[]       // ordered list of enum labels
+}
+
+export interface TableDesignerState {
+  schema: string
+  tableName: string
+  columns: TableDesignerColumn[]
+  indexes: TableDesignerIndex[]
+  foreignKeys: TableDesignerForeignKey[]
+  enums: TableDesignerEnum[]
+}

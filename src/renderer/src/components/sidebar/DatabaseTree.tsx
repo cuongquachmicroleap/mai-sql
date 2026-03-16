@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { ChevronRight, ChevronDown, Database, Table2, Loader2, AlertCircle, RefreshCw, Key, FunctionSquare, List, Zap } from 'lucide-react'
+import { ChevronRight, ChevronDown, Database, Table2, Loader2, AlertCircle, RefreshCw, Key, FunctionSquare, List, Zap, ListOrdered } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useEditorStore } from '../../stores/editor-store'
 import type { TableInfo, ColumnInfo, FunctionInfo, IndexInfo, TriggerInfo } from '@shared/types/schema'
@@ -20,7 +20,7 @@ function ContextMenu({
 }: {
   menu: ContextMenuState
   onClose: () => void
-  onAction: (action: 'select100' | 'copyName' | 'countRows') => void
+  onAction: (action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable') => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -31,19 +31,24 @@ function ContextMenu({
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
 
-  const items: { label: string; action: 'select100' | 'copyName' | 'countRows' }[] = [
+  const items: { label: string; action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable'; separator?: boolean }[] = [
     { label: 'Select Top 100', action: 'select100' },
     { label: 'Count Rows', action: 'countRows' },
     { label: 'Copy Name', action: 'copyName' },
+    { label: 'Design Table', action: 'designTable', separator: true },
+    { label: 'New Table...', action: 'newTable' },
   ]
   return (
     <div ref={ref} style={{ position: 'fixed', left: menu.x, top: menu.y, zIndex: 1000, background: '#222227', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', minWidth: 160 }}>
       {items.map((item) => (
-        <button key={item.action} onClick={() => { onAction(item.action); onClose() }} className="flex w-full items-center"
-          style={{ height: 28, padding: '0 10px', fontSize: 12, color: '#ECECEC', background: 'transparent', border: 'none', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
-        >{item.label}</button>
+        <div key={item.action}>
+          {item.separator && <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '3px 6px' }} />}
+          <button onClick={() => { onAction(item.action); onClose() }} className="flex w-full items-center"
+            style={{ height: 28, padding: '0 10px', fontSize: 12, color: '#ECECEC', background: 'transparent', border: 'none', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+          >{item.label}</button>
+        </div>
       ))}
     </div>
   )
@@ -73,6 +78,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
   const [indexesByTable, setIndexesByTable] = useState<Record<string, IndexInfo[]>>({})
   const [triggersByTable, setTriggersByTable] = useState<Record<string, TriggerInfo[]>>({})
   const [functionsBySchema, setFunctionsBySchema] = useState<Record<string, FunctionInfo[]>>({})
+  const [enumsBySchema, setEnumsBySchema] = useState<Record<string, { name: string; values: string[] }[]>>({})
   const [rowCountByTable, setRowCountByTable] = useState<Record<string, number>>({})
   const [loadingKeys, setLoadingKeys] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)
@@ -94,7 +100,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
 
   const loadSchema = useCallback(async () => {
     setSchemas([]); setExpanded(new Set()); setTablesBySchema({}); setColumnsByTable({})
-    setIndexesByTable({}); setTriggersByTable({}); setFunctionsBySchema({}); setRowCountByTable({})
+    setIndexesByTable({}); setTriggersByTable({}); setFunctionsBySchema({}); setEnumsBySchema({}); setRowCountByTable({})
     setError(null); setLoadingKeys(new Set(['root']))
     try {
       const dbs = await invoke('schema:databases', connectionId)
@@ -196,6 +202,36 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     }
   }
 
+  const loadEnums = async (schema: string) => {
+    if (enumsBySchema[schema] !== undefined) return
+    const key = `${schema}:enums`
+    setLoadingKeys((prev) => new Set(prev).add(key))
+    try {
+      const result = await invoke('query:execute', connectionId,
+        `SELECT t.typname AS name, e.enumlabel AS value ` +
+        `FROM pg_type t ` +
+        `JOIN pg_enum e ON e.enumtypid = t.oid ` +
+        `JOIN pg_namespace n ON t.typnamespace = n.oid ` +
+        `WHERE n.nspname = '${schema}' ` +
+        `ORDER BY t.typname, e.enumsortorder`)
+      const grouped = new Map<string, string[]>()
+      for (const row of result.rows as Record<string, unknown>[]) {
+        const name = String(row['name'])
+        const value = String(row['value'])
+        if (!grouped.has(name)) grouped.set(name, [])
+        grouped.get(name)!.push(value)
+      }
+      setEnumsBySchema((prev) => ({
+        ...prev,
+        [schema]: Array.from(grouped.entries()).map(([name, values]) => ({ name, values })),
+      }))
+    } catch {
+      setEnumsBySchema((prev) => ({ ...prev, [schema]: [] }))
+    } finally {
+      setLoadingKeys((prev) => { const n = new Set(prev); n.delete(key); return n })
+    }
+  }
+
   const toggle = async (key: string, onExpand?: () => Promise<void>) => {
     const isExpanded = expanded.has(key)
     setExpanded((prev) => { const next = new Set(prev); if (isExpanded) next.delete(key); else next.add(key); return next })
@@ -212,7 +248,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
     setContextMenu({ x: e.clientX, y: e.clientY, schema, table })
   }
 
-  const handleContextAction = (action: 'select100' | 'copyName' | 'countRows') => {
+  const handleContextAction = (action: 'select100' | 'copyName' | 'countRows' | 'designTable' | 'newTable') => {
     if (!contextMenu) return
     const { schema, table } = contextMenu
     const fullName = `${schema}.${table}`
@@ -220,6 +256,8 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
       case 'select100': if (activeTabId) updateTabContent(activeTabId, `SELECT * FROM ${fullName} LIMIT 100;`); break
       case 'countRows': if (activeTabId) updateTabContent(activeTabId, `SELECT COUNT(*) FROM ${fullName};`); break
       case 'copyName': navigator.clipboard.writeText(fullName).catch(() => {}); break
+      case 'designTable': useEditorStore.getState().openTableDesigner(connectionId, schema, table); break
+      case 'newTable': useEditorStore.getState().openTableDesigner(connectionId, schema); break
     }
   }
 
@@ -394,6 +432,46 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                     <span className="ml-auto shrink-0" style={{ fontSize: 10, color: '#555560', fontFamily: 'monospace' }}>{fn.returnType || fn.language}</span>
                   </div>
                 ))
+              )}
+
+              {/* ── Enums section ── */}
+              <SectionRow label="Enums" icon={<ListOrdered size={9} style={{ color: '#F472B6' }} />}
+                expanded={expanded.has(`${schema}:enums`)} loading={loadingKeys.has(`${schema}:enums`)}
+                onClick={() => toggle(`${schema}:enums`, () => loadEnums(schema))} indent={16} />
+
+              {expanded.has(`${schema}:enums`) && ((enumsBySchema[schema] ?? []).length === 0
+                ? emptyHint('No enums found', 28)
+                : (enumsBySchema[schema] ?? []).map((en) => {
+                  const enumKey = `${schema}:enum:${en.name}`
+                  return (
+                    <div key={en.name}>
+                      <button
+                        onClick={() => toggle(enumKey)}
+                        onMouseEnter={() => setHoveredRow(`enum:${enumKey}`)}
+                        onMouseLeave={() => setHoveredRow(null)}
+                        className="flex w-full items-center gap-1"
+                        style={{ height: 22, paddingLeft: 28, paddingRight: 8, color: '#ECECEC', background: hoveredRow === `enum:${enumKey}` ? 'rgba(255,255,255,0.04)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
+                      >
+                        {expanded.has(enumKey) ? <ChevronDown size={10} className="shrink-0" /> : <ChevronRight size={10} className="shrink-0" />}
+                        <ListOrdered size={9} className="shrink-0" style={{ color: '#F472B6' }} />
+                        <span className="truncate" style={{ fontSize: 11 }}>{en.name}</span>
+                        <span className="ml-auto shrink-0" style={{ fontSize: 10, color: '#555560' }}>{en.values.length} val{en.values.length !== 1 ? 's' : ''}</span>
+                      </button>
+
+                      {expanded.has(enumKey) && en.values.map((val, idx) => (
+                        <div key={`${val}-${idx}`}
+                          onMouseEnter={() => setHoveredRow(`enumval:${enumKey}.${val}`)}
+                          onMouseLeave={() => setHoveredRow(null)}
+                          className="flex items-center gap-1"
+                          style={{ height: 20, paddingLeft: 40, paddingRight: 8, background: hoveredRow === `enumval:${enumKey}.${val}` ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}
+                        >
+                          <span style={{ width: 9, flexShrink: 0, display: 'inline-block', fontSize: 9, color: '#555560', textAlign: 'right', fontFamily: 'monospace' }}>{idx + 1}</span>
+                          <span className="truncate" style={{ fontSize: 10, color: '#D4BFFF', fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace' }}>{val}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })
               )}
             </>)}
           </div>

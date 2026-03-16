@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, Table2 } from 'lucide-react'
 import { useEditorStore } from '../../stores/editor-store'
 
 export function TabBar() {
@@ -42,15 +42,19 @@ export function TabBar() {
               paddingTop: isActive ? 0 : 2,
             }}
           >
+            {/* Table designer icon */}
+            {tab.type === 'table-designer' && (
+              <Table2 size={11} className="shrink-0" style={{ color: '#F97316' }} />
+            )}
             {/* Executing dot: animated amber pulse */}
-            {tab.isExecuting && (
+            {tab.type !== 'table-designer' && tab.isExecuting && (
               <span
                 className="h-1.5 w-1.5 shrink-0 rounded-full animate-pulse-yellow"
                 style={{ background: '#FBBF24' }}
               />
             )}
             {/* Error indicator */}
-            {tab.error && !tab.isExecuting && (
+            {tab.type !== 'table-designer' && tab.error && !tab.isExecuting && (
               <span
                 className="h-1.5 w-1.5 shrink-0 rounded-full"
                 style={{ background: '#F87171' }}

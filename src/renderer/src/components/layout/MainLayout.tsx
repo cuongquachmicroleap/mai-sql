@@ -12,6 +12,7 @@ import { ResultsToolbar } from '../results/ResultsToolbar'
 import { ERDiagram } from '../er-diagram/ERDiagram'
 import { BackupRestore } from '../backup/BackupRestore'
 import { StatusBar } from './StatusBar'
+import { TableDesigner } from '../table-designer/TableDesigner'
 import { Database, Settings, ChevronRight, Network, ArchiveRestore } from 'lucide-react'
 
 type ActiveView = 'editor' | 'er-diagram' | 'backup'
@@ -231,6 +232,9 @@ export function MainLayout() {
               <TabBar />
 
               {activeTab ? (
+                activeTab.type === 'table-designer' ? (
+                  <TableDesigner tabId={activeTab.id} />
+                ) : (
                 <div className="flex flex-1 flex-col overflow-hidden min-h-0">
                   <EditorToolbar tabId={activeTab.id} />
 
@@ -279,6 +283,7 @@ export function MainLayout() {
                     </div>
                   </div>
                 </div>
+                )
               ) : (
                 <div className="flex flex-1 items-center justify-center" style={{ color: '#555560' }}>
                   <div className="text-center" style={{ gap: 12, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
