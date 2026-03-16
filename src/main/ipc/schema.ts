@@ -1,5 +1,11 @@
 import { ipcMain } from 'electron'
 import { connectionManager } from '../managers/connection-manager'
+ipcMain.handle('schema:supports-schemas', async (_event, connectionId: string) => {
+  const driver = connectionManager.getDriver(connectionId)
+  if (!driver) throw new Error(`Not connected to '${connectionId}'`)
+  return driver.supportsSchemas()
+})
+
 ipcMain.handle('schema:databases', async (_event, connectionId: string) => {
   const driver = connectionManager.getDriver(connectionId)
   if (!driver) throw new Error(`Not connected to '${connectionId}'`)

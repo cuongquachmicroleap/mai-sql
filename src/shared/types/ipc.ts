@@ -21,6 +21,7 @@ export interface IPCChannels {
   'query:cancel': (queryId: string) => Promise<void>
 
   // Schema introspection
+  'schema:supports-schemas': (connectionId: string) => Promise<boolean>
   'schema:databases': (connectionId: string) => Promise<string[]>
   'schema:default-database': (connectionId: string) => Promise<string>
   'schema:schemas': (connectionId: string, database?: string) => Promise<string[]>

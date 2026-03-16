@@ -35,6 +35,10 @@ export class MySQLDriver implements IDataSource {
     return this.config.type as 'mysql' | 'mariadb'
   }
 
+  supportsSchemas() {
+    return false
+  }
+
   async connect(): Promise<void> {
     try {
       this.defaultDatabase = this.config.database || 'mysql'

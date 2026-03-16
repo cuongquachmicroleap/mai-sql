@@ -48,6 +48,7 @@ function ConnectionCard({
   const { connections } = useConnectionStore()
   const [databases, setDatabases] = useState<string[]>([])
   const [schemas, setSchemas] = useState<string[]>([])
+  const [dbHasSchemas, setDbHasSchemas] = useState(true)
   const [loadingDbs, setLoadingDbs] = useState(false)
   const [loadingSchemas, setLoadingSchemas] = useState(false)
 
@@ -55,18 +56,26 @@ function ConnectionCard({
     if (!connId) { setDatabases([]); setSchemas([]); return }
     setLoadingDbs(true)
     try {
-      const dbs = await invoke('schema:databases', connId)
+      const [dbs, supportsSchemas] = await Promise.all([
+        invoke('schema:databases', connId),
+        invoke('schema:supports-schemas', connId),
+      ])
+      setDbHasSchemas(supportsSchemas)
       setDatabases(dbs)
       if (dbs.length > 0) {
         const defDb = await invoke('schema:default-database', connId)
         onDatabaseChange(dbs.includes(defDb) ? defDb : dbs[0])
       }
+      // For non-schema databases, auto-set schema to 'default'
+      if (!supportsSchemas) {
+        onSchemaChange('default')
+      }
     } catch { setDatabases([]) }
     finally { setLoadingDbs(false) }
-  }, [onDatabaseChange])
+  }, [onDatabaseChange, onSchemaChange])
 
   const loadSchemas = useCallback(async (connId: string, db: string) => {
-    if (!connId || !db) { setSchemas([]); return }
+    if (!connId || !db || !dbHasSchemas) { return }
     setLoadingSchemas(true)
     try {
       let list = await invoke('schema:schemas', connId, db)
@@ -75,10 +84,10 @@ function ConnectionCard({
       onSchemaChange(list.includes('public') ? 'public' : list[0])
     } catch { setSchemas([]) }
     finally { setLoadingSchemas(false) }
-  }, [onSchemaChange])
+  }, [onSchemaChange, dbHasSchemas])
 
   useEffect(() => { if (connectionId) loadDatabases(connectionId) }, [connectionId, loadDatabases])
-  useEffect(() => { if (connectionId && database) loadSchemas(connectionId, database) }, [connectionId, database, loadSchemas])
+  useEffect(() => { if (connectionId && database && dbHasSchemas) loadSchemas(connectionId, database) }, [connectionId, database, dbHasSchemas, loadSchemas])
 
   const conn = connections.find((c) => c.id === connectionId)
   const isReady = connectionId && database && schema
@@ -158,20 +167,22 @@ function ConnectionCard({
           </select>
         </FieldRow>
 
-        {/* Schema */}
-        <FieldRow icon={<Layers size={11} />} label="Schema">
-          <select
-            value={schema}
-            onChange={(e) => onSchemaChange(e.target.value)}
-            disabled={!database || loadingSchemas}
-            style={{ ...selectBase, opacity: database ? 1 : 0.35 }}
-          >
-            <option value="">
-              {loadingSchemas ? 'Loading schemas...' : database ? 'Choose schema...' : '--'}
-            </option>
-            {schemas.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </FieldRow>
+        {/* Schema — only for databases that support schemas */}
+        {dbHasSchemas && (
+          <FieldRow icon={<Layers size={11} />} label="Schema">
+            <select
+              value={schema}
+              onChange={(e) => onSchemaChange(e.target.value)}
+              disabled={!database || loadingSchemas}
+              style={{ ...selectBase, opacity: database ? 1 : 0.35 }}
+            >
+              <option value="">
+                {loadingSchemas ? 'Loading schemas...' : database ? 'Choose schema...' : '--'}
+              </option>
+              {schemas.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </FieldRow>
+        )}
       </div>
     </div>
   )

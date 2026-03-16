@@ -27,6 +27,10 @@ export class PostgreSQLDriver implements IDataSource {
     return 'postgresql' as const
   }
 
+  supportsSchemas() {
+    return true
+  }
+
   async connect(): Promise<void> {
     try {
       this.defaultDatabase = this.config.database || 'postgres'

@@ -28,6 +28,9 @@ export interface IDataSource {
   getDialect(): SQLDialect
   getVersion(): Promise<string>
   getDefaultDatabase(): string
+
+  /** Whether this database supports schemas (PostgreSQL/MSSQL: true, MySQL/ClickHouse/MongoDB: false) */
+  supportsSchemas(): boolean
 }
 
 // Thrown by all drivers on connection or query failure

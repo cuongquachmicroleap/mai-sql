@@ -14,16 +14,21 @@ export function generateCreateTableSQL(state: TableDesignerState): string {
   if (state.columns.length === 0) return '-- Add at least one column to generate SQL'
 
   const lines: string[] = []
+  // Use schema-qualified names only when schema is meaningful (not 'default')
+  const useSchema = state.schema && state.schema !== 'default'
 
-  // Enum types — must be created before the table
+  // Enum types — PostgreSQL only, must be created before the table
   for (const en of state.enums) {
     if (!en.name.trim() || en.values.length === 0) continue
     const vals = en.values.map(quoteEnumValue).join(', ')
-    lines.push(`CREATE TYPE ${quoteIdent(state.schema)}.${quoteIdent(en.name)} AS ENUM (${vals});`)
+    const typePrefix = useSchema ? `${quoteIdent(state.schema)}.` : ''
+    lines.push(`CREATE TYPE ${typePrefix}${quoteIdent(en.name)} AS ENUM (${vals});`)
     lines.push('')
   }
 
-  const fullName = `${quoteIdent(state.schema)}.${quoteIdent(state.tableName)}`
+  const fullName = useSchema
+    ? `${quoteIdent(state.schema)}.${quoteIdent(state.tableName)}`
+    : quoteIdent(state.tableName)
   lines.push(`CREATE TABLE ${fullName} (`)
 
   const colDefs: string[] = []
@@ -79,13 +84,19 @@ export function generateAlterTableSQL(original: TableDesignerState, current: Tab
   const changes = diffTableState(original, current)
   if (changes.length === 0) return '-- No changes detected'
 
-  const fullName = `${quoteIdent(current.schema)}.${quoteIdent(current.tableName)}`
-  const schemaPrefix = quoteIdent(current.schema)
+  const useSchema = current.schema && current.schema !== 'default'
+  const fullName = useSchema
+    ? `${quoteIdent(current.schema)}.${quoteIdent(current.tableName)}`
+    : quoteIdent(current.tableName)
+  const schemaPrefix = useSchema ? quoteIdent(current.schema) : ''
   const statements: string[] = ['BEGIN;', '']
 
   // Rename table
   if (original.tableName !== current.tableName) {
-    statements.push(`ALTER TABLE ${quoteIdent(original.schema)}.${quoteIdent(original.tableName)} RENAME TO ${quoteIdent(current.tableName)};`)
+    const origFullName = useSchema
+      ? `${quoteIdent(original.schema)}.${quoteIdent(original.tableName)}`
+      : quoteIdent(original.tableName)
+    statements.push(`ALTER TABLE ${origFullName} RENAME TO ${quoteIdent(current.tableName)};`)
     statements.push('')
   }
 
@@ -94,22 +105,26 @@ export function generateAlterTableSQL(original: TableDesignerState, current: Tab
     if (change.type === 'create-enum') {
       const en = change.enum!
       const vals = en.values.map(quoteEnumValue).join(', ')
-      statements.push(`CREATE TYPE ${schemaPrefix}.${quoteIdent(en.name)} AS ENUM (${vals});`)
+      const prefix = schemaPrefix ? `${schemaPrefix}.` : ''
+      statements.push(`CREATE TYPE ${prefix}${quoteIdent(en.name)} AS ENUM (${vals});`)
       continue
     }
     if (change.type === 'drop-enum') {
-      statements.push(`DROP TYPE ${schemaPrefix}.${quoteIdent(change.enumName!)};`)
+      const prefix = schemaPrefix ? `${schemaPrefix}.` : ''
+      statements.push(`DROP TYPE ${prefix}${quoteIdent(change.enumName!)};`)
       continue
     }
     if (change.type === 'add-enum-value') {
+      const prefix = schemaPrefix ? `${schemaPrefix}.` : ''
       const after = change.afterValue
         ? ` AFTER ${quoteEnumValue(change.afterValue)}`
         : ''
-      statements.push(`ALTER TYPE ${schemaPrefix}.${quoteIdent(change.enumName!)} ADD VALUE ${quoteEnumValue(change.enumValue!)}${after};`)
+      statements.push(`ALTER TYPE ${prefix}${quoteIdent(change.enumName!)} ADD VALUE ${quoteEnumValue(change.enumValue!)}${after};`)
       continue
     }
     if (change.type === 'rename-enum') {
-      statements.push(`ALTER TYPE ${schemaPrefix}.${quoteIdent(change.oldName!)} RENAME TO ${quoteIdent(change.newName!)};`)
+      const prefix = schemaPrefix ? `${schemaPrefix}.` : ''
+      statements.push(`ALTER TYPE ${prefix}${quoteIdent(change.oldName!)} RENAME TO ${quoteIdent(change.newName!)};`)
       continue
     }
     switch (change.type) {

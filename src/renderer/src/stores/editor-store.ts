@@ -208,23 +208,26 @@ export const useEditorStore = create<EditorState>((set, _get) => {
             onUpdate: 'NO ACTION',
           }))
 
-          // Load enum types used by this table's columns
-          const enumTypeNames = new Set(
-            columns
-              .filter((c) => c.type === 'USER-DEFINED')
-              .map((c) => c.displayType)
-          )
+          // Load enum types used by this table's columns (PostgreSQL only)
           const designerEnums: TableDesignerState['enums'] = []
-          for (const enumName of enumTypeNames) {
-            try {
-              const enumResult = await invoke('query:execute', connectionId,
-                `SELECT e.enumlabel FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid JOIN pg_namespace n ON t.typnamespace = n.oid WHERE n.nspname = '${schema}' AND t.typname = '${enumName}' ORDER BY e.enumsortorder`)
-              designerEnums.push({
-                _tempId: nanoid(),
-                name: enumName,
-                values: enumResult.rows.map((r: Record<string, unknown>) => String(r['enumlabel'])),
-              })
-            } catch { /* ignore — enum may not be loadable */ }
+          const supportsSchemas = await invoke('schema:supports-schemas', connectionId)
+          if (supportsSchemas) {
+            const enumTypeNames = new Set(
+              columns
+                .filter((c) => c.type === 'USER-DEFINED')
+                .map((c) => c.displayType)
+            )
+            for (const enumName of enumTypeNames) {
+              try {
+                const enumResult = await invoke('query:execute', connectionId,
+                  `SELECT e.enumlabel FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid JOIN pg_namespace n ON t.typnamespace = n.oid WHERE n.nspname = '${schema}' AND t.typname = '${enumName}' ORDER BY e.enumsortorder`)
+                designerEnums.push({
+                  _tempId: nanoid(),
+                  name: enumName,
+                  values: enumResult.rows.map((r: Record<string, unknown>) => String(r['enumlabel'])),
+                })
+              } catch { /* ignore — enum may not be loadable */ }
+            }
           }
 
           const designerState: TableDesignerState = {

@@ -16,6 +16,7 @@ const api: IPCChannels = {
   'query:cancel': (queryId) => ipcRenderer.invoke('query:cancel', queryId),
 
   // Schema
+  'schema:supports-schemas': (connectionId) => ipcRenderer.invoke('schema:supports-schemas', connectionId),
   'schema:databases': (connectionId) => ipcRenderer.invoke('schema:databases', connectionId),
   'schema:default-database': (connectionId) => ipcRenderer.invoke('schema:default-database', connectionId),
   'schema:schemas': (connectionId, database) => ipcRenderer.invoke('schema:schemas', connectionId, database),

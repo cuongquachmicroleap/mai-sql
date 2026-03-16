@@ -77,7 +77,10 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
     if (!cache) return []
     if (cache.columnsByTable[tableName]) return cache.columnsByTable[tableName]
     try {
-      const columns = await invoke('schema:columns', connId, tableName, 'public')
+      // Use the table's own schema from the cache (avoids hardcoding 'public')
+      const tableInfo = cache.tables.find((t) => t.name === tableName)
+      const tableSchema = tableInfo?.schema ?? 'public'
+      const columns = await invoke('schema:columns', connId, tableName, tableSchema)
       cache.columnsByTable[tableName] = columns
       return columns
     } catch {
@@ -92,7 +95,8 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
     if (!cache) return []
     if (cache.indexesByTable[tableName]) return cache.indexesByTable[tableName]
     try {
-      const indexes = await invoke('schema:indexes', connId, tableName, 'public')
+      const tableInfo = cache.tables.find((t) => t.name === tableName)
+      const indexes = await invoke('schema:indexes', connId, tableName, tableInfo?.schema ?? 'public')
       cache.indexesByTable[tableName] = indexes
       return indexes
     } catch {
@@ -107,7 +111,8 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
     if (!cache) return []
     if (cache.triggersByTable[tableName]) return cache.triggersByTable[tableName]
     try {
-      const triggers = await invoke('schema:triggers', connId, tableName, 'public')
+      const tableInfo = cache.tables.find((t) => t.name === tableName)
+      const triggers = await invoke('schema:triggers', connId, tableName, tableInfo?.schema ?? 'public')
       cache.triggersByTable[tableName] = triggers
       return triggers
     } catch {
@@ -232,7 +237,8 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
           const joinAlias = joinOnMatch[2] || joinTable
           // Find FK relationships involving this table
           try {
-            const rels = await invoke('schema:relationships', connId, 'public')
+            const joinTableInfo = cache.tables.find((t) => t.name === joinTable)
+            const rels = await invoke('schema:relationships', connId, joinTableInfo?.schema ?? 'public')
             const suggestions = rels
               .filter((r) => r.sourceTable === joinTable || r.targetTable === joinTable)
               .map((r) => {
