@@ -4,11 +4,127 @@ import { invoke } from '../../lib/ipc-client'
 import { useSettingsStore, type Theme } from '../../stores/settings-store'
 import type { AIProviderConfig, AIProvider } from '@shared/types/ai'
 
-const AI_PROVIDERS: { value: AIProvider; label: string; defaultModel: string }[] = [
-  { value: 'openai', label: 'OpenAI', defaultModel: 'gpt-4o-mini' },
-  { value: 'anthropic', label: 'Anthropic', defaultModel: 'claude-sonnet-4-20250514' },
-  { value: 'openrouter', label: 'OpenRouter', defaultModel: 'openai/gpt-4o-mini' },
-  { value: 'ollama', label: 'Ollama (Local)', defaultModel: 'llama3' },
+const AI_PROVIDERS: { value: AIProvider; label: string; defaultBaseUrl: string; models: string[] }[] = [
+  {
+    value: 'openai',
+    label: 'OpenAI',
+    defaultBaseUrl: 'https://api.openai.com/v1',
+    models: [
+      // GPT-5 series (newest)
+      'gpt-5.4', 'gpt-5.3-codex', 'gpt-5.2', 'gpt-5.2-pro',
+      // GPT-4.5 / GPT-4.1 series
+      'gpt-4.5-preview', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano',
+      // GPT-4o series
+      'gpt-4o', 'gpt-4o-mini', 'gpt-4o-2024-11-20', 'gpt-4o-2024-08-06',
+      // GPT-4 series
+      'gpt-4-turbo', 'gpt-4-turbo-2024-04-09', 'gpt-4', 'gpt-4-0613',
+      // GPT-3.5 series
+      'gpt-3.5-turbo', 'gpt-3.5-turbo-0125',
+      // o-series (reasoning)
+      'o4-mini', 'o3', 'o3-mini', 'o3-mini-2025-01-31', 'o1', 'o1-mini', 'o1-2024-12-17',
+      // ChatGPT
+      'chatgpt-4o-latest',
+    ],
+  },
+  {
+    value: 'anthropic',
+    label: 'Anthropic',
+
+    defaultBaseUrl: 'https://api.anthropic.com',
+    models: [
+      // Claude 4.5 / 4.6 series (newest)
+      'claude-opus-4-5-20251101', 'claude-sonnet-4-5-20250929', 'claude-haiku-4-5-20251001',
+      // Claude 4 series
+      'claude-opus-4-20250514', 'claude-sonnet-4-20250514',
+      // Claude 3.7 series
+      'claude-3-7-sonnet-20250219',
+      // Claude 3.5 series
+      'claude-3-5-sonnet-20241022', 'claude-3-5-sonnet-20240620', 'claude-3-5-haiku-20241022',
+      // Claude 3 series
+      'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307',
+    ],
+  },
+  {
+    value: 'openrouter',
+    label: 'OpenRouter',
+
+    defaultBaseUrl: 'https://openrouter.ai/api/v1',
+    models: [
+      // OpenAI (newest first)
+      'openai/gpt-5.4', 'openai/gpt-5.3-codex', 'openai/gpt-5.2', 'openai/gpt-4.1', 'openai/gpt-4.1-mini',
+      'openai/gpt-4o', 'openai/gpt-4o-mini', 'openai/o4-mini', 'openai/o3', 'openai/o3-mini', 'openai/o1',
+      // Anthropic
+      'anthropic/claude-opus-4.5', 'anthropic/claude-sonnet-4.5', 'anthropic/claude-haiku-4.5',
+      'anthropic/claude-opus-4', 'anthropic/claude-sonnet-4',
+      'anthropic/claude-3.7-sonnet', 'anthropic/claude-3.5-sonnet', 'anthropic/claude-3.5-haiku',
+      'anthropic/claude-3-opus', 'anthropic/claude-3-haiku',
+      // Google
+      'google/gemini-3-flash-preview', 'google/gemini-2.5-pro-preview', 'google/gemini-2.5-flash-preview',
+      'google/gemini-2.0-flash-001', 'google/gemini-2.0-flash-lite-001',
+      'google/gemini-pro-1.5', 'google/gemini-flash-1.5',
+      // DeepSeek (top trending)
+      'deepseek/deepseek-r2', 'deepseek/deepseek-v3.2', 'deepseek/deepseek-chat-v3-0324',
+      'deepseek/deepseek-r1', 'deepseek/deepseek-v3-base',
+      // Qwen (top trending)
+      'qwen/qwen3-coder', 'qwen/qwen3-235b-a22b', 'qwen/qwen3-32b',
+      'qwen/qwen-2.5-72b-instruct', 'qwen/qwen-2.5-coder-32b-instruct',
+      'qwen/qwq-32b', 'qwen/qwen-turbo',
+      // MiniMax
+      'minimax/minimax-m2.5',
+      // Meta Llama
+      'meta-llama/llama-4-maverick', 'meta-llama/llama-4-scout',
+      'meta-llama/llama-3.3-70b-instruct', 'meta-llama/llama-3.1-405b-instruct',
+      'meta-llama/llama-3.1-70b-instruct', 'meta-llama/llama-3.1-8b-instruct',
+      // Mistral
+      'mistralai/mistral-large-2411', 'mistralai/mistral-medium', 'mistralai/mistral-small-3.1-24b-instruct',
+      'mistralai/codestral-2501', 'mistralai/mixtral-8x22b-instruct',
+      // Microsoft
+      'microsoft/phi-4', 'microsoft/phi-4-multimodal-instruct', 'microsoft/mai-ds-r1',
+      // Cohere
+      'cohere/command-a', 'cohere/command-r-plus', 'cohere/command-r',
+      // xAI
+      'x-ai/grok-3-beta', 'x-ai/grok-3-mini-beta', 'x-ai/grok-2-1212',
+      // Amazon
+      'amazon/nova-pro-v1', 'amazon/nova-lite-v1', 'amazon/nova-micro-v1',
+      // Perplexity
+      'perplexity/sonar-pro', 'perplexity/sonar', 'perplexity/sonar-reasoning',
+    ],
+  },
+  {
+    value: 'ollama',
+    label: 'Ollama (Local)',
+
+    defaultBaseUrl: 'http://localhost:11434',
+    models: [
+      // Meta Llama
+      'llama3.3', 'llama3.3:70b', 'llama3.2', 'llama3.2:1b', 'llama3.1', 'llama3.1:70b', 'llama3',
+      // OpenAI open-weight (gpt-oss)
+      'gpt-oss',
+      // DeepSeek
+      'deepseek-r2', 'deepseek-r1', 'deepseek-r1:8b', 'deepseek-r1:14b', 'deepseek-r1:32b', 'deepseek-r1:70b',
+      'deepseek-coder-v2', 'deepseek-v3',
+      // Qwen (newest first)
+      'qwen3', 'qwen3:8b', 'qwen3:14b', 'qwen3:32b', 'qwen3:72b',
+      'qwen3-coder', 'qwen3.5', 'qwen3.5:2b', 'qwen3.5:4b', 'qwen3.5:9b',
+      'qwen2.5', 'qwen2.5:7b', 'qwen2.5:14b', 'qwen2.5:32b', 'qwen2.5:72b',
+      'qwen2.5-coder', 'qwen2.5-coder:7b', 'qwen2.5-coder:14b', 'qwen2.5-coder:32b',
+      'qwq',
+      // GLM / Kimi / MiniMax
+      'glm-5', 'kimi-k2.5', 'minimax',
+      // Mistral
+      'mistral', 'mistral-nemo', 'mistral-large', 'mistral-small',
+      'mixtral', 'mixtral:8x22b',
+      // Google
+      'gemma3', 'gemma3:12b', 'gemma3:27b', 'gemma2', 'gemma2:2b', 'gemma2:27b',
+      // Microsoft
+      'phi4', 'phi4-mini', 'phi3', 'phi3:14b',
+      // Coding
+      'codellama', 'codellama:13b', 'codellama:34b', 'codegemma', 'starcoder2',
+      // Other
+      'command-r', 'command-r-plus', 'solar', 'yi', 'yi:34b',
+      'dolphin-mixtral', 'nous-hermes2', 'openchat', 'vicuna', 'zephyr',
+    ],
+  },
 ]
 
 const inputStyle: React.CSSProperties = {
@@ -33,7 +149,7 @@ export function SettingsPanel() {
   const { theme, aiConfig, setTheme, setAIConfig } = useSettingsStore()
   const [provider, setProvider] = useState<AIProvider>(aiConfig?.provider ?? 'openai')
   const [apiKey, setApiKey] = useState(aiConfig?.apiKey ?? '')
-  const [model, setModel] = useState(aiConfig?.model ?? 'gpt-4o-mini')
+  const [model, setModel] = useState(aiConfig?.model ?? '')
   const [baseUrl, setBaseUrl] = useState(aiConfig?.baseUrl ?? '')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null)
@@ -49,9 +165,8 @@ export function SettingsPanel() {
 
   const handleProviderChange = (p: AIProvider) => {
     setProvider(p)
-    const def = AI_PROVIDERS.find((pp) => pp.value === p)
-    setModel(def?.defaultModel ?? '')
-    setBaseUrl(p === 'ollama' ? 'http://localhost:11434' : '')
+    setModel('')
+    setBaseUrl('')
     setTestResult(null)
   }
 
@@ -151,24 +266,26 @@ export function SettingsPanel() {
         <label style={labelStyle}>Model</label>
         <input
           type="text"
+          list={`model-suggestions-${provider}`}
           placeholder="Model name"
           value={model}
           onChange={(e) => setModel(e.target.value)}
           style={{ ...inputStyle, marginBottom: 8 }}
         />
+        <datalist id={`model-suggestions-${provider}`}>
+          {(AI_PROVIDERS.find((p) => p.value === provider)?.models ?? []).map((m) => (
+            <option key={m} value={m} />
+          ))}
+        </datalist>
 
-        {(provider === 'ollama' || baseUrl) && (
-          <>
-            <label style={labelStyle}>Base URL</label>
-            <input
-              type="text"
-              placeholder="http://localhost:11434"
-              value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
-              style={{ ...inputStyle, marginBottom: 8 }}
-            />
-          </>
-        )}
+        <label style={labelStyle}>Endpoint</label>
+        <input
+          type="text"
+          placeholder={AI_PROVIDERS.find((p) => p.value === provider)?.defaultBaseUrl ?? ''}
+          value={baseUrl}
+          onChange={(e) => setBaseUrl(e.target.value)}
+          style={{ ...inputStyle, marginBottom: 8 }}
+        />
 
         <div className="flex items-center gap-2 mt-2">
           <button
