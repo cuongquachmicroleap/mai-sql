@@ -10,7 +10,7 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     autoHideMenuBar: true,
-    icon: join(__dirname, '../../resources/icon.svg'),
+    icon: join(__dirname, '../../resources/icon.png'),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
     trafficLightPosition: { x: 12, y: 16 },
     webPreferences: {
