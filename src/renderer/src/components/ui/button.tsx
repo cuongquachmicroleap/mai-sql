@@ -19,34 +19,34 @@ const SIZE_STYLES: Record<ButtonSize, React.CSSProperties> = {
 function getVariantStyle(variant: ButtonVariant, hovered: boolean, disabled: boolean): React.CSSProperties {
   if (disabled) {
     return {
-      background: 'rgba(255,255,255,0.04)',
-      color: '#555560',
-      border: '1px solid rgba(255,255,255,0.06)',
+      background: 'var(--mai-bg-hover)',
+      color: 'var(--mai-text-3)',
+      border: '1px solid var(--mai-border)',
     }
   }
   switch (variant) {
     case 'default':
       return {
-        background: hovered ? '#4A7AE0' : '#5B8AF0',
+        background: hovered ? 'var(--mai-accent)' : 'var(--mai-accent)',
         color: '#ffffff',
         border: 'none',
       }
     case 'secondary':
       return {
-        background: hovered ? '#2A2A30' : '#222227',
-        color: '#ECECEC',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: hovered ? '#2A2A30' : 'var(--mai-bg-elevated)',
+        color: 'var(--mai-text-1)',
+        border: '1px solid var(--mai-border-strong)',
       }
     case 'outline':
       return {
-        background: hovered ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-        color: hovered ? '#ECECEC' : '#8B8B8B',
-        border: '1px solid rgba(255,255,255,0.12)',
+        background: hovered ? 'var(--mai-border-strong)' : 'var(--mai-bg-hover)',
+        color: hovered ? 'var(--mai-text-1)' : 'var(--mai-text-2)',
+        border: '1px solid var(--mai-border-strong)',
       }
     case 'ghost':
       return {
-        background: hovered ? 'rgba(255,255,255,0.06)' : 'transparent',
-        color: hovered ? '#ECECEC' : '#8B8B8B',
+        background: hovered ? 'var(--mai-border)' : 'transparent',
+        color: hovered ? 'var(--mai-text-1)' : 'var(--mai-text-2)',
         border: 'none',
       }
     case 'destructive':
@@ -57,7 +57,7 @@ function getVariantStyle(variant: ButtonVariant, hovered: boolean, disabled: boo
       }
     default:
       return {
-        background: hovered ? '#4A7AE0' : '#5B8AF0',
+        background: hovered ? 'var(--mai-accent)' : 'var(--mai-accent)',
         color: '#ffffff',
         border: 'none',
       }

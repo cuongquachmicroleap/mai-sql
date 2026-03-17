@@ -1,8 +1,9 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import Editor, { type Monaco } from '@monaco-editor/react'
 import type * as MonacoTypes from 'monaco-editor'
 import { useEditorStore } from '../../stores/editor-store'
 import { useConnectionStore } from '../../stores/connection-store'
+import { useSettingsStore } from '../../stores/settings-store'
 import { invoke } from '../../lib/ipc-client'
 import type { TableInfo, ColumnInfo, FunctionInfo, IndexInfo, TriggerInfo } from '@shared/types/schema'
 
@@ -34,6 +35,7 @@ const SQL_KEYWORDS = [
 export function QueryEditor({ tabId }: QueryEditorProps) {
   const { tabs, updateTabContent, setSelectedText } = useEditorStore()
   const { activeConnectionId } = useConnectionStore()
+  const { theme } = useSettingsStore()
   const tab = tabs.find((t) => t.id === tabId)
   const editorRef = useRef<MonacoTypes.editor.IStandaloneCodeEditor | null>(null)
   const monacoRef = useRef<Monaco | null>(null)
@@ -339,6 +341,13 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
     completionDisposableRef.current = disposable
   }
 
+  // Switch Monaco theme when app theme changes
+  useEffect(() => {
+    const monaco = monacoRef.current
+    if (!monaco) return
+    monaco.editor.setTheme(theme === 'light' ? 'mai-light' : 'mai-dark')
+  }, [theme])
+
   // Re-register the provider and refresh schema cache when connectionId changes
   useEffect(() => {
     const monaco = monacoRef.current
@@ -388,7 +397,32 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
         'editorGutter.background': '#131316',
       },
     })
-    monaco.editor.setTheme('mai-dark')
+
+    monaco.editor.defineTheme('mai-light', {
+      base: 'vs',
+      inherit: true,
+      rules: [
+        { token: 'keyword', foreground: '4A7AE0', fontStyle: 'bold' },
+        { token: 'string', foreground: 'A31515' },
+        { token: 'number', foreground: '098658' },
+        { token: 'comment', foreground: '9B9BA0', fontStyle: 'italic' },
+      ],
+      colors: {
+        'editor.background': '#FAFAFA',
+        'editor.foreground': '#1A1A1A',
+        'editor.lineHighlightBackground': '#F5F5F7',
+        'editorLineNumber.foreground': '#C0C0C5',
+        'editorLineNumber.activeForeground': '#4A7AE0',
+        'editor.selectionBackground': '#4A7AE025',
+        'editorCursor.foreground': '#4A7AE0',
+        'editorIndentGuide.background1': '#E8E8EA',
+        'editorGutter.background': '#FAFAFA',
+      },
+    })
+
+    // Apply the correct theme based on current setting
+    const currentTheme = document.documentElement.classList.contains('light') ? 'mai-light' : 'mai-dark'
+    monaco.editor.setTheme(currentTheme)
 
     // Disable Monaco's built-in SQL word-based completions so our
     // schema-aware provider is the sole source of suggestions
@@ -424,7 +458,7 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
         value={tab.content}
         onChange={(val) => updateTabContent(tabId, val ?? '')}
         onMount={handleMount}
-        theme="mai-dark"
+        theme={theme === 'light' ? 'mai-light' : 'mai-dark'}
         options={{
           fontSize: 14,
           fontFamily: "'JetBrains Mono', 'SF Mono', 'Fira Code', monospace",

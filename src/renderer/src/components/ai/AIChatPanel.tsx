@@ -70,33 +70,33 @@ export function AIChatPanel() {
 
   if (!aiConfig) {
     return (
-      <div className="flex flex-col h-full items-center justify-center" style={{ background: '#1C1C20', color: '#555560', padding: 24 }}>
+      <div className="flex flex-col h-full items-center justify-center" style={{ background: 'var(--mai-bg-panel)', color: 'var(--mai-text-3)', padding: 24 }}>
         <Bot size={32} style={{ opacity: 0.3, marginBottom: 12 }} />
         <p style={{ fontSize: 12, textAlign: 'center', marginBottom: 4 }}>AI Assistant not configured</p>
         <p style={{ fontSize: 11, textAlign: 'center' }}>
-          Go to Settings to add your OpenAI, Anthropic, or Ollama API key
+          Go to Settings to add your OpenAI, Anthropic, OpenRouter, or Ollama API key
         </p>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ background: '#1C1C20' }}>
+    <div className="flex flex-col h-full" style={{ background: 'var(--mai-bg-panel)' }}>
       {/* Header */}
       <div
         className="flex items-center gap-2 shrink-0"
         style={{
           height: 40,
           padding: '0 12px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          borderBottom: '1px solid var(--mai-border)',
         }}
       >
-        <Sparkles size={12} style={{ color: '#5B8AF0' }} />
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#555560' }}>
+        <Sparkles size={12} style={{ color: 'var(--mai-accent)' }} />
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--mai-text-3)' }}>
           AI Assistant
         </span>
         <div className="flex-1" />
-        <span style={{ fontSize: 10, color: '#3A3A45' }}>
+        <span style={{ fontSize: 10, color: 'var(--mai-text-4)' }}>
           {aiConfig.provider} / {aiConfig.model}
         </span>
       </div>
@@ -104,7 +104,7 @@ export function AIChatPanel() {
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0 px-3 py-3" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center flex-1" style={{ color: '#3A3A45' }}>
+          <div className="flex flex-col items-center justify-center flex-1" style={{ color: 'var(--mai-text-4)' }}>
             <Bot size={24} style={{ opacity: 0.2, marginBottom: 8 }} />
             <p style={{ fontSize: 11 }}>Ask me to write SQL, explain queries, or fix errors</p>
           </div>
@@ -121,8 +121,8 @@ export function AIChatPanel() {
                   borderRadius: 8,
                   fontSize: 12,
                   lineHeight: 1.5,
-                  background: msg.role === 'user' ? '#5B8AF0' : '#222227',
-                  color: msg.role === 'user' ? '#fff' : '#ECECEC',
+                  background: msg.role === 'user' ? 'var(--mai-accent)' : 'var(--mai-bg-elevated)',
+                  color: msg.role === 'user' ? '#fff' : 'var(--mai-text-1)',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                 }}
@@ -136,8 +136,8 @@ export function AIChatPanel() {
                     className="flex items-center gap-1"
                     style={{
                       fontSize: 10,
-                      color: '#5B8AF0',
-                      background: 'rgba(91,138,240,0.1)',
+                      color: 'var(--mai-accent)',
+                      background: 'var(--mai-accent-bg)',
                       border: 'none',
                       borderRadius: 4,
                       padding: '2px 6px',
@@ -152,8 +152,8 @@ export function AIChatPanel() {
                     className="flex items-center gap-1"
                     style={{
                       fontSize: 10,
-                      color: '#555560',
-                      background: 'rgba(255,255,255,0.05)',
+                      color: 'var(--mai-text-3)',
+                      background: 'var(--mai-bg-hover)',
                       border: 'none',
                       borderRadius: 4,
                       padding: '2px 6px',
@@ -170,7 +170,7 @@ export function AIChatPanel() {
         })}
 
         {loading && (
-          <div className="flex items-center gap-2" style={{ color: '#555560', fontSize: 11 }}>
+          <div className="flex items-center gap-2" style={{ color: 'var(--mai-text-3)', fontSize: 11 }}>
             <Loader2 size={12} className="animate-spin" />
             Thinking...
           </div>
@@ -178,14 +178,14 @@ export function AIChatPanel() {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 px-3 py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="shrink-0 px-3 py-2" style={{ borderTop: '1px solid var(--mai-border)' }}>
         <div
           className="flex items-center gap-2"
           style={{
-            background: '#222227',
+            background: 'var(--mai-bg-elevated)',
             borderRadius: 6,
             padding: '0 8px',
-            border: '1px solid rgba(255,255,255,0.08)',
+            border: '1px solid var(--mai-border-strong)',
           }}
         >
           <input
@@ -205,7 +205,7 @@ export function AIChatPanel() {
               background: 'transparent',
               border: 'none',
               outline: 'none',
-              color: '#ECECEC',
+              color: 'var(--mai-text-1)',
               fontSize: 12,
               height: 32,
             }}
@@ -217,7 +217,7 @@ export function AIChatPanel() {
               background: 'none',
               border: 'none',
               cursor: input.trim() && !loading ? 'pointer' : 'default',
-              color: input.trim() && !loading ? '#5B8AF0' : '#3A3A45',
+              color: input.trim() && !loading ? 'var(--mai-accent)' : 'var(--mai-text-4)',
               padding: 2,
             }}
           >

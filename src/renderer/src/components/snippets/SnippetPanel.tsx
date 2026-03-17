@@ -53,17 +53,17 @@ export function SnippetPanel() {
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ background: '#1C1C20' }}>
+    <div className="flex flex-col h-full" style={{ background: 'var(--mai-bg-panel)' }}>
       {/* Header */}
       <div
         className="flex items-center justify-between shrink-0"
         style={{
           height: 40,
           padding: '0 12px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          borderBottom: '1px solid var(--mai-border)',
         }}
       >
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#555560' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--mai-text-3)' }}>
           Snippets
         </span>
         <button
@@ -72,7 +72,7 @@ export function SnippetPanel() {
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            color: creating ? '#5B8AF0' : '#555560',
+            color: creating ? 'var(--mai-accent)' : 'var(--mai-text-3)',
             padding: '2px 4px',
             borderRadius: 3,
           }}
@@ -83,7 +83,7 @@ export function SnippetPanel() {
       </div>
 
       {/* Category filters */}
-      <div className="flex items-center gap-1 px-2 py-1.5 shrink-0 flex-wrap" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="flex items-center gap-1 px-2 py-1.5 shrink-0 flex-wrap" style={{ borderBottom: '1px solid var(--mai-border)' }}>
         <button
           onClick={() => setActiveCategory(null)}
           style={{
@@ -93,7 +93,7 @@ export function SnippetPanel() {
             border: 'none',
             cursor: 'pointer',
             background: activeCategory === null ? 'rgba(91,138,240,0.15)' : 'transparent',
-            color: activeCategory === null ? '#5B8AF0' : '#555560',
+            color: activeCategory === null ? 'var(--mai-accent)' : 'var(--mai-text-3)',
           }}
         >
           All
@@ -109,7 +109,7 @@ export function SnippetPanel() {
               border: 'none',
               cursor: 'pointer',
               background: activeCategory === cat.value ? `${cat.color}20` : 'transparent',
-              color: activeCategory === cat.value ? cat.color : '#555560',
+              color: activeCategory === cat.value ? cat.color : 'var(--mai-text-3)',
             }}
           >
             {cat.label}
@@ -119,7 +119,7 @@ export function SnippetPanel() {
 
       {/* Create form */}
       {creating && (
-        <div className="px-3 py-2 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#222227' }}>
+        <div className="px-3 py-2 shrink-0" style={{ borderBottom: '1px solid var(--mai-border)', background: 'var(--mai-bg-elevated)' }}>
           <input
             type="text"
             placeholder="Snippet title..."
@@ -127,11 +127,11 @@ export function SnippetPanel() {
             onChange={(e) => setNewTitle(e.target.value)}
             style={{
               width: '100%',
-              background: '#1C1C20',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--mai-bg-panel)',
+              border: '1px solid var(--mai-border-strong)',
               borderRadius: 4,
               padding: '4px 8px',
-              color: '#ECECEC',
+              color: 'var(--mai-text-1)',
               fontSize: 11,
               outline: 'none',
               marginBottom: 4,
@@ -144,11 +144,11 @@ export function SnippetPanel() {
             rows={4}
             style={{
               width: '100%',
-              background: '#1C1C20',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--mai-bg-panel)',
+              border: '1px solid var(--mai-border-strong)',
               borderRadius: 4,
               padding: '4px 8px',
-              color: '#ECECEC',
+              color: 'var(--mai-text-1)',
               fontSize: 11,
               fontFamily: "ui-monospace, 'SF Mono', monospace",
               outline: 'none',
@@ -161,11 +161,11 @@ export function SnippetPanel() {
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value as Snippet['category'])}
               style={{
-                background: '#1C1C20',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'var(--mai-bg-panel)',
+                border: '1px solid var(--mai-border-strong)',
                 borderRadius: 4,
                 padding: '3px 6px',
-                color: '#ECECEC',
+                color: 'var(--mai-text-1)',
                 fontSize: 10,
                 outline: 'none',
               }}
@@ -177,7 +177,7 @@ export function SnippetPanel() {
             <div className="flex-1" />
             <button
               onClick={() => setCreating(false)}
-              style={{ fontSize: 10, color: '#555560', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 8px' }}
+              style={{ fontSize: 10, color: 'var(--mai-text-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '3px 8px' }}
             >
               Cancel
             </button>
@@ -187,7 +187,7 @@ export function SnippetPanel() {
               style={{
                 fontSize: 10,
                 color: '#fff',
-                background: '#5B8AF0',
+                background: 'var(--mai-accent)',
                 border: 'none',
                 borderRadius: 4,
                 cursor: 'pointer',
@@ -204,13 +204,13 @@ export function SnippetPanel() {
       {/* List */}
       <div className="flex-1 overflow-y-auto min-h-0">
         {loading && (
-          <div className="flex items-center justify-center py-8" style={{ color: '#555560' }}>
+          <div className="flex items-center justify-center py-8" style={{ color: 'var(--mai-text-3)' }}>
             <Loader2 size={14} className="animate-spin" />
           </div>
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="flex items-center justify-center py-8" style={{ color: '#555560', fontSize: 12 }}>
+          <div className="flex items-center justify-center py-8" style={{ color: 'var(--mai-text-3)', fontSize: 12 }}>
             No snippets found
           </div>
         )}
@@ -225,15 +225,15 @@ export function SnippetPanel() {
               onClick={() => handleInsert(snippet)}
               style={{
                 padding: '8px 12px',
-                borderBottom: '1px solid rgba(255,255,255,0.04)',
-                background: hoveredId === snippet.id ? 'rgba(255,255,255,0.03)' : 'transparent',
+                borderBottom: '1px solid var(--mai-bg-hover)',
+                background: hoveredId === snippet.id ? 'var(--mai-bg-hover)' : 'transparent',
                 cursor: 'pointer',
                 transition: 'background 0.1s',
               }}
             >
               <div className="flex items-center gap-1.5" style={{ marginBottom: 3 }}>
-                <Code2 size={10} style={{ color: cat?.color ?? '#555560', flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: '#ECECEC', fontWeight: 500 }}>{snippet.title}</span>
+                <Code2 size={10} style={{ color: cat?.color ?? 'var(--mai-text-3)', flexShrink: 0 }} />
+                <span style={{ fontSize: 11, color: 'var(--mai-text-1)', fontWeight: 500 }}>{snippet.title}</span>
                 <div className="flex-1" />
                 {hoveredId === snippet.id && (
                   <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -241,7 +241,7 @@ export function SnippetPanel() {
                       onClick={() => {
                         navigator.clipboard.writeText(snippet.sql).catch(() => {})
                       }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555560', padding: '1px 3px' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--mai-text-3)', padding: '1px 3px' }}
                       title="Copy SQL"
                     >
                       <Copy size={10} />
@@ -249,7 +249,7 @@ export function SnippetPanel() {
                     {!snippet.isBuiltIn && (
                       <button
                         onClick={() => deleteSnippet(snippet.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#555560', padding: '1px 3px' }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--mai-text-3)', padding: '1px 3px' }}
                         title="Delete"
                       >
                         <Trash2 size={10} />
@@ -263,8 +263,8 @@ export function SnippetPanel() {
                       fontSize: 9,
                       padding: '1px 4px',
                       borderRadius: 3,
-                      background: `${cat?.color ?? '#555560'}15`,
-                      color: cat?.color ?? '#555560',
+                      background: `${cat?.color ?? 'var(--mai-text-3)'}15`,
+                      color: cat?.color ?? 'var(--mai-text-3)',
                     }}
                   >
                     {cat?.label ?? snippet.category}
@@ -274,7 +274,7 @@ export function SnippetPanel() {
               <div
                 style={{
                   fontSize: 10,
-                  color: '#555560',
+                  color: 'var(--mai-text-3)',
                   fontFamily: "ui-monospace, 'SF Mono', monospace",
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',

@@ -42,13 +42,13 @@ function ContextMenu({
     { label: 'Open Mindmap', action: 'mindmap', separator: true },
   ]
   return (
-    <div ref={ref} style={{ position: 'fixed', left: menu.x, top: menu.y, zIndex: 1000, background: '#222227', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', minWidth: 160 }}>
+    <div ref={ref} style={{ position: 'fixed', left: menu.x, top: menu.y, zIndex: 1000, background: 'var(--mai-bg-elevated)', border: '1px solid var(--mai-border-strong)', borderRadius: 7, padding: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', minWidth: 160 }}>
       {items.map((item) => (
         <div key={item.action}>
-          {item.separator && <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', margin: '3px 6px' }} />}
+          {item.separator && <div style={{ height: 1, background: 'var(--mai-border-strong)', margin: '3px 6px' }} />}
           <button onClick={() => { onAction(item.action); onClose() }} className="flex w-full items-center"
-            style={{ height: 28, padding: '0 10px', fontSize: 12, color: '#ECECEC', background: 'transparent', border: 'none', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+            style={{ height: 28, padding: '0 10px', fontSize: 12, color: 'var(--mai-text-1)', background: 'transparent', border: 'none', borderRadius: 4, cursor: 'pointer', textAlign: 'left' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--mai-border-strong)' }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
           >{item.label}</button>
         </div>
@@ -68,7 +68,7 @@ function SectionRow({ label, icon, expanded, loading, onClick, indent, onAction,
     >
       <button onClick={onClick}
         className="flex w-full items-center gap-1"
-        style={{ height: 22, paddingLeft: indent, paddingRight: onAction ? 24 : 8, color: '#6B6B7B', background: hovered ? 'rgba(255,255,255,0.03)' : 'transparent', border: 'none', cursor: 'pointer' }}
+        style={{ height: 22, paddingLeft: indent, paddingRight: onAction ? 24 : 8, color: 'var(--mai-text-3)', background: hovered ? 'var(--mai-bg-hover)' : 'transparent', border: 'none', cursor: 'pointer' }}
       >
         {loading ? <Loader2 size={9} className="animate-spin shrink-0" /> : expanded ? <ChevronDown size={9} className="shrink-0" /> : <ChevronRight size={9} className="shrink-0" />}
         <span style={{ marginLeft: 1 }}>{icon}</span>
@@ -83,9 +83,9 @@ function SectionRow({ label, icon, expanded, loading, onClick, indent, onAction,
             position: 'absolute', right: 4, top: 3,
             width: 16, height: 16, borderRadius: 3,
             background: 'transparent', border: 'none',
-            color: '#6B6B7B', cursor: 'pointer', transition: 'color 0.12s, background 0.12s',
+            color: 'var(--mai-text-3)', cursor: 'pointer', transition: 'color 0.12s, background 0.12s',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = '#ECECEC'; e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--mai-text-1)'; e.currentTarget.style.background = 'var(--mai-border-strong)' }}
           onMouseLeave={(e) => { e.currentTarget.style.color = '#6B6B7B'; e.currentTarget.style.background = 'transparent' }}
         >
           {actionIcon || <Plus size={10} />}
@@ -380,7 +380,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
   }
 
   const emptyHint = (msg: string, indent = 64) => (
-    <div style={{ paddingLeft: indent, paddingRight: 8, height: 20, display: 'flex', alignItems: 'center', gap: 4, color: '#555560', fontSize: 10 }}>
+    <div style={{ paddingLeft: indent, paddingRight: 8, height: 20, display: 'flex', alignItems: 'center', gap: 4, color: 'var(--mai-text-3)', fontSize: 10 }}>
       <AlertCircle size={8} /><span>{msg}</span>
     </div>
   )
@@ -389,23 +389,23 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
 
   const header = (
     <div className="flex items-center justify-between" style={{ padding: '6px 8px 4px', marginBottom: 2 }}>
-      <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#555560' }}>Databases</span>
+      <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--mai-text-3)' }}>Databases</span>
       <button onClick={loadSchema} disabled={isRefreshing} title="Refresh schema" className="flex items-center justify-center rounded"
-        style={{ width: 16, height: 16, color: '#555560', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.12s' }}
-        onMouseEnter={(e) => e.currentTarget.style.color = '#ECECEC'}
-        onMouseLeave={(e) => e.currentTarget.style.color = '#555560'}
+        style={{ width: 16, height: 16, color: 'var(--mai-text-3)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.12s' }}
+        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--mai-text-1)'}
+        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-3)'}
       ><RefreshCw size={10} className={isRefreshing ? 'animate-spin' : ''} /></button>
     </div>
   )
 
   if (isRefreshing) return (
-    <>{header}<div className="flex items-center gap-2" style={{ padding: '4px 8px', color: '#555560' }}><Loader2 size={11} className="animate-spin shrink-0" /><span style={{ fontSize: 12 }}>Loading databases...</span></div></>
+    <>{header}<div className="flex items-center gap-2" style={{ padding: '4px 8px', color: 'var(--mai-text-3)' }}><Loader2 size={11} className="animate-spin shrink-0" /><span style={{ fontSize: 12 }}>Loading databases...</span></div></>
   )
   if (error) return (
     <>{header}<div className="flex items-start gap-1.5" style={{ padding: '4px 8px', color: '#F87171' }}><AlertCircle size={11} className="shrink-0" style={{ marginTop: 2 }} /><span className="break-all" style={{ fontSize: 12 }}>{error}</span></div></>
   )
   if (databases.length === 0) return (
-    <>{header}<div style={{ padding: '4px 8px', color: '#555560', fontSize: 12 }}>No databases found</div></>
+    <>{header}<div style={{ padding: '4px 8px', color: 'var(--mai-text-3)', fontSize: 12 }}>No databases found</div></>
   )
 
   return (
@@ -425,12 +425,12 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
               onMouseEnter={() => setHoveredRow(`db:${database}`)}
               onMouseLeave={() => setHoveredRow(null)}
               className="flex w-full items-center gap-1"
-              style={{ height: 26, paddingLeft: 8, paddingRight: 8, color: isDefault ? '#ECECEC' : '#8B8B8B', background: hoveredRow === `db:${database}` ? 'rgba(255,255,255,0.04)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
+              style={{ height: 26, paddingLeft: 8, paddingRight: 8, color: isDefault ? 'var(--mai-text-1)' : 'var(--mai-text-2)', background: hoveredRow === `db:${database}` ? 'var(--mai-bg-hover)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
             >
               {loadingKeys.has(dbKey(database)) ? <Loader2 size={11} className="animate-spin shrink-0" /> : expanded.has(dbKey(database)) ? <ChevronDown size={11} className="shrink-0" /> : <ChevronRight size={11} className="shrink-0" />}
               <Server size={11} className="shrink-0" style={{ color: isDefault ? '#34D399' : '#5B8AF0' }} />
               <span style={{ fontWeight: isDefault ? 600 : 400 }} className="truncate">{database}</span>
-              {isDefault && <span style={{ fontSize: 9, color: '#555560', marginLeft: 'auto', flexShrink: 0 }}>connected</span>}
+              {isDefault && <span style={{ fontSize: 9, color: 'var(--mai-text-3)', marginLeft: 'auto', flexShrink: 0 }}>connected</span>}
             </button>
 
             {expanded.has(dbKey(database)) && schemas.map((schema) => {
@@ -453,7 +453,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                       onMouseEnter={() => setHoveredRow(`schema:${database}/${schema}`)}
                       onMouseLeave={() => setHoveredRow(null)}
                       className="flex w-full items-center gap-1"
-                      style={{ height: 24, paddingLeft: 20, paddingRight: 8, color: '#8B8B8B', background: hoveredRow === `schema:${database}/${schema}` ? 'rgba(255,255,255,0.04)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
+                      style={{ height: 24, paddingLeft: 20, paddingRight: 8, color: 'var(--mai-text-2)', background: hoveredRow === `schema:${database}/${schema}` ? 'var(--mai-bg-hover)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
                     >
                       {loadingKeys.has(schemaKey(database, schema)) ? <Loader2 size={10} className="animate-spin shrink-0" /> : expanded.has(schemaKey(database, schema)) ? <ChevronDown size={10} className="shrink-0" /> : <ChevronRight size={10} className="shrink-0" />}
                       <Database size={10} className="shrink-0" style={{ color: '#5B8AF0' }} />
@@ -487,13 +487,13 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                               onMouseEnter={() => setHoveredRow(`table:${tk}`)}
                               onMouseLeave={() => setHoveredRow(null)}
                               className="flex w-full items-center gap-1"
-                              style={{ height: 24, paddingLeft: tableIndent, paddingRight: 8, color: '#ECECEC', background: hoveredRow === `table:${tk}` ? 'rgba(255,255,255,0.04)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
+                              style={{ height: 24, paddingLeft: tableIndent, paddingRight: 8, color: 'var(--mai-text-1)', background: hoveredRow === `table:${tk}` ? 'var(--mai-bg-hover)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
                               title="Double-click to SELECT * | Right-click for options"
                             >
                               {loadingKeys.has(tdk) ? <Loader2 size={10} className="animate-spin shrink-0" /> : expanded.has(tk) ? <ChevronDown size={10} className="shrink-0" /> : <ChevronRight size={10} className="shrink-0" />}
                               <Table2 size={10} className="shrink-0" style={{ color: table.type === 'view' ? '#5B8AF0' : '#F97316' }} />
                               <span className="truncate" style={{ fontSize: 11 }}>{table.name}</span>
-                              {rowCount !== undefined && <span className="ml-auto shrink-0" style={{ fontSize: 10, color: '#555560' }}>{formatRowCount(rowCount)}</span>}
+                              {rowCount !== undefined && <span className="ml-auto shrink-0" style={{ fontSize: 10, color: 'var(--mai-text-3)' }}>{formatRowCount(rowCount)}</span>}
                             </button>
 
                             {expanded.has(tk) && (<>
@@ -502,15 +502,15 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                                 <div key={col.name} className="flex items-center gap-1"
                                   onMouseEnter={() => setHoveredRow(`col:${tdk}.${col.name}`)}
                                   onMouseLeave={() => setHoveredRow(null)}
-                                  style={{ height: 21, paddingLeft: tableIndent + 12, paddingRight: 8, background: hoveredRow === `col:${tdk}.${col.name}` ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}
+                                  style={{ height: 21, paddingLeft: tableIndent + 12, paddingRight: 8, background: hoveredRow === `col:${tdk}.${col.name}` ? 'var(--mai-bg-hover)' : 'transparent', transition: 'background 0.1s' }}
                                 >
                                   {col.isPrimaryKey ? <Key size={9} className="shrink-0" style={{ color: '#FBBF24' }} />
                                     : col.isForeignKey ? <span style={{ fontSize: 9, color: '#F97316', lineHeight: 1, flexShrink: 0 }}>→</span>
                                     : <span style={{ width: 9, flexShrink: 0, display: 'inline-block' }} />}
-                                  <span className="truncate" style={{ color: col.isPrimaryKey ? '#FBBF24' : col.isForeignKey ? '#F97316' : '#ECECEC', fontSize: 11, fontWeight: col.isPrimaryKey ? 600 : 400 }}>{col.name}</span>
+                                  <span className="truncate" style={{ color: col.isPrimaryKey ? '#FBBF24' : col.isForeignKey ? '#F97316' : 'var(--mai-text-1)', fontSize: 11, fontWeight: col.isPrimaryKey ? 600 : 400 }}>{col.name}</span>
                                   {!col.nullable && <span title="NOT NULL" style={{ fontSize: 9, color: '#F87171', fontWeight: 700, marginLeft: 2, flexShrink: 0 }}>!</span>}
-                                  {col.nullable && <span title="Nullable" style={{ fontSize: 9, color: '#555560', marginLeft: 2, flexShrink: 0 }}>?</span>}
-                                  <span className="ml-auto shrink-0" style={{ fontSize: 10, color: '#555560', fontFamily: 'monospace' }}>{col.displayType}</span>
+                                  {col.nullable && <span title="Nullable" style={{ fontSize: 9, color: 'var(--mai-text-3)', marginLeft: 2, flexShrink: 0 }}>?</span>}
+                                  <span className="ml-auto shrink-0" style={{ fontSize: 10, color: 'var(--mai-text-3)', fontFamily: 'monospace' }}>{col.displayType}</span>
                                 </div>
                               ))}
 
@@ -524,11 +524,11 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                                 : indexes.map((idx) => (
                                   <div key={idx.name} onMouseEnter={() => setHoveredRow(`idx:${tdk}.${idx.name}`)} onMouseLeave={() => setHoveredRow(null)}
                                     className="flex items-center gap-1"
-                                    style={{ height: 20, paddingLeft: tableIndent + 24, paddingRight: 8, background: hoveredRow === `idx:${tdk}.${idx.name}` ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}
+                                    style={{ height: 20, paddingLeft: tableIndent + 24, paddingRight: 8, background: hoveredRow === `idx:${tdk}.${idx.name}` ? 'var(--mai-bg-hover)' : 'transparent', transition: 'background 0.1s' }}
                                   >
-                                    <List size={8} className="shrink-0" style={{ color: idx.isPrimary ? '#FBBF24' : idx.isUnique ? '#6EE7B7' : '#555560' }} />
-                                    <span className="truncate" style={{ fontSize: 10, color: '#ECECEC' }}>{idx.name}</span>
-                                    <span className="ml-auto shrink-0" style={{ fontSize: 9, color: '#555560', fontFamily: 'monospace' }}>{idx.columns.join(', ')}</span>
+                                    <List size={8} className="shrink-0" style={{ color: idx.isPrimary ? '#FBBF24' : idx.isUnique ? '#6EE7B7' : 'var(--mai-text-3)' }} />
+                                    <span className="truncate" style={{ fontSize: 10, color: 'var(--mai-text-1)' }}>{idx.name}</span>
+                                    <span className="ml-auto shrink-0" style={{ fontSize: 9, color: 'var(--mai-text-3)', fontFamily: 'monospace' }}>{idx.columns.join(', ')}</span>
                                   </div>
                                 ))
                               )}
@@ -543,11 +543,11 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                                 : triggers.map((trg) => (
                                   <div key={trg.name} onMouseEnter={() => setHoveredRow(`trg:${tdk}.${trg.name}`)} onMouseLeave={() => setHoveredRow(null)}
                                     className="flex items-center gap-1"
-                                    style={{ height: 20, paddingLeft: tableIndent + 24, paddingRight: 8, background: hoveredRow === `trg:${tdk}.${trg.name}` ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}
+                                    style={{ height: 20, paddingLeft: tableIndent + 24, paddingRight: 8, background: hoveredRow === `trg:${tdk}.${trg.name}` ? 'var(--mai-bg-hover)' : 'transparent', transition: 'background 0.1s' }}
                                   >
                                     <Zap size={8} className="shrink-0" style={{ color: '#FCD34D' }} />
-                                    <span className="truncate" style={{ fontSize: 10, color: '#ECECEC' }}>{trg.name}</span>
-                                    <span className="ml-auto shrink-0" style={{ fontSize: 9, color: '#555560' }}>{trg.timing} {trg.event}</span>
+                                    <span className="truncate" style={{ fontSize: 10, color: 'var(--mai-text-1)' }}>{trg.name}</span>
+                                    <span className="ml-auto shrink-0" style={{ fontSize: 9, color: 'var(--mai-text-3)' }}>{trg.timing} {trg.event}</span>
                                   </div>
                                 ))
                               )}
@@ -567,11 +567,11 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                       : functions.map((fn) => (
                         <div key={fn.name} onMouseEnter={() => setHoveredRow(`fn:${dk}.${fn.name}`)} onMouseLeave={() => setHoveredRow(null)}
                           className="flex items-center gap-1"
-                          style={{ height: 22, paddingLeft: sectionIndent + 12, paddingRight: 8, background: hoveredRow === `fn:${dk}.${fn.name}` ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}
+                          style={{ height: 22, paddingLeft: sectionIndent + 12, paddingRight: 8, background: hoveredRow === `fn:${dk}.${fn.name}` ? 'var(--mai-bg-hover)' : 'transparent', transition: 'background 0.1s' }}
                         >
                           <FunctionSquare size={9} className="shrink-0" style={{ color: fn.kind === 'procedure' ? '#34D399' : '#A78BFA' }} />
-                          <span className="truncate" style={{ fontSize: 11, color: '#ECECEC' }}>{fn.name}</span>
-                          <span className="ml-auto shrink-0" style={{ fontSize: 10, color: '#555560', fontFamily: 'monospace' }}>{fn.returnType || fn.language}</span>
+                          <span className="truncate" style={{ fontSize: 11, color: 'var(--mai-text-1)' }}>{fn.name}</span>
+                          <span className="ml-auto shrink-0" style={{ fontSize: 10, color: 'var(--mai-text-3)', fontFamily: 'monospace' }}>{fn.returnType || fn.language}</span>
                         </div>
                       ))
                     )}
@@ -594,12 +594,12 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                               onMouseEnter={() => setHoveredRow(`enum:${ek}`)}
                               onMouseLeave={() => setHoveredRow(null)}
                               className="flex w-full items-center gap-1"
-                              style={{ height: 22, paddingLeft: sectionIndent + 12, paddingRight: 8, color: '#ECECEC', background: hoveredRow === `enum:${ek}` ? 'rgba(255,255,255,0.04)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
+                              style={{ height: 22, paddingLeft: sectionIndent + 12, paddingRight: 8, color: 'var(--mai-text-1)', background: hoveredRow === `enum:${ek}` ? 'var(--mai-bg-hover)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
                             >
                               {expanded.has(ek) ? <ChevronDown size={10} className="shrink-0" /> : <ChevronRight size={10} className="shrink-0" />}
                               <ListOrdered size={9} className="shrink-0" style={{ color: '#F472B6' }} />
                               <span className="truncate" style={{ fontSize: 11 }}>{en.name}</span>
-                              <span className="ml-auto shrink-0" style={{ fontSize: 10, color: '#555560' }}>{en.values.length} val{en.values.length !== 1 ? 's' : ''}</span>
+                              <span className="ml-auto shrink-0" style={{ fontSize: 10, color: 'var(--mai-text-3)' }}>{en.values.length} val{en.values.length !== 1 ? 's' : ''}</span>
                             </button>
 
                             {expanded.has(ek) && en.values.map((val, idx) => (
@@ -607,9 +607,9 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                                 onMouseEnter={() => setHoveredRow(`enumval:${ek}.${val}`)}
                                 onMouseLeave={() => setHoveredRow(null)}
                                 className="flex items-center gap-1"
-                                style={{ height: 20, paddingLeft: sectionIndent + 24, paddingRight: 8, background: hoveredRow === `enumval:${ek}.${val}` ? 'rgba(255,255,255,0.04)' : 'transparent', transition: 'background 0.1s' }}
+                                style={{ height: 20, paddingLeft: sectionIndent + 24, paddingRight: 8, background: hoveredRow === `enumval:${ek}.${val}` ? 'var(--mai-bg-hover)' : 'transparent', transition: 'background 0.1s' }}
                               >
-                                <span style={{ width: 9, flexShrink: 0, display: 'inline-block', fontSize: 9, color: '#555560', textAlign: 'right', fontFamily: 'monospace' }}>{idx + 1}</span>
+                                <span style={{ width: 9, flexShrink: 0, display: 'inline-block', fontSize: 9, color: 'var(--mai-text-3)', textAlign: 'right', fontFamily: 'monospace' }}>{idx + 1}</span>
                                 <span className="truncate" style={{ fontSize: 10, color: '#D4BFFF', fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace' }}>{val}</span>
                               </div>
                             ))}

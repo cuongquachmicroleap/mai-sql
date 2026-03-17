@@ -149,6 +149,36 @@ async function callOllama(
   return data.message?.content ?? ''
 }
 
+async function callOpenRouter(
+  config: AIProviderConfig,
+  system: string,
+  user: string,
+): Promise<string> {
+  const baseUrl = config.baseUrl?.replace(/\/+$/, '') || 'https://openrouter.ai/api'
+
+  const body = JSON.stringify({
+    model: config.model || 'openai/gpt-4o-mini',
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+    temperature: 0.3,
+  })
+
+  const data = (await fetchJSON(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.apiKey}`,
+      'HTTP-Referer': 'https://mai-sql.app',
+      'X-Title': 'MAI SQL',
+    },
+    body,
+  })) as { choices: { message: { content: string } }[] }
+
+  return data.choices?.[0]?.message?.content ?? ''
+}
+
 export async function chatWithAI(
   config: AIProviderConfig,
   request: AIRequest,
@@ -175,6 +205,9 @@ export async function chatWithAI(
         break
       case 'ollama':
         content = await callOllama(config, system, userMessage)
+        break
+      case 'openrouter':
+        content = await callOpenRouter(config, system, userMessage)
         break
       default:
         return { content: '', error: `Unsupported provider: ${config.provider}` }

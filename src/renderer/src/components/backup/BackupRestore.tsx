@@ -11,9 +11,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div
       className="rounded-lg p-4 space-y-3"
-      style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+      style={{ background: 'var(--mai-bg-panel)', border: '1px solid var(--mai-border)' }}
     >
-      <h3 className="text-sm font-semibold" style={{ color: 'var(--color-foreground)' }}>
+      <h3 className="text-sm font-semibold" style={{ color: 'var(--mai-text-1)' }}>
         {title}
       </h3>
       {children}
@@ -23,7 +23,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <label className="block text-xs mb-1" style={{ color: 'var(--color-muted-foreground)' }}>
+    <label className="block text-xs mb-1" style={{ color: 'var(--mai-text-2)' }}>
       {children}
     </label>
   )
@@ -44,9 +44,9 @@ function Select({
       onChange={(e) => onChange(e.target.value)}
       className="w-full rounded px-2 py-1.5 text-sm outline-none"
       style={{
-        background: 'var(--color-input)',
-        border: '1px solid var(--color-border)',
-        color: 'var(--color-foreground)',
+        background: 'var(--mai-bg-elevated)',
+        border: '1px solid var(--mai-border)',
+        color: 'var(--mai-text-1)',
       }}
     >
       {children}
@@ -74,9 +74,9 @@ function Input({
       readOnly={readOnly}
       className="w-full rounded px-2 py-1.5 text-sm outline-none"
       style={{
-        background: readOnly ? 'var(--color-surface)' : 'var(--color-input)',
-        border: '1px solid var(--color-border)',
-        color: 'var(--color-foreground)',
+        background: readOnly ? 'var(--mai-bg-panel)' : 'var(--mai-bg-elevated)',
+        border: '1px solid var(--mai-border)',
+        color: 'var(--mai-text-1)',
         cursor: readOnly ? 'default' : undefined,
       }}
     />
@@ -96,16 +96,16 @@ function Button({
 }) {
   const colors: Record<string, React.CSSProperties> = {
     primary: {
-      background: disabled ? 'var(--color-muted)' : 'var(--color-primary)',
+      background: disabled ? 'var(--mai-bg-elevated)' : 'var(--mai-accent)',
       color: '#fff',
     },
     secondary: {
-      background: 'var(--color-surface)',
-      border: '1px solid var(--color-border)',
-      color: 'var(--color-foreground)',
+      background: 'var(--mai-bg-panel)',
+      border: '1px solid var(--mai-border)',
+      color: 'var(--mai-text-1)',
     },
     danger: {
-      background: disabled ? 'var(--color-muted)' : '#dc2626',
+      background: disabled ? 'var(--mai-bg-elevated)' : '#dc2626',
       color: '#fff',
     },
   }
@@ -295,22 +295,22 @@ function BackupSection() {
             <button
               onClick={toggleAll}
               className="text-xs underline"
-              style={{ color: 'var(--color-primary)' }}
+              style={{ color: 'var(--mai-accent)' }}
             >
               {selectedTables.size === tables.length ? 'Deselect all' : 'Select all'}
             </button>
           </div>
           <div
             className="max-h-36 overflow-y-auto rounded p-2 space-y-1"
-            style={{ background: 'var(--color-input)', border: '1px solid var(--color-border)' }}
+            style={{ background: 'var(--mai-bg-elevated)', border: '1px solid var(--mai-border)' }}
           >
             {tables.map((t) => (
-              <label key={t} className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--color-foreground)' }}>
+              <label key={t} className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--mai-text-1)' }}>
                 <input
                   type="checkbox"
                   checked={selectedTables.has(t)}
                   onChange={() => toggleTable(t)}
-                  className="accent-[var(--color-primary)]"
+                  className="accent-[var(--mai-accent)]"
                 />
                 {t}
               </label>
@@ -320,7 +320,7 @@ function BackupSection() {
       )}
 
       {fetchingMeta && (
-        <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+        <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--mai-text-2)' }}>
           <Loader2 size={12} className="animate-spin" />
           Loading schema…
         </div>
@@ -341,7 +341,7 @@ function BackupSection() {
       </div>
 
       {progress && (
-        <div className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+        <div className="text-xs" style={{ color: 'var(--mai-text-2)' }}>
           {progress}
         </div>
       )}
@@ -473,12 +473,12 @@ function RestoreSection() {
 
 export function BackupRestore() {
   return (
-    <div className="flex flex-col h-full overflow-y-auto p-4 space-y-4" style={{ background: 'var(--color-background)' }}>
+    <div className="flex flex-col h-full overflow-y-auto p-4 space-y-4" style={{ background: 'var(--mai-bg-base)' }}>
       <div>
-        <h2 className="text-sm font-bold tracking-wide" style={{ color: 'var(--color-foreground)' }}>
+        <h2 className="text-sm font-bold tracking-wide" style={{ color: 'var(--mai-text-1)' }}>
           Backup &amp; Restore
         </h2>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted-foreground)' }}>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--mai-text-2)' }}>
           Export tables to a JSON backup file or restore data from a previous export.
         </p>
       </div>

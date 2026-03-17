@@ -14,15 +14,15 @@ const cellStyle: React.CSSProperties = {
   padding: '4px 6px',
   display: 'flex',
   alignItems: 'center',
-  borderRight: '1px solid rgba(255,255,255,0.06)',
-  borderBottom: '1px solid rgba(255,255,255,0.06)',
+  borderRight: '1px solid var(--mai-border)',
+  borderBottom: '1px solid var(--mai-border)',
 }
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
   background: 'transparent',
   border: 'none',
-  color: '#ECECEC',
+  color: 'var(--mai-text-1)',
   fontSize: 11,
   fontFamily: 'inherit',
   outline: 'none',
@@ -30,10 +30,10 @@ const inputStyle: React.CSSProperties = {
 
 const selectStyle: React.CSSProperties = {
   width: '100%',
-  background: '#1C1C20',
-  border: '1px solid rgba(255,255,255,0.1)',
+  background: 'var(--mai-bg-panel)',
+  border: '1px solid var(--mai-border-strong)',
   borderRadius: 3,
-  color: '#ECECEC',
+  color: 'var(--mai-text-1)',
   fontSize: 11,
   fontFamily: 'inherit',
   outline: 'none',
@@ -65,7 +65,7 @@ export function ForeignKeysEditor({ foreignKeys, columns, onChange }: ForeignKey
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {foreignKeys.length === 0 && (
-          <div style={{ padding: 20, textAlign: 'center', color: '#555560', fontSize: 12 }}>
+          <div style={{ padding: 20, textAlign: 'center', color: 'var(--mai-text-3)', fontSize: 12 }}>
             No foreign keys defined. Click "Add Foreign Key" to create one.
           </div>
         )}
@@ -75,14 +75,14 @@ export function ForeignKeysEditor({ foreignKeys, columns, onChange }: ForeignKey
             key={fk._tempId}
             style={{
               margin: 8,
-              border: '1px solid rgba(255,255,255,0.08)',
+              border: '1px solid var(--mai-border-strong)',
               borderRadius: 6,
               background: 'rgba(255,255,255,0.02)',
             }}
           >
             {/* Header row with constraint name and delete */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontSize: 10, color: '#555560', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>Constraint</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderBottom: '1px solid var(--mai-border)' }}>
+              <span style={{ fontSize: 10, color: 'var(--mai-text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', flexShrink: 0 }}>Constraint</span>
               <input
                 style={{ ...inputStyle, flex: 1 }}
                 value={fk.constraintName}
@@ -92,9 +92,9 @@ export function ForeignKeysEditor({ foreignKeys, columns, onChange }: ForeignKey
               />
               <button
                 onClick={() => remove(fk._tempId)}
-                style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+                style={{ background: 'none', border: 'none', color: 'var(--mai-text-3)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#F87171'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#555560'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-3)'}
               >
                 <X size={14} />
               </button>
@@ -104,7 +104,7 @@ export function ForeignKeysEditor({ foreignKeys, columns, onChange }: ForeignKey
               {/* Source columns */}
               <div style={cellStyle}>
                 <div style={{ width: '100%' }}>
-                  <div style={{ fontSize: 10, color: '#555560', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Source Columns</div>
+                  <div style={{ fontSize: 10, color: 'var(--mai-text-3)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Source Columns</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                     {columnNames.map((colName) => {
                       const selected = fk.columns.includes(colName)
@@ -119,9 +119,9 @@ export function ForeignKeysEditor({ foreignKeys, columns, onChange }: ForeignKey
                           }}
                           style={{
                             padding: '1px 6px', fontSize: 10, borderRadius: 3,
-                            border: selected ? '1px solid #5B8AF0' : '1px solid rgba(255,255,255,0.12)',
+                            border: selected ? '1px solid var(--mai-accent)' : '1px solid var(--mai-border-strong)',
                             background: selected ? 'rgba(91,138,240,0.15)' : 'transparent',
-                            color: selected ? '#5B8AF0' : '#8B8B8B', cursor: 'pointer',
+                            color: selected ? 'var(--mai-accent)' : 'var(--mai-text-2)', cursor: 'pointer',
                           }}
                         >
                           {colName}
@@ -135,15 +135,15 @@ export function ForeignKeysEditor({ foreignKeys, columns, onChange }: ForeignKey
               {/* Target table & columns */}
               <div style={{ ...cellStyle, borderRight: 'none' }}>
                 <div style={{ width: '100%' }}>
-                  <div style={{ fontSize: 10, color: '#555560', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Target Table</div>
+                  <div style={{ fontSize: 10, color: 'var(--mai-text-3)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Target Table</div>
                   <input
-                    style={{ ...inputStyle, marginBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 4 }}
+                    style={{ ...inputStyle, marginBottom: 6, borderBottom: '1px solid var(--mai-border-strong)', paddingBottom: 4 }}
                     value={fk.targetTable}
                     onChange={(e) => update(fk._tempId, { targetTable: e.target.value })}
                     placeholder="schema.table"
                     spellCheck={false}
                   />
-                  <div style={{ fontSize: 10, color: '#555560', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Target Columns</div>
+                  <div style={{ fontSize: 10, color: 'var(--mai-text-3)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Target Columns</div>
                   <input
                     style={inputStyle}
                     value={fk.targetColumns.join(', ')}
@@ -156,15 +156,15 @@ export function ForeignKeysEditor({ foreignKeys, columns, onChange }: ForeignKey
             </div>
 
             {/* Actions row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderTop: '1px solid var(--mai-border)' }}>
               <div style={{ ...cellStyle, gap: 6 }}>
-                <span style={{ fontSize: 10, color: '#555560', fontWeight: 600, flexShrink: 0 }}>ON DELETE</span>
+                <span style={{ fontSize: 10, color: 'var(--mai-text-3)', fontWeight: 600, flexShrink: 0 }}>ON DELETE</span>
                 <select style={selectStyle} value={fk.onDelete} onChange={(e) => update(fk._tempId, { onDelete: e.target.value })}>
                   {FK_ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
                 </select>
               </div>
               <div style={{ ...cellStyle, gap: 6, borderRight: 'none' }}>
-                <span style={{ fontSize: 10, color: '#555560', fontWeight: 600, flexShrink: 0 }}>ON UPDATE</span>
+                <span style={{ fontSize: 10, color: 'var(--mai-text-3)', fontWeight: 600, flexShrink: 0 }}>ON UPDATE</span>
                 <select style={selectStyle} value={fk.onUpdate} onChange={(e) => update(fk._tempId, { onUpdate: e.target.value })}>
                   {FK_ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
                 </select>
@@ -175,17 +175,17 @@ export function ForeignKeysEditor({ foreignKeys, columns, onChange }: ForeignKey
       </div>
 
       {/* Add button */}
-      <div style={{ padding: 8, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ padding: 8, borderTop: '1px solid var(--mai-border)' }}>
         <button
           onClick={add}
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
-            background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+            background: 'none', border: '1px solid var(--mai-border-strong)',
             borderRadius: 4, padding: '4px 10px',
-            color: '#8B8B8B', fontSize: 11, cursor: 'pointer',
+            color: 'var(--mai-text-2)', fontSize: 11, cursor: 'pointer',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#ECECEC' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8B8B8B' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--mai-bg-hover)'; e.currentTarget.style.color = 'var(--mai-text-1)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--mai-text-2)' }}
         >
           <Plus size={12} /> Add Foreign Key
         </button>

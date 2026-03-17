@@ -13,11 +13,11 @@ import type { SchemaDiffResult, TableDiff } from '@shared/types/diff'
 const selectBase: React.CSSProperties = {
   width: '100%',
   height: 30,
-  background: '#18181B',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'var(--mai-bg-base)',
+  border: '1px solid var(--mai-border-strong)',
   borderRadius: 6,
   padding: '0 10px',
-  color: '#ECECEC',
+  color: 'var(--mai-text-1)',
   fontSize: 12,
   outline: 'none',
   cursor: 'pointer',
@@ -96,9 +96,9 @@ function ConnectionCard({
     <div
       style={{
         flex: 1,
-        background: '#18181B',
+        background: 'var(--mai-bg-base)',
         borderRadius: 10,
-        border: `1px solid ${isReady ? accentColor + '30' : 'rgba(255,255,255,0.06)'}`,
+        border: `1px solid ${isReady ? accentColor + '30' : 'var(--mai-border)'}`,
         overflow: 'hidden',
         transition: 'border-color 0.2s',
       }}
@@ -128,7 +128,7 @@ function ConnectionCard({
         </span>
         {/* Breadcrumb summary */}
         {isReady && (
-          <span style={{ fontSize: 10, color: '#555560', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 10, color: 'var(--mai-text-3)', marginLeft: 'auto' }}>
             {conn?.name} / {database} / {schema}
           </span>
         )}
@@ -192,8 +192,8 @@ function FieldRow({ icon, label, children }: { icon: React.ReactNode; label: str
   return (
     <div>
       <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>
-        <span style={{ color: '#555560' }}>{icon}</span>
-        <span style={{ fontSize: 10, fontWeight: 500, color: '#555560' }}>{label}</span>
+        <span style={{ color: 'var(--mai-text-3)' }}>{icon}</span>
+        <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--mai-text-3)' }}>{label}</span>
       </div>
       {children}
     </div>
@@ -243,21 +243,21 @@ export function SchemaDiff() {
   const hasChanges = totalChanges > 0
 
   return (
-    <div className="flex flex-col h-full" style={{ background: '#111113' }}>
+    <div className="flex flex-col h-full" style={{ background: 'var(--mai-bg-deep)' }}>
       {/* ── Header bar ── */}
       <div
         className="flex items-center gap-2 px-4 shrink-0"
         style={{
           height: 38,
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-          background: '#1C1C20',
+          borderBottom: '1px solid var(--mai-border)',
+          background: 'var(--mai-bg-panel)',
         }}
       >
         <GitCompare size={14} style={{ color: '#5B8AF0' }} />
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#ECECEC' }}>Schema Diff</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mai-text-1)' }}>Schema Diff</span>
         <div className="flex-1" />
         {result && (
-          <span style={{ fontSize: 11, color: '#555560' }}>
+          <span style={{ fontSize: 11, color: 'var(--mai-text-3)' }}>
             {totalChanges === 0 ? 'No differences' : `${totalChanges} difference${totalChanges > 1 ? 's' : ''}`}
           </span>
         )}
@@ -268,8 +268,8 @@ export function SchemaDiff() {
         className="shrink-0"
         style={{
           padding: '16px 20px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-          background: '#131316',
+          borderBottom: '1px solid var(--mai-border)',
+          background: 'var(--mai-bg-base)',
         }}
       >
         <div className="flex items-stretch gap-4">
@@ -296,7 +296,7 @@ export function SchemaDiff() {
                 height: 44,
                 borderRadius: '50%',
                 border: 'none',
-                background: canCompare ? '#5B8AF0' : '#222227',
+                background: canCompare ? '#5B8AF0' : 'var(--mai-bg-elevated)',
                 color: canCompare ? '#fff' : '#3A3A45',
                 cursor: canCompare ? 'pointer' : 'default',
                 display: 'flex',
@@ -313,7 +313,7 @@ export function SchemaDiff() {
                 : <ArrowRightLeft size={18} />
               }
             </button>
-            <span style={{ fontSize: 9, color: '#3A3A45', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ fontSize: 9, color: 'var(--mai-text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Compare
             </span>
           </div>
@@ -349,12 +349,12 @@ export function SchemaDiff() {
           {/* Left sidebar — table list */}
           <div
             className="shrink-0 flex flex-col overflow-hidden"
-            style={{ width: 280, borderRight: '1px solid rgba(255,255,255,0.07)', background: '#18181B' }}
+            style={{ width: 280, borderRight: '1px solid var(--mai-border)', background: 'var(--mai-bg-base)' }}
           >
             {/* Summary bar */}
             <div
               className="flex items-center gap-3 px-3 shrink-0"
-              style={{ height: 34, borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#1C1C20' }}
+              style={{ height: 34, borderBottom: '1px solid var(--mai-border)', background: 'var(--mai-bg-panel)' }}
             >
               <StatBadge color="#34D399" count={result.addedTables.length} label="added" />
               <StatBadge color="#F87171" count={result.removedTables.length} label="removed" />
@@ -364,7 +364,7 @@ export function SchemaDiff() {
             {/* Scrollable list */}
             <div className="flex-1 overflow-y-auto py-1">
               {!hasChanges && (
-                <div className="flex flex-col items-center justify-center py-10" style={{ color: '#555560' }}>
+                <div className="flex flex-col items-center justify-center py-10" style={{ color: 'var(--mai-text-3)' }}>
                   <CheckCircle2 size={24} style={{ opacity: 0.3, marginBottom: 8 }} />
                   <span style={{ fontSize: 12 }}>Schemas are identical</span>
                 </div>
@@ -408,14 +408,14 @@ export function SchemaDiff() {
                       background: isSelected
                         ? 'rgba(251,191,36,0.08)'
                         : isHovered
-                          ? 'rgba(255,255,255,0.03)'
+                          ? 'var(--mai-bg-hover)'
                           : 'transparent',
                       borderLeft: isSelected ? '2px solid #FBBF24' : '2px solid transparent',
                       transition: 'background 0.1s',
                     }}
                   >
                     <Table2 size={11} style={{ color: '#FBBF24', flexShrink: 0 }} />
-                    <span className="truncate" style={{ fontSize: 12, color: isSelected ? '#ECECEC' : '#8B8B8B' }}>
+                    <span className="truncate" style={{ fontSize: 12, color: isSelected ? 'var(--mai-text-1)' : 'var(--mai-text-2)' }}>
                       {t.tableName}
                     </span>
                     <span
@@ -437,7 +437,7 @@ export function SchemaDiff() {
 
             {/* Generate migration button */}
             {hasChanges && (
-              <div className="shrink-0 px-3 py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="shrink-0 px-3 py-2" style={{ borderTop: '1px solid var(--mai-border)' }}>
                 <button
                   onClick={handleGenerateMigration}
                   className="flex items-center justify-center gap-1.5 w-full"
@@ -463,13 +463,13 @@ export function SchemaDiff() {
           </div>
 
           {/* Right detail panel */}
-          <div className="flex-1 overflow-auto" style={{ background: '#111113' }}>
+          <div className="flex-1 overflow-auto" style={{ background: 'var(--mai-bg-deep)' }}>
             {selectedTable ? (
               <div style={{ padding: 20, maxWidth: 640 }}>
                 {/* Table header */}
                 <div className="flex items-center gap-2" style={{ marginBottom: 16 }}>
                   <Table2 size={16} style={{ color: '#FBBF24' }} />
-                  <h3 style={{ fontSize: 15, fontWeight: 600, color: '#ECECEC', margin: 0 }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--mai-text-1)', margin: 0 }}>
                     {selectedTable.tableName}
                   </h3>
                 </div>
@@ -480,7 +480,7 @@ export function SchemaDiff() {
                     {selectedTable.addedColumns.map((c) => (
                       <div key={c} className="flex items-center gap-2" style={{ height: 26 }}>
                         <Plus size={9} style={{ color: '#34D399', flexShrink: 0 }} />
-                        <span style={{ fontSize: 12, color: '#ECECEC' }}>{c}</span>
+                        <span style={{ fontSize: 12, color: 'var(--mai-text-1)' }}>{c}</span>
                       </div>
                     ))}
                   </ChangeCard>
@@ -491,7 +491,7 @@ export function SchemaDiff() {
                     {selectedTable.removedColumns.map((c) => (
                       <div key={c} className="flex items-center gap-2" style={{ height: 26 }}>
                         <Minus size={9} style={{ color: '#F87171', flexShrink: 0 }} />
-                        <span style={{ fontSize: 12, color: '#8B8B8B', textDecoration: 'line-through' }}>{c}</span>
+                        <span style={{ fontSize: 12, color: 'var(--mai-text-2)', textDecoration: 'line-through' }}>{c}</span>
                       </div>
                     ))}
                   </ChangeCard>
@@ -500,12 +500,12 @@ export function SchemaDiff() {
                 {selectedTable.modifiedColumns.length > 0 && (
                   <ChangeCard title="Modified Columns" color="#FBBF24" icon={<Edit3 size={10} />}>
                     {selectedTable.modifiedColumns.map((c) => (
-                      <div key={c.name} style={{ padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                        <span style={{ fontSize: 12, color: '#ECECEC', fontWeight: 500 }}>{c.name}</span>
+                      <div key={c.name} style={{ padding: '6px 0', borderBottom: '1px solid var(--mai-border)' }}>
+                        <span style={{ fontSize: 12, color: 'var(--mai-text-1)', fontWeight: 500 }}>{c.name}</span>
                         {c.changes.map((change, i) => (
                           <div key={i} className="flex items-center gap-1.5 mt-1" style={{ paddingLeft: 12 }}>
-                            <ArrowRight size={8} style={{ color: '#555560' }} />
-                            <span style={{ fontSize: 11, color: '#8B8B8B', fontFamily: "ui-monospace, 'SF Mono', monospace" }}>
+                            <ArrowRight size={8} style={{ color: 'var(--mai-text-3)' }} />
+                            <span style={{ fontSize: 11, color: 'var(--mai-text-2)', fontFamily: "ui-monospace, 'SF Mono', monospace" }}>
                               {change}
                             </span>
                           </div>
@@ -520,13 +520,13 @@ export function SchemaDiff() {
                     {selectedTable.addedIndexes.map((idx) => (
                       <div key={idx} className="flex items-center gap-2" style={{ height: 26 }}>
                         <Plus size={9} style={{ color: '#34D399', flexShrink: 0 }} />
-                        <span style={{ fontSize: 12, color: '#ECECEC' }}>{idx}</span>
+                        <span style={{ fontSize: 12, color: 'var(--mai-text-1)' }}>{idx}</span>
                       </div>
                     ))}
                     {selectedTable.removedIndexes.map((idx) => (
                       <div key={idx} className="flex items-center gap-2" style={{ height: 26 }}>
                         <Minus size={9} style={{ color: '#F87171', flexShrink: 0 }} />
-                        <span style={{ fontSize: 12, color: '#8B8B8B', textDecoration: 'line-through' }}>{idx}</span>
+                        <span style={{ fontSize: 12, color: 'var(--mai-text-2)', textDecoration: 'line-through' }}>{idx}</span>
                       </div>
                     ))}
                   </ChangeCard>
@@ -538,7 +538,7 @@ export function SchemaDiff() {
                 <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
                   <div className="flex items-center gap-2">
                     <FileCode size={14} style={{ color: '#5B8AF0' }} />
-                    <h3 style={{ fontSize: 14, fontWeight: 600, color: '#ECECEC', margin: 0 }}>Migration SQL</h3>
+                    <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--mai-text-1)', margin: 0 }}>Migration SQL</h3>
                   </div>
                   <button
                     onClick={() => navigator.clipboard.writeText(migrationSQL).catch(() => {})}
@@ -563,13 +563,13 @@ export function SchemaDiff() {
                 <pre style={{
                   fontSize: 12,
                   lineHeight: 1.6,
-                  color: '#ECECEC',
+                  color: 'var(--mai-text-1)',
                   fontFamily: "ui-monospace, 'SF Mono', 'Cascadia Code', monospace",
                   whiteSpace: 'pre-wrap',
-                  background: '#18181B',
+                  background: 'var(--mai-bg-base)',
                   borderRadius: 8,
                   padding: 16,
-                  border: '1px solid rgba(255,255,255,0.06)',
+                  border: '1px solid var(--mai-border)',
                   margin: 0,
                 }}>
                   {migrationSQL}
@@ -577,16 +577,16 @@ export function SchemaDiff() {
               </div>
 
             ) : (
-              <div className="flex flex-col items-center justify-center h-full" style={{ color: '#3A3A45' }}>
+              <div className="flex flex-col items-center justify-center h-full" style={{ color: 'var(--mai-text-4)' }}>
                 {hasChanges ? (
                   <>
                     <ArrowRight size={28} style={{ opacity: 0.2, marginBottom: 10 }} />
-                    <span style={{ fontSize: 12, color: '#555560' }}>Select a table to view changes</span>
+                    <span style={{ fontSize: 12, color: 'var(--mai-text-3)' }}>Select a table to view changes</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle2 size={28} style={{ opacity: 0.2, marginBottom: 10 }} />
-                    <span style={{ fontSize: 12, color: '#555560' }}>Schemas are identical</span>
+                    <span style={{ fontSize: 12, color: 'var(--mai-text-3)' }}>Schemas are identical</span>
                   </>
                 )}
               </div>
@@ -614,10 +614,10 @@ export function SchemaDiff() {
             >
               <GitCompare size={24} style={{ color: '#5B8AF0', opacity: 0.5 }} />
             </div>
-            <p style={{ fontSize: 13, color: '#8B8B8B', margin: '0 0 6px' }}>
+            <p style={{ fontSize: 13, color: 'var(--mai-text-2)', margin: '0 0 6px' }}>
               Compare database schemas
             </p>
-            <p style={{ fontSize: 11, color: '#3A3A45', margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 11, color: 'var(--mai-text-4)', margin: 0, lineHeight: 1.5 }}>
               Select a source and target connection above, pick the database and schema, then click the compare button
             </p>
           </div>
@@ -627,7 +627,7 @@ export function SchemaDiff() {
       {/* Loading state */}
       {loading && !result && (
         <div className="flex flex-1 items-center justify-center">
-          <div className="flex flex-col items-center gap-3" style={{ color: '#555560' }}>
+          <div className="flex flex-col items-center gap-3" style={{ color: 'var(--mai-text-3)' }}>
             <Loader2 size={24} className="animate-spin" style={{ color: '#5B8AF0' }} />
             <span style={{ fontSize: 12 }}>Comparing schemas...</span>
           </div>
@@ -644,7 +644,7 @@ function StatBadge({ color, count, label }: { color: string; count: number; labe
     <span className="flex items-center gap-1" style={{ fontSize: 10 }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, display: 'inline-block' }} />
       <span style={{ color, fontWeight: 600 }}>{count}</span>
-      <span style={{ color: '#3A3A45' }}>{label}</span>
+      <span style={{ color: 'var(--mai-text-4)' }}>{label}</span>
     </span>
   )
 }
@@ -680,7 +680,7 @@ function TableRow({ name, icon, color, strikethrough }: { name: string; icon: Re
         height: 28,
         paddingLeft: 14,
         paddingRight: 10,
-        background: hovered ? 'rgba(255,255,255,0.02)' : 'transparent',
+        background: hovered ? 'var(--mai-bg-hover)' : 'transparent',
         transition: 'background 0.1s',
       }}
     >
@@ -689,7 +689,7 @@ function TableRow({ name, icon, color, strikethrough }: { name: string; icon: Re
         className="truncate"
         style={{
           fontSize: 12,
-          color: hovered ? '#ECECEC' : '#8B8B8B',
+          color: hovered ? 'var(--mai-text-1)' : 'var(--mai-text-2)',
           textDecoration: strikethrough ? 'line-through' : undefined,
         }}
       >
@@ -713,9 +713,9 @@ function ChangeCard({
   return (
     <div
       style={{
-        background: '#18181B',
+        background: 'var(--mai-bg-base)',
         borderRadius: 8,
-        border: '1px solid rgba(255,255,255,0.06)',
+        border: '1px solid var(--mai-border)',
         marginBottom: 12,
         overflow: 'hidden',
       }}

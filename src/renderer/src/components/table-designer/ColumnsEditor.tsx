@@ -22,8 +22,8 @@ const cellStyle: React.CSSProperties = {
   height: 28,
   display: 'flex',
   alignItems: 'center',
-  borderRight: '1px solid rgba(255,255,255,0.06)',
-  borderBottom: '1px solid rgba(255,255,255,0.06)',
+  borderRight: '1px solid var(--mai-border)',
+  borderBottom: '1px solid var(--mai-border)',
 }
 
 const inputStyle: React.CSSProperties = {
@@ -31,7 +31,7 @@ const inputStyle: React.CSSProperties = {
   height: '100%',
   background: 'transparent',
   border: 'none',
-  color: '#ECECEC',
+  color: 'var(--mai-text-1)',
   fontSize: 11,
   fontFamily: 'inherit',
   outline: 'none',
@@ -68,13 +68,13 @@ export function ColumnsEditor({ columns, enumNames = [], onChange }: ColumnsEdit
       <div style={{
         display: 'grid',
         gridTemplateColumns: '2fr 2fr 56px 56px 2fr 2fr 28px',
-        background: '#1C1C20',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        background: 'var(--mai-bg-panel)',
+        borderBottom: '1px solid var(--mai-border-strong)',
         fontSize: 10,
         fontWeight: 600,
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
-        color: '#555560',
+        color: 'var(--mai-text-3)',
       }}>
         {['Name', 'Type', 'Null', 'PK', 'Default', 'Comment', ''].map((h) => (
           <div key={h} style={{ ...cellStyle, borderBottom: 'none' }}>{h}</div>
@@ -112,7 +112,7 @@ export function ColumnsEditor({ columns, enumNames = [], onChange }: ColumnsEdit
                 type="checkbox"
                 checked={col.nullable}
                 onChange={(e) => update(col._tempId, { nullable: e.target.checked })}
-                style={{ accentColor: '#5B8AF0' }}
+                style={{ accentColor: 'var(--mai-accent)' }}
                 disabled={col.isPrimaryKey}
               />
             </div>
@@ -145,9 +145,9 @@ export function ColumnsEditor({ columns, enumNames = [], onChange }: ColumnsEdit
             <div style={{ ...cellStyle, justifyContent: 'center', borderRight: 'none', cursor: 'pointer' }}>
               <button
                 onClick={() => remove(col._tempId)}
-                style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+                style={{ background: 'none', border: 'none', color: 'var(--mai-text-3)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#F87171'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#555560'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-3)'}
               >
                 <X size={12} />
               </button>
@@ -157,17 +157,17 @@ export function ColumnsEditor({ columns, enumNames = [], onChange }: ColumnsEdit
       </div>
 
       {/* Add button */}
-      <div style={{ padding: 8, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ padding: 8, borderTop: '1px solid var(--mai-border)' }}>
         <button
           onClick={add}
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
-            background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+            background: 'none', border: '1px solid var(--mai-border-strong)',
             borderRadius: 4, padding: '4px 10px',
-            color: '#8B8B8B', fontSize: 11, cursor: 'pointer',
+            color: 'var(--mai-text-2)', fontSize: 11, cursor: 'pointer',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#ECECEC' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8B8B8B' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--mai-bg-hover)'; e.currentTarget.style.color = 'var(--mai-text-1)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--mai-text-2)' }}
         >
           <Plus size={12} /> Add Column
         </button>

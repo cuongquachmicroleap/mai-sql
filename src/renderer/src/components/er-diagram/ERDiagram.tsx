@@ -152,10 +152,10 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
       <div
         style={{
           width: node.width,
-          border: '1px solid rgba(255,255,255,0.10)',
+          border: '1px solid var(--mai-border-strong)',
           borderRadius: 4,
           overflow: 'hidden',
-          background: '#1C1C20',
+          background: 'var(--mai-bg-panel)',
           boxShadow: '0 1px 4px rgba(0,0,0,0.6)',
           fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         }}
@@ -165,8 +165,8 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
           onMouseDown={(e) => onDragStart(e, node.id)}
           style={{
             height: NODE_HEADER_HEIGHT,
-            background: '#252B3B',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--mai-bg-elevated)',
+            borderBottom: '1px solid var(--mai-border-strong)',
             display: 'flex',
             alignItems: 'center',
             paddingLeft: 6,
@@ -178,7 +178,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
           <GripVertical size={10} style={{ color: 'rgba(200,216,240,0.35)', marginRight: 4, flexShrink: 0 }} />
           <span
             style={{
-              color: '#C8D8F0',
+              color: 'var(--mai-text-2)',
               fontWeight: 700,
               fontSize: 12,
               overflow: 'hidden',
@@ -212,7 +212,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
               height: NODE_ROW_HEIGHT,
               display: 'flex',
               alignItems: 'center',
-              borderBottom: '1px solid rgba(255,255,255,0.04)',
+              borderBottom: '1px solid var(--mai-bg-hover)',
               background: col.isPrimaryKey ? 'rgba(250,204,21,0.04)' : undefined,
             }}
           >
@@ -225,7 +225,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRight: '1px solid rgba(255,255,255,0.06)',
+                borderRight: '1px solid var(--mai-border)',
                 background: 'rgba(0,0,0,0.15)',
               }}
             >
@@ -247,7 +247,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
               <span
                 style={{
                   fontSize: 11,
-                  color: col.isPrimaryKey ? '#FDE68A' : col.isForeignKey ? '#C8D8F0' : '#ECECEC',
+                  color: col.isPrimaryKey ? '#FDE68A' : col.isForeignKey ? '#C8D8F0' : 'var(--mai-text-1)',
                   textDecoration: col.isPrimaryKey ? 'underline' : undefined,
                   flex: 1,
                   overflow: 'hidden',
@@ -260,7 +260,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
               <span
                 style={{
                   fontSize: 10,
-                  color: '#555560',
+                  color: 'var(--mai-text-3)',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                 }}
@@ -317,7 +317,7 @@ function EdgeLine({ edge, nodeMap }: EdgeLineProps) {
         markerStart="url(#crow-foot-many)"
         markerEnd="url(#one-end)"
       />
-      <rect x={midX - 13} y={midY - 8} width={26} height={14} rx={3} fill="#1C1C20" stroke="rgba(123,159,212,0.35)" strokeWidth={1} />
+      <rect x={midX - 13} y={midY - 8} width={26} height={14} rx={3} fill="var(--mai-bg-panel)" stroke="rgba(123,159,212,0.35)" strokeWidth={1} />
       <text x={midX} y={midY + 4} textAnchor="middle" fontSize={9} fontFamily="var(--font-sans, system-ui, sans-serif)" fill="#7B9FD4">
         N:1
       </text>
@@ -665,7 +665,7 @@ export function ERDiagram() {
                       <line x1="6" y1="1" x2="6" y2="13" stroke="#7B9FD4" strokeWidth="1.5"/>
                     </marker>
                     <pattern id="dot-grid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <circle cx="1" cy="1" r="0.8" fill="rgba(255,255,255,0.06)"/>
+                      <circle cx="1" cy="1" r="0.8" fill="var(--mai-border)"/>
                     </pattern>
                   </defs>
 

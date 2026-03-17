@@ -5,22 +5,22 @@ export const NODE_COLORS = {
   schema: '#5B8AF0',
   table: '#F97316',
   view: '#A78BFA',
-  column: '#8B8B8B',
+  column: 'var(--mai-text-2)',
   pk: '#FBBF24',
   fk: '#F97316',
 } as const
 
 export const baseNodeStyle: CSSProperties = {
-  background: '#1C1C20',
-  border: '1px solid rgba(255,255,255,0.1)',
+  background: 'var(--mai-bg-panel)',
+  border: '1px solid var(--mai-border-strong)',
   borderRadius: 8,
-  color: '#ECECEC',
+  color: 'var(--mai-text-1)',
   fontSize: 12,
   fontFamily: 'inherit',
 }
 
 export const EDGE_STYLE = {
-  stroke: 'rgba(255,255,255,0.15)',
+  stroke: 'var(--mai-border-strong)',
   strokeWidth: 1.5,
 } as const
 

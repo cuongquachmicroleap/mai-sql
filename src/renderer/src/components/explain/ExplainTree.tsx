@@ -82,16 +82,16 @@ function PlanNodeRow({ node, depth = 0 }: { node: PlanNode; depth?: number }) {
           paddingRight: 8,
           height: 28,
           cursor: hasChildren ? 'pointer' : 'default',
-          borderBottom: '1px solid rgba(255,255,255,0.04)',
+          borderBottom: '1px solid var(--mai-border)',
         }}
         onClick={() => hasChildren && setExpanded(!expanded)}
-        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--mai-bg-hover)' }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
       >
         {/* Expand/collapse */}
         <span style={{ width: 12, flexShrink: 0 }}>
           {hasChildren ? (
-            expanded ? <ChevronDown size={10} style={{ color: '#555560' }} /> : <ChevronRight size={10} style={{ color: '#555560' }} />
+            expanded ? <ChevronDown size={10} style={{ color: 'var(--mai-text-3)' }} /> : <ChevronRight size={10} style={{ color: 'var(--mai-text-3)' }} />
           ) : null}
         </span>
 
@@ -107,13 +107,13 @@ function PlanNodeRow({ node, depth = 0 }: { node: PlanNode; depth?: number }) {
         />
 
         {/* Node type */}
-        <span style={{ fontSize: 11, color: '#ECECEC', fontWeight: 500, marginRight: 4 }}>
+        <span style={{ fontSize: 11, color: 'var(--mai-text-1)', fontWeight: 500, marginRight: 4 }}>
           {nodeLabel}
         </span>
 
         {/* Condition */}
         {condition && (
-          <span style={{ fontSize: 10, color: '#555560', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+          <span style={{ fontSize: 10, color: 'var(--mai-text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
             {condition}
           </span>
         )}
@@ -134,7 +134,7 @@ function PlanNodeRow({ node, depth = 0 }: { node: PlanNode; depth?: number }) {
               {node['Total Cost'].toFixed(1)}
             </span>
           )}
-          <span className="flex items-center gap-1" style={{ fontSize: 10, color: '#555560' }}>
+          <span className="flex items-center gap-1" style={{ fontSize: 10, color: 'var(--mai-text-3)' }}>
             <Rows3 size={9} />
             {rows.toLocaleString()}
           </span>
@@ -154,11 +154,11 @@ export function ExplainTree({ explainResult }: ExplainTreeProps) {
 
   if (!plan) {
     return (
-      <div className="flex flex-col h-full overflow-auto p-4" style={{ background: '#131316' }}>
-        <div style={{ fontSize: 11, color: '#555560', marginBottom: 8 }}>
+      <div className="flex flex-col h-full overflow-auto p-4" style={{ background: 'var(--mai-bg-base)' }}>
+        <div style={{ fontSize: 11, color: 'var(--mai-text-3)', marginBottom: 8 }}>
           Could not parse EXPLAIN output as JSON. Showing raw result:
         </div>
-        <pre style={{ fontSize: 11, color: '#8B8B8B', fontFamily: "ui-monospace, 'SF Mono', monospace", whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+        <pre style={{ fontSize: 11, color: 'var(--mai-text-2)', fontFamily: "ui-monospace, 'SF Mono', monospace", whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
           {explainResult}
         </pre>
       </div>
@@ -169,26 +169,26 @@ export function ExplainTree({ explainResult }: ExplainTreeProps) {
   const totalRows = plan['Actual Rows'] ?? plan['Plan Rows'] ?? 0
 
   return (
-    <div className="flex flex-col h-full" style={{ background: '#131316' }}>
+    <div className="flex flex-col h-full" style={{ background: 'var(--mai-bg-base)' }}>
       {/* Summary bar */}
       <div
         className="flex items-center gap-4 px-3 shrink-0"
-        style={{ height: 28, borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#1C1C20' }}
+        style={{ height: 28, borderBottom: '1px solid var(--mai-border)', background: 'var(--mai-bg-panel)' }}
       >
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#555560' }}>Execution Plan</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--mai-text-3)' }}>Execution Plan</span>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1" style={{ fontSize: 10, color: timeColor(totalTime) }}>
             <Clock size={9} />
             Total: {plan['Actual Total Time'] != null ? `${totalTime.toFixed(2)}ms` : `cost ${totalTime.toFixed(1)}`}
           </span>
-          <span className="flex items-center gap-1" style={{ fontSize: 10, color: '#555560' }}>
+          <span className="flex items-center gap-1" style={{ fontSize: 10, color: 'var(--mai-text-3)' }}>
             <Rows3 size={9} />
             {totalRows.toLocaleString()} rows
           </span>
         </div>
         <div className="flex-1" />
         {/* Legend */}
-        <div className="flex items-center gap-2" style={{ fontSize: 9, color: '#3A3A45' }}>
+        <div className="flex items-center gap-2" style={{ fontSize: 9, color: 'var(--mai-text-4)' }}>
           <span className="flex items-center gap-1"><span style={{ width: 5, height: 5, borderRadius: '50%', background: '#34D399', display: 'inline-block' }} />Fast</span>
           <span className="flex items-center gap-1"><span style={{ width: 5, height: 5, borderRadius: '50%', background: '#FBBF24', display: 'inline-block' }} />Moderate</span>
           <span className="flex items-center gap-1"><span style={{ width: 5, height: 5, borderRadius: '50%', background: '#F87171', display: 'inline-block' }} />Slow</span>

@@ -14,7 +14,7 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   background: 'transparent',
   border: 'none',
-  color: '#ECECEC',
+  color: 'var(--mai-text-1)',
   fontSize: 11,
   fontFamily: 'inherit',
   outline: 'none',
@@ -60,21 +60,21 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
         <div style={{ padding: '10px 12px 4px' }}>
           <div style={{
             fontSize: 10, fontWeight: 600, letterSpacing: '0.09em',
-            textTransform: 'uppercase', color: '#555560', marginBottom: 6,
+            textTransform: 'uppercase', color: 'var(--mai-text-3)', marginBottom: 6,
           }}>
             Existing Enums in Schema
           </div>
         </div>
 
         {loadingExisting && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', color: '#555560' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px', color: 'var(--mai-text-3)' }}>
             <Loader2 size={11} className="animate-spin" />
             <span style={{ fontSize: 11 }}>Loading enums...</span>
           </div>
         )}
 
         {!loadingExisting && existingEnums.length === 0 && (
-          <div style={{ padding: '4px 12px 12px', color: '#555560', fontSize: 11 }}>
+          <div style={{ padding: '4px 12px 12px', color: 'var(--mai-text-3)', fontSize: 11 }}>
             No enum types found in this schema.
           </div>
         )}
@@ -84,7 +84,7 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
             key={en.name}
             style={{
               margin: '0 8px 6px',
-              border: '1px solid rgba(255,255,255,0.05)',
+              border: '1px solid var(--mai-bg-hover)',
               borderRadius: 6,
               background: 'rgba(255,255,255,0.01)',
             }}
@@ -92,7 +92,7 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
             <div style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '5px 8px',
-              borderBottom: '1px solid rgba(255,255,255,0.04)',
+              borderBottom: '1px solid var(--mai-bg-hover)',
             }}>
               <span style={{
                 fontSize: 9, color: '#6B6B7B', fontWeight: 600,
@@ -102,10 +102,10 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
               }}>
                 ENUM
               </span>
-              <span style={{ fontSize: 12, color: '#ECECEC', fontWeight: 500, fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace' }}>
+              <span style={{ fontSize: 12, color: 'var(--mai-text-1)', fontWeight: 500, fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace' }}>
                 {en.name}
               </span>
-              <span style={{ fontSize: 10, color: '#555560', marginLeft: 'auto' }}>
+              <span style={{ fontSize: 10, color: 'var(--mai-text-3)', marginLeft: 'auto' }}>
                 {en.values.length} value{en.values.length !== 1 ? 's' : ''}
               </span>
             </div>
@@ -116,10 +116,10 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
                   style={{
                     display: 'inline-block',
                     padding: '1px 7px',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--mai-bg-hover)',
+                    border: '1px solid var(--mai-border-strong)',
                     borderRadius: 3,
-                    fontSize: 10, color: '#8B8B8B',
+                    fontSize: 10, color: 'var(--mai-text-2)',
                     fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
                   }}
                 >
@@ -134,16 +134,16 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
         <div style={{ padding: '12px 12px 4px' }}>
           <div style={{
             fontSize: 10, fontWeight: 600, letterSpacing: '0.09em',
-            textTransform: 'uppercase', color: '#555560', marginBottom: 6,
+            textTransform: 'uppercase', color: 'var(--mai-text-3)', marginBottom: 6,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <span>New Enums</span>
-            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ flex: 1, height: 1, background: 'var(--mai-border)' }} />
           </div>
         </div>
 
         {enums.length === 0 && (
-          <div style={{ padding: '4px 12px 12px', color: '#555560', fontSize: 11 }}>
+          <div style={{ padding: '4px 12px 12px', color: 'var(--mai-text-3)', fontSize: 11 }}>
             No new enum types defined. Click "Add Enum" to create one.
           </div>
         )}
@@ -153,7 +153,7 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
             key={en._tempId}
             style={{
               margin: '0 8px 6px',
-              border: '1px solid rgba(255,255,255,0.08)',
+              border: '1px solid var(--mai-border-strong)',
               borderRadius: 6,
               background: 'rgba(255,255,255,0.02)',
             }}
@@ -162,7 +162,7 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
             <div style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '6px 8px',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              borderBottom: '1px solid var(--mai-border)',
             }}>
               <span style={{
                 fontSize: 10, color: '#A78BFA', fontWeight: 600,
@@ -179,9 +179,9 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
               />
               <button
                 onClick={() => remove(en._tempId)}
-                style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+                style={{ background: 'none', border: 'none', color: 'var(--mai-text-3)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#F87171'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#555560'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-3)'}
               >
                 <X size={14} />
               </button>
@@ -190,7 +190,7 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
             {/* Values list */}
             <div style={{ padding: '6px 8px' }}>
               <div style={{
-                fontSize: 10, color: '#555560', fontWeight: 600,
+                fontSize: 10, color: 'var(--mai-text-3)', fontWeight: 600,
                 textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6,
               }}>
                 Values ({en.values.length})
@@ -209,17 +209,17 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
                       fontSize: 11, color: '#D4BFFF',
                     }}
                   >
-                    <GripVertical size={8} style={{ color: '#555560', cursor: 'grab' }} />
+                    <GripVertical size={8} style={{ color: 'var(--mai-text-3)', cursor: 'grab' }} />
                     {val}
                     <button
                       onClick={() => removeValue(en._tempId, val)}
                       style={{
                         background: 'none', border: 'none', padding: 0,
-                        color: '#555560', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                        color: 'var(--mai-text-3)', cursor: 'pointer', display: 'flex', alignItems: 'center',
                         marginLeft: 2,
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.color = '#F87171'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = '#555560'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-3)'}
                     >
                       <X size={10} />
                     </button>
@@ -232,9 +232,9 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
                 <input
                   style={{
                     flex: 1, height: 24, padding: '0 8px',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: 4, color: '#ECECEC', fontSize: 11,
+                    background: 'var(--mai-bg-hover)',
+                    border: '1px solid var(--mai-border-strong)',
+                    borderRadius: 4, color: 'var(--mai-text-1)', fontSize: 11,
                     fontFamily: 'inherit', outline: 'none',
                   }}
                   value={newValueInputs[en._tempId] ?? ''}
@@ -247,12 +247,12 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
                   onClick={() => addValue(en._tempId)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 2,
-                    background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'none', border: '1px solid var(--mai-border-strong)',
                     borderRadius: 4, padding: '0 8px',
-                    color: '#8B8B8B', fontSize: 10, cursor: 'pointer',
+                    color: 'var(--mai-text-2)', fontSize: 10, cursor: 'pointer',
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#ECECEC' }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8B8B8B' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--mai-bg-hover)'; e.currentTarget.style.color = 'var(--mai-text-1)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--mai-text-2)' }}
                 >
                   <Plus size={10} /> Add
                 </button>
@@ -263,17 +263,17 @@ export function EnumsEditor({ enums, existingEnums = [], loadingExisting = false
       </div>
 
       {/* Add enum button */}
-      <div style={{ padding: 8, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ padding: 8, borderTop: '1px solid var(--mai-border)' }}>
         <button
           onClick={add}
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
-            background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+            background: 'none', border: '1px solid var(--mai-border-strong)',
             borderRadius: 4, padding: '4px 10px',
-            color: '#8B8B8B', fontSize: 11, cursor: 'pointer',
+            color: 'var(--mai-text-2)', fontSize: 11, cursor: 'pointer',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#ECECEC' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8B8B8B' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--mai-bg-hover)'; e.currentTarget.style.color = 'var(--mai-text-1)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--mai-text-2)' }}
         >
           <Plus size={12} /> Add Enum
         </button>

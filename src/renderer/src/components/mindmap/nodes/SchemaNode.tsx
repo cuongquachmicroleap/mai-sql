@@ -22,7 +22,7 @@ export const SchemaNode = memo(function SchemaNode({ data }: NodeProps) {
         <Database size={12} style={{ color: NODE_COLORS.schema, flexShrink: 0 }} />
         <span style={{ fontWeight: 500 }}>{label}</span>
         {tableCount !== undefined && (
-          <span style={{ fontSize: 10, color: '#555560', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 10, color: 'var(--mai-text-3)', marginLeft: 'auto' }}>
             {tableCount} table{tableCount !== 1 ? 's' : ''}
           </span>
         )}

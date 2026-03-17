@@ -12,18 +12,18 @@ export function ThemeToggle() {
         width: 36,
         height: 36,
         borderRadius: 6,
-        color: '#555560',
+        color: 'var(--mai-text-3)',
         background: 'transparent',
         border: 'none',
         cursor: 'pointer',
         transition: 'color 0.15s, background 0.15s',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.color = '#8B8B8B'
-        e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+        e.currentTarget.style.color = 'var(--mai-text-2)'
+        e.currentTarget.style.background = 'var(--mai-bg-hover)'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.color = '#555560'
+        e.currentTarget.style.color = 'var(--mai-text-3)'
         e.currentTarget.style.background = 'transparent'
       }}
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}

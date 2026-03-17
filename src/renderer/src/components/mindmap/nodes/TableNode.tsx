@@ -32,19 +32,19 @@ export const TableNode = memo(function TableNode({ data }: NodeProps) {
         style={{
           display: 'flex', alignItems: 'center', gap: 6,
           width: '100%', padding: '8px 10px',
-          background: 'transparent', border: 'none', color: '#ECECEC',
+          background: 'transparent', border: 'none', color: 'var(--mai-text-1)',
           cursor: 'pointer', fontSize: 12, fontFamily: 'inherit',
         }}
       >
         {columns.length > 0 && (
           showColumns
-            ? <ChevronDown size={10} style={{ color: '#555560', flexShrink: 0 }} />
-            : <ChevronRight size={10} style={{ color: '#555560', flexShrink: 0 }} />
+            ? <ChevronDown size={10} style={{ color: 'var(--mai-text-3)', flexShrink: 0 }} />
+            : <ChevronRight size={10} style={{ color: 'var(--mai-text-3)', flexShrink: 0 }} />
         )}
         <Table2 size={11} style={{ color: iconColor, flexShrink: 0 }} />
         <span style={{ fontWeight: 500 }}>{label}</span>
         {columns.length > 0 && !showColumns && (
-          <span style={{ fontSize: 10, color: '#555560', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 10, color: 'var(--mai-text-3)', marginLeft: 'auto' }}>
             {columns.length} col{columns.length !== 1 ? 's' : ''}
           </span>
         )}
@@ -53,7 +53,7 @@ export const TableNode = memo(function TableNode({ data }: NodeProps) {
       {/* Columns */}
       {showColumns && columns.length > 0 && (
         <div style={{
-          borderTop: '1px solid rgba(255,255,255,0.06)',
+          borderTop: '1px solid var(--mai-border)',
           padding: '4px 0',
           maxHeight: 200,
           overflowY: 'auto',
@@ -69,12 +69,12 @@ export const TableNode = memo(function TableNode({ data }: NodeProps) {
                 ? <span style={{ fontSize: 9, color: NODE_COLORS.fk, flexShrink: 0 }}>&#8594;</span>
                 : <span style={{ width: 9, flexShrink: 0 }} />}
               <span style={{
-                color: col.isPrimaryKey ? NODE_COLORS.pk : col.isForeignKey ? NODE_COLORS.fk : '#ECECEC',
+                color: col.isPrimaryKey ? NODE_COLORS.pk : col.isForeignKey ? NODE_COLORS.fk : 'var(--mai-text-1)',
                 fontWeight: col.isPrimaryKey ? 600 : 400,
               }}>
                 {col.name}
               </span>
-              <span style={{ marginLeft: 'auto', fontSize: 10, color: '#555560', fontFamily: 'monospace' }}>
+              <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--mai-text-3)', fontFamily: 'monospace' }}>
                 {col.displayType}
               </span>
             </div>

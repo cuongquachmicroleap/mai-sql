@@ -9,7 +9,7 @@ interface ResultsGridProps {
 
 function CellValue({ value }: { value: unknown }) {
   if (value === null || value === undefined) {
-    return <span style={{ color: '#555560', fontStyle: 'italic' }}>NULL</span>
+    return <span style={{ color: 'var(--mai-text-3)', fontStyle: 'italic' }}>NULL</span>
   }
   if (typeof value === 'boolean') {
     return (
@@ -49,7 +49,7 @@ function estimateColWidth(name: string, rows: Record<string, unknown>[], maxRows
 // Row number column sticky style
 const ROW_NUM_STYLE: React.CSSProperties = {
   background: 'var(--mai-bg-panel)',
-  borderRight: '1px solid rgba(255,255,255,0.08)',
+  borderRight: '1px solid var(--mai-border-strong)',
   position: 'sticky',
   left: 0,
   zIndex: 1,
@@ -63,10 +63,10 @@ export function ResultsGrid({ result }: ResultsGridProps) {
     {
       id: '__rownum__',
       header: () => (
-        <span style={{ color: '#555560', fontVariantNumeric: 'tabular-nums' }}>#</span>
+        <span style={{ color: 'var(--mai-text-3)', fontVariantNumeric: 'tabular-nums' }}>#</span>
       ),
       cell: ({ row }) => (
-        <span style={{ color: '#555560', fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ color: 'var(--mai-text-3)', fontVariantNumeric: 'tabular-nums' }}>
           {row.index + 1}
         </span>
       ),
@@ -83,13 +83,13 @@ export function ResultsGrid({ result }: ResultsGridProps) {
             fontSize: 11,
             textTransform: 'uppercase' as const,
             letterSpacing: '0.06em',
-            color: '#8B8B8B',
+            color: 'var(--mai-text-2)',
           }}>
             {col.name}
           </span>
           <span style={{
             fontSize: 10,
-            color: '#555560',
+            color: 'var(--mai-text-3)',
             fontFamily: 'inherit',
             textTransform: 'none' as const,
             letterSpacing: 0,
@@ -145,8 +145,8 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                   style={{
                     width: header.getSize(),
                     height: 32,
-                    borderBottom: '1px solid rgba(255,255,255,0.10)',
-                    borderRight: '1px solid rgba(255,255,255,0.06)',
+                    borderBottom: '1px solid var(--mai-border-strong)',
+                    borderRight: '1px solid var(--mai-border)',
                     padding: '0 10px',
                     textAlign: 'left',
                     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
@@ -185,7 +185,7 @@ export function ResultsGrid({ result }: ResultsGridProps) {
           {virtualRows.map((vRow) => {
             const row = rows[vRow.index]
             const isOdd = vRow.index % 2 === 1
-            const rowBg = isOdd ? 'rgba(255,255,255,0.015)' : 'transparent'
+            const rowBg = isOdd ? 'var(--mai-bg-hover)' : 'transparent'
             return (
               <tr
                 key={row.id}
@@ -202,7 +202,7 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                       style={{
                         width: cell.column.getSize(),
                         height: 27,
-                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        borderBottom: '1px solid var(--mai-border)',
                         borderRight: '1px solid rgba(255,255,255,0.04)',
                         padding: '0 10px',
                         overflow: 'hidden',
@@ -216,7 +216,7 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                           textAlign: 'right',
                           padding: '0 8px',
                           fontSize: 11,
-                          color: '#555560',
+                          color: 'var(--mai-text-3)',
                         } : {}),
                       }}
                     >

@@ -41,10 +41,10 @@ export function DataEditor({ value, columnName, rowIndex, onSave, onCancel }: Da
       style={{
         width: '100%',
         height: '100%',
-        background: '#222227',
-        border: '2px solid #5B8AF0',
+        background: 'var(--mai-bg-elevated)',
+        border: '2px solid var(--mai-accent)',
         borderRadius: 2,
-        color: '#ECECEC',
+        color: 'var(--mai-text-1)',
         fontSize: 13,
         fontFamily: "ui-monospace, 'SF Mono', 'Cascadia Code', monospace",
         padding: '0 8px',

@@ -175,7 +175,7 @@ export function MainLayout() {
             title="AI Assistant"
           />
 
-          <div style={{ width: 24, height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+          <div style={{ width: 24, height: 1, background: 'var(--mai-border)', margin: '4px 0' }} />
 
           <ActivityBtn
             icon={<Network size={17} />}
@@ -240,7 +240,7 @@ export function MainLayout() {
                 </div>
 
                 {/* New connection */}
-                <div className="px-2 py-2 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                <div className="px-2 py-2 shrink-0" style={{ borderBottom: '1px solid var(--mai-border)' }}>
                   <ConnectionForm />
                   {editingConnection && (
                     <ConnectionForm initialConnection={editingConnection} onClose={() => setEditingConnection(null)} />
@@ -264,7 +264,7 @@ export function MainLayout() {
               onMouseDown={handleSidebarDrag}
               className="absolute top-0 right-0 bottom-0"
               style={{ width: 4, cursor: 'col-resize' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--mai-accent)'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             />
           </div>
@@ -282,8 +282,8 @@ export function MainLayout() {
               border: 'none',
               padding: 0,
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--mai-accent)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'var(--mai-border)'}
             title="Expand sidebar"
           >
             <ChevronRight size={8} style={{ color: 'transparent' }} />
@@ -333,7 +333,7 @@ export function MainLayout() {
                         flexShrink: 0,
                         background: 'transparent',
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--mai-accent)'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     />
 
@@ -345,7 +345,7 @@ export function MainLayout() {
 
                     {/* Results tab bar (grid / explain) */}
                     {activeTab.result && hasExplainResult && (
-                      <div className="flex items-center gap-0 shrink-0" style={{ borderBottom: '1px solid var(--mai-border)', background: '#1C1C20' }}>
+                      <div className="flex items-center gap-0 shrink-0" style={{ borderBottom: '1px solid var(--mai-border)', background: 'var(--mai-bg-panel)' }}>
                         <ResultsTabBtn label="Grid" active={resultsTab === 'grid'} onClick={() => setResultsTab('grid')} />
                         <ResultsTabBtn label="Visual Plan" active={resultsTab === 'explain'} onClick={() => setResultsTab('explain')} />
                       </div>
@@ -373,10 +373,10 @@ export function MainLayout() {
                 </div>
                 )
               ) : (
-                <div className="flex flex-1 items-center justify-center" style={{ color: '#555560' }}>
+                <div className="flex flex-1 items-center justify-center" style={{ color: 'var(--mai-text-3)' }}>
                   <div className="text-center" style={{ gap: 12, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Database size={40} style={{ opacity: 0.12, color: '#8B8B8B' }} />
-                    <p style={{ fontSize: 14, color: '#8B8B8B', margin: 0 }}>Connect to a database to get started</p>
+                    <Database size={40} style={{ opacity: 0.12, color: 'var(--mai-text-2)' }} />
+                    <p style={{ fontSize: 14, color: 'var(--mai-text-2)', margin: 0 }}>Connect to a database to get started</p>
                     <p style={{ fontSize: 12, color: 'var(--mai-text-3)', margin: 0 }}>Select a connection in the sidebar or create a new one</p>
                   </div>
                 </div>
@@ -442,7 +442,7 @@ function ResultsTabBtn({ label, active, onClick }: { label: string; active: bool
         color: active ? 'var(--mai-text-1)' : 'var(--mai-text-3)',
         background: 'transparent',
         border: 'none',
-        borderBottom: active ? '2px solid #5B8AF0' : '2px solid transparent',
+        borderBottom: active ? '2px solid var(--mai-accent)' : '2px solid transparent',
         cursor: 'pointer',
       }}
     >

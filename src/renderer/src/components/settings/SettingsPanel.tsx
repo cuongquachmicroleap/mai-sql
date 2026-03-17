@@ -7,23 +7,24 @@ import type { AIProviderConfig, AIProvider } from '@shared/types/ai'
 const AI_PROVIDERS: { value: AIProvider; label: string; defaultModel: string }[] = [
   { value: 'openai', label: 'OpenAI', defaultModel: 'gpt-4o-mini' },
   { value: 'anthropic', label: 'Anthropic', defaultModel: 'claude-sonnet-4-20250514' },
+  { value: 'openrouter', label: 'OpenRouter', defaultModel: 'openai/gpt-4o-mini' },
   { value: 'ollama', label: 'Ollama (Local)', defaultModel: 'llama3' },
 ]
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: '#222227',
-  border: '1px solid rgba(255,255,255,0.1)',
+  background: 'var(--mai-bg-elevated)',
+  border: '1px solid var(--mai-border-strong)',
   borderRadius: 5,
   padding: '6px 10px',
-  color: '#ECECEC',
+  color: 'var(--mai-text-1)',
   fontSize: 12,
   outline: 'none',
 }
 
 const labelStyle: React.CSSProperties = {
   fontSize: 11,
-  color: '#8B8B8B',
+  color: 'var(--mai-text-2)',
   marginBottom: 4,
   display: 'block',
 }
@@ -79,8 +80,8 @@ export function SettingsPanel() {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto" style={{ background: '#131316', padding: 24 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, color: '#ECECEC', marginBottom: 24 }}>Settings</h2>
+    <div className="flex flex-col h-full overflow-y-auto" style={{ background: 'var(--mai-bg-base)', padding: 24 }}>
+      <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--mai-text-1)', marginBottom: 24 }}>Settings</h2>
 
       {/* Appearance */}
       <Section title="Appearance">
@@ -94,9 +95,9 @@ export function SettingsPanel() {
               style={{
                 padding: '6px 14px',
                 borderRadius: 6,
-                border: theme === t ? '1px solid #5B8AF0' : '1px solid rgba(255,255,255,0.1)',
-                background: theme === t ? 'rgba(91,138,240,0.1)' : '#222227',
-                color: theme === t ? '#5B8AF0' : '#8B8B8B',
+                border: theme === t ? '1px solid var(--mai-accent)' : '1px solid var(--mai-border-strong)',
+                background: theme === t ? 'var(--mai-accent-bg)' : 'var(--mai-bg-elevated)',
+                color: theme === t ? 'var(--mai-accent)' : 'var(--mai-text-2)',
                 cursor: 'pointer',
                 fontSize: 12,
               }}
@@ -119,9 +120,9 @@ export function SettingsPanel() {
               style={{
                 padding: '5px 12px',
                 borderRadius: 5,
-                border: provider === p.value ? '1px solid #5B8AF0' : '1px solid rgba(255,255,255,0.1)',
-                background: provider === p.value ? 'rgba(91,138,240,0.1)' : '#222227',
-                color: provider === p.value ? '#5B8AF0' : '#8B8B8B',
+                border: provider === p.value ? '1px solid var(--mai-accent)' : '1px solid var(--mai-border-strong)',
+                background: provider === p.value ? 'var(--mai-accent-bg)' : 'var(--mai-bg-elevated)',
+                color: provider === p.value ? 'var(--mai-accent)' : 'var(--mai-text-2)',
                 cursor: 'pointer',
                 fontSize: 11,
               }}
@@ -139,7 +140,7 @@ export function SettingsPanel() {
             </label>
             <input
               type="password"
-              placeholder={provider === 'openai' ? 'sk-...' : 'sk-ant-...'}
+              placeholder={provider === 'openai' ? 'sk-...' : provider === 'anthropic' ? 'sk-ant-...' : 'sk-or-...'}
               value={apiKey}
               onChange={(e) => { setApiKey(e.target.value); setTestResult(null) }}
               style={{ ...inputStyle, marginBottom: 8 }}
@@ -191,9 +192,9 @@ export function SettingsPanel() {
             style={{
               padding: '6px 14px',
               borderRadius: 5,
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: '1px solid var(--mai-border-strong)',
               background: 'transparent',
-              color: '#8B8B8B',
+              color: 'var(--mai-text-2)',
               cursor: testing ? 'default' : 'pointer',
               fontSize: 12,
               opacity: testing || (!apiKey && provider !== 'ollama') ? 0.4 : 1,
@@ -222,7 +223,7 @@ export function SettingsPanel() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 28 }}>
-      <h3 style={{ fontSize: 13, fontWeight: 600, color: '#ECECEC', marginBottom: 12, paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      <h3 style={{ fontSize: 13, fontWeight: 600, color: 'var(--mai-text-1)', marginBottom: 12, paddingBottom: 6, borderBottom: '1px solid var(--mai-border)' }}>
         {title}
       </h3>
       {children}

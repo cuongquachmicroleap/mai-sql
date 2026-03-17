@@ -13,8 +13,8 @@ const cellStyle: React.CSSProperties = {
   height: 28,
   display: 'flex',
   alignItems: 'center',
-  borderRight: '1px solid rgba(255,255,255,0.06)',
-  borderBottom: '1px solid rgba(255,255,255,0.06)',
+  borderRight: '1px solid var(--mai-border)',
+  borderBottom: '1px solid var(--mai-border)',
 }
 
 const inputStyle: React.CSSProperties = {
@@ -22,7 +22,7 @@ const inputStyle: React.CSSProperties = {
   height: '100%',
   background: 'transparent',
   border: 'none',
-  color: '#ECECEC',
+  color: 'var(--mai-text-1)',
   fontSize: 11,
   fontFamily: 'inherit',
   outline: 'none',
@@ -61,9 +61,9 @@ export function IndexesEditor({ indexes, columns, onChange }: IndexesEditorProps
       <div style={{
         display: 'grid',
         gridTemplateColumns: '2fr 3fr 60px 28px',
-        background: '#1C1C20',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
-        fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#555560',
+        background: 'var(--mai-bg-panel)',
+        borderBottom: '1px solid var(--mai-border-strong)',
+        fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--mai-text-3)',
       }}>
         {['Name', 'Columns', 'Unique', ''].map((h) => (
           <div key={h} style={{ ...cellStyle, borderBottom: 'none' }}>{h}</div>
@@ -97,9 +97,9 @@ export function IndexesEditor({ indexes, columns, onChange }: IndexesEditorProps
                       padding: '1px 6px',
                       fontSize: 10,
                       borderRadius: 3,
-                      border: selected ? '1px solid #5B8AF0' : '1px solid rgba(255,255,255,0.12)',
+                      border: selected ? '1px solid var(--mai-accent)' : '1px solid var(--mai-border-strong)',
                       background: selected ? 'rgba(91,138,240,0.15)' : 'transparent',
-                      color: selected ? '#5B8AF0' : '#8B8B8B',
+                      color: selected ? 'var(--mai-accent)' : 'var(--mai-text-2)',
                       cursor: 'pointer',
                     }}
                   >
@@ -108,7 +108,7 @@ export function IndexesEditor({ indexes, columns, onChange }: IndexesEditorProps
                 )
               })}
               {columnNames.length === 0 && (
-                <span style={{ fontSize: 10, color: '#555560' }}>Define columns first</span>
+                <span style={{ fontSize: 10, color: 'var(--mai-text-3)' }}>Define columns first</span>
               )}
             </div>
             <div style={{ ...cellStyle, justifyContent: 'center' }}>
@@ -116,15 +116,15 @@ export function IndexesEditor({ indexes, columns, onChange }: IndexesEditorProps
                 type="checkbox"
                 checked={idx.isUnique}
                 onChange={(e) => update(idx._tempId, { isUnique: e.target.checked })}
-                style={{ accentColor: '#5B8AF0' }}
+                style={{ accentColor: 'var(--mai-accent)' }}
               />
             </div>
             <div style={{ ...cellStyle, justifyContent: 'center', borderRight: 'none' }}>
               <button
                 onClick={() => remove(idx._tempId)}
-                style={{ background: 'none', border: 'none', color: '#555560', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+                style={{ background: 'none', border: 'none', color: 'var(--mai-text-3)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#F87171'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#555560'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-3)'}
               >
                 <X size={12} />
               </button>
@@ -134,17 +134,17 @@ export function IndexesEditor({ indexes, columns, onChange }: IndexesEditorProps
       </div>
 
       {/* Add button */}
-      <div style={{ padding: 8, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ padding: 8, borderTop: '1px solid var(--mai-border)' }}>
         <button
           onClick={add}
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
-            background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+            background: 'none', border: '1px solid var(--mai-border-strong)',
             borderRadius: 4, padding: '4px 10px',
-            color: '#8B8B8B', fontSize: 11, cursor: 'pointer',
+            color: 'var(--mai-text-2)', fontSize: 11, cursor: 'pointer',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#ECECEC' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#8B8B8B' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--mai-bg-hover)'; e.currentTarget.style.color = 'var(--mai-text-1)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--mai-text-2)' }}
         >
           <Plus size={12} /> Add Index
         </button>

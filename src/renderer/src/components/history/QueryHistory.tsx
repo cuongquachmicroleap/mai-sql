@@ -26,14 +26,14 @@ export function QueryHistory() {
   const filtered = showFavoritesOnly ? entries.filter((e) => e.isFavorite) : entries
 
   return (
-    <div className="flex flex-col h-full" style={{ background: '#1C1C20' }}>
+    <div className="flex flex-col h-full" style={{ background: 'var(--mai-bg-panel)' }}>
       {/* Header */}
       <div
         className="flex items-center justify-between shrink-0"
         style={{
           height: 40,
           padding: '0 12px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          borderBottom: '1px solid var(--mai-border)',
         }}
       >
         <span
@@ -42,7 +42,7 @@ export function QueryHistory() {
             fontWeight: 600,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
-            color: '#555560',
+            color: 'var(--mai-text-3)',
           }}
         >
           Query History
@@ -54,7 +54,7 @@ export function QueryHistory() {
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: showFavoritesOnly ? '#FBBF24' : '#555560',
+              color: showFavoritesOnly ? '#FBBF24' : 'var(--mai-text-3)',
               padding: '2px 4px',
               borderRadius: 3,
             }}
@@ -68,7 +68,7 @@ export function QueryHistory() {
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: '#555560',
+              color: 'var(--mai-text-3)',
               padding: '2px 4px',
               borderRadius: 3,
             }}
@@ -80,18 +80,18 @@ export function QueryHistory() {
       </div>
 
       {/* Search */}
-      <div className="px-2 py-2 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="px-2 py-2 shrink-0" style={{ borderBottom: '1px solid var(--mai-border)' }}>
         <div
           className="flex items-center gap-1.5"
           style={{
             height: 28,
-            background: '#222227',
+            background: 'var(--mai-bg-elevated)',
             borderRadius: 5,
             padding: '0 8px',
-            border: '1px solid rgba(255,255,255,0.08)',
+            border: '1px solid var(--mai-border-strong)',
           }}
         >
-          <Search size={11} style={{ color: '#555560', flexShrink: 0 }} />
+          <Search size={11} style={{ color: 'var(--mai-text-3)', flexShrink: 0 }} />
           <input
             type="text"
             placeholder="Search queries..."
@@ -102,7 +102,7 @@ export function QueryHistory() {
               background: 'transparent',
               border: 'none',
               outline: 'none',
-              color: '#ECECEC',
+              color: 'var(--mai-text-1)',
               fontSize: 11,
             }}
           />
@@ -112,13 +112,13 @@ export function QueryHistory() {
       {/* List */}
       <div className="flex-1 overflow-y-auto min-h-0">
         {loading && (
-          <div className="flex items-center justify-center py-8" style={{ color: '#555560' }}>
+          <div className="flex items-center justify-center py-8" style={{ color: 'var(--mai-text-3)' }}>
             <Loader2 size={14} className="animate-spin" />
           </div>
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="flex items-center justify-center py-8" style={{ color: '#555560', fontSize: 12 }}>
+          <div className="flex items-center justify-center py-8" style={{ color: 'var(--mai-text-3)', fontSize: 12 }}>
             No queries in history
           </div>
         )}
@@ -130,8 +130,8 @@ export function QueryHistory() {
             onMouseLeave={() => setHoveredId(null)}
             style={{
               padding: '8px 12px',
-              borderBottom: '1px solid rgba(255,255,255,0.04)',
-              background: hoveredId === entry.id ? 'rgba(255,255,255,0.03)' : 'transparent',
+              borderBottom: '1px solid var(--mai-bg-hover)',
+              background: hoveredId === entry.id ? 'var(--mai-bg-hover)' : 'transparent',
               cursor: 'pointer',
               transition: 'background 0.1s',
             }}
@@ -144,17 +144,17 @@ export function QueryHistory() {
               ) : (
                 <XCircle size={10} style={{ color: '#F87171', flexShrink: 0 }} />
               )}
-              <span style={{ fontSize: 10, color: '#555560' }}>
+              <span style={{ fontSize: 10, color: 'var(--mai-text-3)' }}>
                 {new Date(entry.executedAt).toLocaleString()}
               </span>
-              <span style={{ fontSize: 10, color: '#3A3A45' }}>·</span>
-              <span style={{ fontSize: 10, color: '#555560' }}>
+              <span style={{ fontSize: 10, color: 'var(--mai-text-4)' }}>·</span>
+              <span style={{ fontSize: 10, color: 'var(--mai-text-3)' }}>
                 {entry.executionTimeMs}ms
               </span>
               {entry.rowCount > 0 && (
                 <>
-                  <span style={{ fontSize: 10, color: '#3A3A45' }}>·</span>
-                  <span style={{ fontSize: 10, color: '#555560' }}>
+                  <span style={{ fontSize: 10, color: 'var(--mai-text-4)' }}>·</span>
+                  <span style={{ fontSize: 10, color: 'var(--mai-text-3)' }}>
                     {entry.rowCount} rows
                   </span>
                 </>
@@ -169,7 +169,7 @@ export function QueryHistory() {
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
-                      color: entry.isFavorite ? '#FBBF24' : '#555560',
+                      color: entry.isFavorite ? '#FBBF24' : 'var(--mai-text-3)',
                       padding: '1px 3px',
                     }}
                     title={entry.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -182,7 +182,7 @@ export function QueryHistory() {
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
-                      color: '#5B8AF0',
+                      color: 'var(--mai-accent)',
                       padding: '1px 3px',
                     }}
                     title="Open in new tab"
@@ -195,7 +195,7 @@ export function QueryHistory() {
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
-                      color: '#555560',
+                      color: 'var(--mai-text-3)',
                       padding: '1px 3px',
                     }}
                     title="Delete"
@@ -213,7 +213,7 @@ export function QueryHistory() {
             <div
               style={{
                 fontSize: 11,
-                color: '#8B8B8B',
+                color: 'var(--mai-text-2)',
                 fontFamily: "ui-monospace, 'SF Mono', monospace",
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -225,7 +225,7 @@ export function QueryHistory() {
             </div>
 
             {/* Connection + database */}
-            <div className="flex items-center gap-1 mt-1" style={{ fontSize: 10, color: '#3A3A45' }}>
+            <div className="flex items-center gap-1 mt-1" style={{ fontSize: 10, color: 'var(--mai-text-4)' }}>
               <Clock size={8} />
               <span>{entry.connectionName}</span>
               {entry.database && (

@@ -32,19 +32,19 @@ export function SQLPreview({ state, originalState, mode }: SQLPreviewProps) {
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '6px 10px',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#1C1C20',
+        borderBottom: '1px solid var(--mai-border)',
+        background: 'var(--mai-bg-panel)',
       }}>
-        <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#555560' }}>
+        <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--mai-text-3)' }}>
           {mode === 'alter' ? 'ALTER TABLE Preview' : 'CREATE TABLE Preview'}
         </span>
         <button
           onClick={handleCopy}
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
-            background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+            background: 'none', border: '1px solid var(--mai-border-strong)',
             borderRadius: 4, padding: '3px 8px',
-            color: copied ? '#34D399' : '#8B8B8B', fontSize: 10, cursor: 'pointer',
+            color: copied ? '#34D399' : 'var(--mai-text-2)', fontSize: 10, cursor: 'pointer',
           }}
         >
           {copied ? <Check size={10} /> : <Copy size={10} />}
@@ -59,7 +59,7 @@ export function SQLPreview({ state, originalState, mode }: SQLPreviewProps) {
           fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
           fontSize: 12,
           lineHeight: 1.6,
-          color: '#ECECEC',
+          color: 'var(--mai-text-1)',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
         }}>

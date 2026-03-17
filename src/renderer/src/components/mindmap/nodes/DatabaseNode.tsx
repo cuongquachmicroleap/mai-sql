@@ -15,14 +15,14 @@ export const DatabaseNode = memo(function DatabaseNode({ data }: NodeProps) {
       ...baseNodeStyle,
       padding: '10px 14px',
       minWidth: 160,
-      borderColor: isDefault ? NODE_COLORS.database : 'rgba(255,255,255,0.1)',
+      borderColor: isDefault ? NODE_COLORS.database : 'var(--mai-border-strong)',
     }}>
       <Handle type="source" position={Position.Right} style={{ background: NODE_COLORS.database }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Server size={14} style={{ color: NODE_COLORS.database, flexShrink: 0 }} />
         <span style={{ fontWeight: 600, fontSize: 13 }}>{label}</span>
         {isDefault && (
-          <span style={{ fontSize: 9, color: '#555560', marginLeft: 'auto' }}>connected</span>
+          <span style={{ fontSize: 9, color: 'var(--mai-text-3)', marginLeft: 'auto' }}>connected</span>
         )}
       </div>
     </div>

@@ -175,23 +175,23 @@ export function MindmapView({ scopeDatabase }: MindmapViewProps) {
 
   if (!connectionId) {
     return (
-      <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', color: '#555560', fontSize: 13 }}>
+      <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', color: 'var(--mai-text-3)', fontSize: 13 }}>
         Connect to a database to view mindmap
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#131316' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--mai-bg-base)' }}>
       {/* Toolbar */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#1C1C20', flexShrink: 0, height: 38,
+        borderBottom: '1px solid var(--mai-border)',
+        background: 'var(--mai-bg-panel)', flexShrink: 0, height: 38,
       }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#8B8B8B' }}>Mindmap</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mai-text-2)' }}>Mindmap</span>
 
-        <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ width: 1, height: 16, background: 'var(--mai-border-strong)' }} />
 
         {/* Refresh */}
         <button
@@ -200,14 +200,14 @@ export function MindmapView({ scopeDatabase }: MindmapViewProps) {
           title="Refresh"
           style={{
             width: 28, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: 5, border: '1px solid rgba(255,255,255,0.1)',
-            background: 'transparent', color: '#8B8B8B', cursor: 'pointer',
+            borderRadius: 5, border: '1px solid var(--mai-border-strong)',
+            background: 'transparent', color: 'var(--mai-text-2)', cursor: 'pointer',
           }}
         >
           <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
         </button>
 
-        {loading && <Loader2 size={12} className="animate-spin" style={{ color: '#555560' }} />}
+        {loading && <Loader2 size={12} className="animate-spin" style={{ color: 'var(--mai-text-3)' }} />}
         {error && (
           <span style={{ fontSize: 11, color: '#F87171', display: 'flex', alignItems: 'center', gap: 4 }}>
             <AlertCircle size={11} /> {error}
@@ -215,7 +215,7 @@ export function MindmapView({ scopeDatabase }: MindmapViewProps) {
         )}
 
         <div style={{ flex: 1 }} />
-        <span style={{ fontSize: 11, color: '#555560' }}>
+        <span style={{ fontSize: 11, color: 'var(--mai-text-3)' }}>
           {databases.length} db{databases.length !== 1 ? 's' : ''} · {Object.values(schemasMap).flat().length} schemas · {Object.values(tablesMap).flat().length} tables
         </span>
       </div>
@@ -233,10 +233,10 @@ export function MindmapView({ scopeDatabase }: MindmapViewProps) {
           proOptions={{ hideAttribution: true }}
           style={{ background: '#0d0d0d' }}
         >
-          <Background color="rgba(255,255,255,0.03)" gap={20} />
+          <Background color="var(--mai-bg-hover)" gap={20} />
           <Controls
             showInteractive={false}
-            style={{ background: '#222227', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6 }}
+            style={{ background: 'var(--mai-bg-elevated)', border: '1px solid var(--mai-border-strong)', borderRadius: 6 }}
           />
           <MiniMap
             nodeColor={(node) => {
@@ -244,7 +244,7 @@ export function MindmapView({ scopeDatabase }: MindmapViewProps) {
               if (node.type === 'schema') return '#5B8AF0'
               return '#F97316'
             }}
-            style={{ background: '#1C1C20', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6 }}
+            style={{ background: 'var(--mai-bg-panel)', border: '1px solid var(--mai-border-strong)', borderRadius: 6 }}
             maskColor="rgba(0,0,0,0.6)"
           />
         </ReactFlow>

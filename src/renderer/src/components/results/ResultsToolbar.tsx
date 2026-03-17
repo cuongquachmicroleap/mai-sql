@@ -86,8 +86,8 @@ const toolbarBtnStyle = (hovered: boolean): React.CSSProperties => ({
   fontSize: 11,
   border: 'none',
   cursor: 'pointer',
-  background: hovered ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)',
-  color: hovered ? '#ECECEC' : '#8B8B8B',
+  background: hovered ? 'var(--mai-border-strong)' : 'var(--mai-border)',
+  color: hovered ? 'var(--mai-text-1)' : 'var(--mai-text-2)',
   transition: 'background 0.12s, color 0.12s',
   display: 'flex',
   alignItems: 'center',
@@ -147,15 +147,15 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
         fontSize: 11,
       }}
     >
-      <div className="flex items-center gap-1.5" style={{ color: '#555560', fontWeight: 500 }}>
+      <div className="flex items-center gap-1.5" style={{ color: 'var(--mai-text-3)', fontWeight: 500 }}>
         <Table2 size={12} />
         <span>Results</span>
       </div>
 
-      <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.08)' }} />
+      <div style={{ width: 1, height: 12, background: 'var(--mai-border-strong)' }} />
 
       {isExecuting && (
-        <div className="flex items-center gap-1.5" style={{ color: '#5B8AF0' }}>
+        <div className="flex items-center gap-1.5" style={{ color: 'var(--mai-accent)' }}>
           <Loader2 size={11} className="animate-spin" />
           <span>Executing...</span>
         </div>
@@ -174,7 +174,7 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
             <XCircle size={10} className="shrink-0" />
             <span>Error</span>
           </span>
-          <span className="truncate" style={{ color: '#8B8B8B' }}>{error}</span>
+          <span className="truncate" style={{ color: 'var(--mai-text-2)' }}>{error}</span>
         </div>
       )}
 
@@ -191,15 +191,15 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
             <CheckCircle2 size={10} />
             <span>OK</span>
           </span>
-          <span style={{ color: '#8B8B8B' }}>
+          <span style={{ color: 'var(--mai-text-2)' }}>
             {result.rowCount.toLocaleString()} rows
           </span>
-          <span style={{ color: '#555560' }}>{result.executionTimeMs}ms</span>
+          <span style={{ color: 'var(--mai-text-3)' }}>{result.executionTimeMs}ms</span>
         </div>
       )}
 
       {!result && !error && !isExecuting && (
-        <span style={{ color: '#555560' }}>Ready</span>
+        <span style={{ color: 'var(--mai-text-3)' }}>Ready</span>
       )}
 
       {/* Spacer */}
@@ -258,8 +258,8 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
                       right: rect ? window.innerWidth - rect.right : 0,
                       top: rect ? rect.bottom + 4 : 0,
                       zIndex: 1000,
-                      background: '#222227',
-                      border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'var(--mai-bg-elevated)',
+                      border: '1px solid var(--mai-border-strong)',
                       borderRadius: 7,
                       padding: 4,
                       boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
@@ -281,14 +281,14 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
                           height: 28,
                           padding: '0 10px',
                           fontSize: 12,
-                          color: '#ECECEC',
+                          color: 'var(--mai-text-1)',
                           background: 'transparent',
                           border: 'none',
                           borderRadius: 4,
                           cursor: 'pointer',
                           textAlign: 'left',
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--mai-border-strong)' }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                       >
                         {item.icon}

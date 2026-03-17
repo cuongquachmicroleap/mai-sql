@@ -105,7 +105,7 @@ export function TableDesigner({ tabId }: TableDesignerProps) {
 
   if (!state || !tab) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#555560', fontSize: 13 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--mai-text-3)', fontSize: 13 }}>
         No designer state available
       </div>
     )
@@ -116,16 +116,16 @@ export function TableDesigner({ tabId }: TableDesignerProps) {
       {/* Top bar — database + schema + table name */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#1C1C20',
+        borderBottom: '1px solid var(--mai-border)',
+        background: 'var(--mai-bg-panel)',
         flexShrink: 0,
       }}>
         {state.database && (
           <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11, color: '#8B8B8B' }}>Database</span>
+            <span style={{ fontSize: 11, color: 'var(--mai-text-2)' }}>Database</span>
             <span style={{
               height: 26, padding: '0 8px', display: 'flex', alignItems: 'center',
-              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+              background: 'var(--mai-bg-hover)', border: '1px solid var(--mai-border)',
               borderRadius: 4, color: '#6B6B7B', fontSize: 12, fontFamily: 'inherit',
             }}>
               {state.database}
@@ -133,20 +133,20 @@ export function TableDesigner({ tabId }: TableDesignerProps) {
           </label>
         )}
         <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, color: '#8B8B8B' }}>Schema</span>
+          <span style={{ fontSize: 11, color: 'var(--mai-text-2)' }}>Schema</span>
           <input
             value={state.schema}
             onChange={(e) => updateState({ schema: e.target.value })}
             spellCheck={false}
             style={{
               width: 120, height: 26, padding: '0 8px',
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 4, color: '#ECECEC', fontSize: 12, fontFamily: 'inherit', outline: 'none',
+              background: 'var(--mai-bg-hover)', border: '1px solid var(--mai-border-strong)',
+              borderRadius: 4, color: 'var(--mai-text-1)', fontSize: 12, fontFamily: 'inherit', outline: 'none',
             }}
           />
         </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
-          <span style={{ fontSize: 11, color: '#8B8B8B' }}>Table Name</span>
+          <span style={{ fontSize: 11, color: 'var(--mai-text-2)' }}>Table Name</span>
           <input
             value={state.tableName}
             onChange={(e) => updateState({ tableName: e.target.value })}
@@ -155,8 +155,8 @@ export function TableDesigner({ tabId }: TableDesignerProps) {
             autoFocus
             style={{
               width: 240, height: 26, padding: '0 8px',
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 4, color: '#ECECEC', fontSize: 12, fontFamily: 'inherit', outline: 'none',
+              background: 'var(--mai-bg-hover)', border: '1px solid var(--mai-border-strong)',
+              borderRadius: 4, color: 'var(--mai-text-1)', fontSize: 12, fontFamily: 'inherit', outline: 'none',
             }}
           />
         </label>
@@ -165,8 +165,8 @@ export function TableDesigner({ tabId }: TableDesignerProps) {
       {/* Section tabs */}
       <div style={{
         display: 'flex', gap: 0, flexShrink: 0,
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#131316',
+        borderBottom: '1px solid var(--mai-border)',
+        background: 'var(--mai-bg-base)',
       }}>
         {sectionTabs.map((st) => {
           const isActive = activeSection === st.key
@@ -178,15 +178,15 @@ export function TableDesigner({ tabId }: TableDesignerProps) {
                 padding: '6px 16px',
                 fontSize: 11,
                 fontWeight: isActive ? 600 : 400,
-                color: isActive ? '#ECECEC' : '#555560',
+                color: isActive ? 'var(--mai-text-1)' : 'var(--mai-text-3)',
                 background: 'transparent',
                 border: 'none',
-                borderBottom: isActive ? '2px solid #5B8AF0' : '2px solid transparent',
+                borderBottom: isActive ? '2px solid var(--mai-accent)' : '2px solid transparent',
                 cursor: 'pointer',
                 transition: 'color 0.12s',
               }}
-              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = '#8B8B8B' }}
-              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = '#555560' }}
+              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = 'var(--mai-text-2)' }}
+              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = 'var(--mai-text-3)' }}
             >
               {st.label}
             </button>
@@ -240,8 +240,8 @@ export function TableDesigner({ tabId }: TableDesignerProps) {
       {/* Footer — apply button + result feedback */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
-        background: '#1C1C20',
+        borderTop: '1px solid var(--mai-border)',
+        background: 'var(--mai-bg-panel)',
         flexShrink: 0,
       }}>
         {applyResult && (
@@ -261,7 +261,7 @@ export function TableDesigner({ tabId }: TableDesignerProps) {
           style={{
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '6px 16px',
-            background: applying ? 'rgba(91,138,240,0.3)' : '#5B8AF0',
+            background: applying ? 'rgba(91,138,240,0.3)' : 'var(--mai-accent)',
             color: '#fff',
             border: 'none',
             borderRadius: 5,

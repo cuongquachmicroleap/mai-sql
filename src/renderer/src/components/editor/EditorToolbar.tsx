@@ -169,7 +169,7 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
       </button>
 
       {/* Row limit selector */}
-      <div className="flex items-center gap-1" style={{ color: '#555560', fontSize: 11 }}>
+      <div className="flex items-center gap-1" style={{ color: 'var(--mai-text-3)', fontSize: 11 }}>
         <span>Limit</span>
         <select
           value={tab.rowLimit === null ? 'null' : String(tab.rowLimit)}
@@ -182,7 +182,7 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
             padding: '0 4px',
             borderRadius: 5,
             fontSize: 11,
-            border: '1px solid rgba(255,255,255,0.1)',
+            border: '1px solid var(--mai-border-strong)',
             background: 'var(--mai-bg-elevated)',
             color: 'var(--mai-text-1)',
             cursor: 'pointer',
@@ -199,16 +199,16 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
 
       {/* Selected text indicator */}
       {selChars > 0 && (
-        <span style={{ fontSize: 11, color: '#5B8AF0', marginLeft: 2 }}>
+        <span style={{ fontSize: 11, color: 'var(--mai-accent)', marginLeft: 2 }}>
           {selChars} chars selected
         </span>
       )}
 
-      <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
+      <div style={{ width: 1, height: 16, background: 'var(--mai-border-strong)', margin: '0 4px' }} />
 
       {/* AI indicator */}
       {aiConfig && (
-        <span className="flex items-center gap-1" style={{ fontSize: 10, color: '#3A3A45' }}>
+        <span className="flex items-center gap-1" style={{ fontSize: 10, color: 'var(--mai-text-4)' }}>
           <Sparkles size={9} />
           AI
         </span>
@@ -231,16 +231,16 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
             className="h-1.5 w-1.5 rounded-full shrink-0"
             style={{ background: activeConn.color || '#34D399' }}
           />
-          <span style={{ color: '#ECECEC' }}>{activeConn.name}</span>
-          <span style={{ color: '#555560' }}>/</span>
-          <span style={{ color: '#8B8B8B' }}>{tab?.database || activeConn.database || 'postgres'}</span>
+          <span style={{ color: 'var(--mai-text-1)' }}>{activeConn.name}</span>
+          <span style={{ color: 'var(--mai-text-3)' }}>/</span>
+          <span style={{ color: 'var(--mai-text-2)' }}>{tab?.database || activeConn.database || 'postgres'}</span>
           {activeConn.group && (
             <span style={{
               fontSize: 9,
               padding: '1px 4px',
               borderRadius: 3,
-              background: activeConn.group.toLowerCase() === 'production' ? 'rgba(248,113,113,0.15)' : 'rgba(255,255,255,0.06)',
-              color: activeConn.group.toLowerCase() === 'production' ? '#F87171' : '#555560',
+              background: activeConn.group.toLowerCase() === 'production' ? 'rgba(248,113,113,0.15)' : 'var(--mai-bg-hover)',
+              color: activeConn.group.toLowerCase() === 'production' ? '#F87171' : 'var(--mai-text-3)',
               marginLeft: 2,
             }}>
               {activeConn.group}
@@ -248,7 +248,7 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
           )}
         </div>
       ) : (
-        <span className="ml-auto" style={{ fontSize: 12, color: '#555560' }}>
+        <span className="ml-auto" style={{ fontSize: 12, color: 'var(--mai-text-3)' }}>
           No connection
         </span>
       )}

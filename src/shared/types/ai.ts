@@ -1,4 +1,4 @@
-export type AIProvider = 'openai' | 'anthropic' | 'ollama'
+export type AIProvider = 'openai' | 'anthropic' | 'ollama' | 'openrouter'
 
 export interface AIProviderConfig {
   provider: AIProvider
