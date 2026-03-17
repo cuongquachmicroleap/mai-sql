@@ -260,7 +260,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
               <div>
                 <label style={LABEL_STYLE}>Color</label>
                 <div className="flex items-center gap-1" style={{ height: 34 }}>
-                  {['#34D399', '#5B8AF0', '#FBBF24', '#F97316', '#EF4444', '#A78BFA'].map((color) => (
+                  {['#34D399', '#F5B800', '#FBBF24', '#F97316', '#EF4444', '#A78BFA'].map((color) => (
                     <button
                       key={color}
                       onClick={() => setField('color', form.color === color ? undefined : color)}

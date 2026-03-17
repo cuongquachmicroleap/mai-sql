@@ -167,9 +167,9 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                       style={{
                         position: 'absolute', right: 0, top: 0, bottom: 0,
                         width: 4, cursor: 'col-resize', userSelect: 'none',
-                        background: header.column.getIsResizing() ? '#5B8AF0' : 'transparent',
+                        background: header.column.getIsResizing() ? 'var(--mai-accent)' : 'transparent',
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--mai-accent)'}
                       onMouseLeave={(e) => {
                         if (!header.column.getIsResizing()) e.currentTarget.style.background = 'transparent'
                       }}

@@ -52,8 +52,8 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
   const canExecute = !!activeConnectionId && !!tab.content.trim() && !tab.isExecuting
   const activeConn = connections.find((c) => c.id === activeConnectionId)
 
-  const runBgDefault = tab.isExecuting ? '#F87171' : '#5B8AF0'
-  const runBgHover   = tab.isExecuting ? '#ef5350' : '#4A7AE0'
+  const runBgDefault = tab.isExecuting ? '#F87171' : 'var(--mai-accent)'
+  const runBgHover   = tab.isExecuting ? '#ef5350' : 'var(--mai-accent)'
 
   const handleRun = () => {
     if (!activeConnectionId) return
@@ -107,7 +107,7 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
           fontSize: 12,
           fontWeight: 500,
           background: runHovered && (canExecute || tab.isExecuting) ? runBgHover : runBgDefault,
-          color: '#ffffff',
+          color: '#1A1510',
           borderRadius: 6,
           padding: '0 10px',
           height: 26,

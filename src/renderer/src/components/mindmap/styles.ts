@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 
 export const NODE_COLORS = {
   database: '#34D399',
-  schema: '#5B8AF0',
+  schema: '#F5B800',
   table: '#F97316',
   view: '#A78BFA',
   column: 'var(--mai-text-2)',

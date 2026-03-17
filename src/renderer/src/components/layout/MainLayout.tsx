@@ -21,6 +21,7 @@ import { SettingsPanel } from '../settings/SettingsPanel'
 import { SchemaDiff } from '../diff/SchemaDiff'
 import { ExplainTree } from '../explain/ExplainTree'
 import { ThemeToggle } from '../settings/ThemeToggle'
+import { MaiLogo } from './MaiLogo'
 import {
   Database, Settings, ChevronRight, Network, ArchiveRestore,
   Clock, Code2, Sparkles, GitCompare,
@@ -134,8 +135,10 @@ export function MainLayout() {
           justifyContent: 'center',
         }}
       >
-        <span style={{ fontSize: 12, color: 'var(--mai-text-3)', fontWeight: 500, letterSpacing: '0.02em', userSelect: 'none' }}>
-          MAI SQL
+        <span className="flex items-center gap-1.5" style={{ userSelect: 'none' }}>
+          <MaiLogo size={18} />
+          <span style={{ fontSize: 12, color: 'var(--mai-accent)', fontWeight: 600, letterSpacing: '0.04em' }}>MAI</span>
+          <span style={{ fontSize: 11, color: 'var(--mai-text-3)', fontWeight: 400, letterSpacing: '0.02em' }}>SQL</span>
         </span>
       </div>
 

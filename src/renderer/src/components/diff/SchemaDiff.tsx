@@ -253,7 +253,7 @@ export function SchemaDiff() {
           background: 'var(--mai-bg-panel)',
         }}
       >
-        <GitCompare size={14} style={{ color: '#5B8AF0' }} />
+        <GitCompare size={14} style={{ color: 'var(--mai-accent)' }} />
         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mai-text-1)' }}>Schema Diff</span>
         <div className="flex-1" />
         {result && (
@@ -276,7 +276,7 @@ export function SchemaDiff() {
           {/* Source card */}
           <ConnectionCard
             side="source"
-            accentColor="#5B8AF0"
+            accentColor="var(--mai-accent)"
             connectionId={sourceId}
             database={sourceDb}
             schema={sourceSchema}
@@ -296,8 +296,8 @@ export function SchemaDiff() {
                 height: 44,
                 borderRadius: '50%',
                 border: 'none',
-                background: canCompare ? '#5B8AF0' : 'var(--mai-bg-elevated)',
-                color: canCompare ? '#fff' : '#3A3A45',
+                background: canCompare ? 'var(--mai-accent)' : 'var(--mai-bg-elevated)',
+                color: canCompare ? '#1A1510' : '#3A3A45',
                 cursor: canCompare ? 'pointer' : 'default',
                 display: 'flex',
                 alignItems: 'center',
@@ -446,7 +446,7 @@ export function SchemaDiff() {
                     borderRadius: 6,
                     border: '1px solid rgba(91,138,240,0.3)',
                     background: 'rgba(91,138,240,0.06)',
-                    color: '#5B8AF0',
+                    color: 'var(--mai-accent)',
                     cursor: 'pointer',
                     fontSize: 11,
                     fontWeight: 500,
@@ -537,7 +537,7 @@ export function SchemaDiff() {
               <div style={{ padding: 20 }}>
                 <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
                   <div className="flex items-center gap-2">
-                    <FileCode size={14} style={{ color: '#5B8AF0' }} />
+                    <FileCode size={14} style={{ color: 'var(--mai-accent)' }} />
                     <h3 style={{ fontSize: 14, fontWeight: 600, color: 'var(--mai-text-1)', margin: 0 }}>Migration SQL</h3>
                   </div>
                   <button
@@ -545,7 +545,7 @@ export function SchemaDiff() {
                     className="flex items-center gap-1.5"
                     style={{
                       fontSize: 11,
-                      color: '#5B8AF0',
+                      color: 'var(--mai-accent)',
                       background: 'rgba(91,138,240,0.08)',
                       border: '1px solid rgba(91,138,240,0.2)',
                       borderRadius: 5,
@@ -612,7 +612,7 @@ export function SchemaDiff() {
                 margin: '0 auto 16px',
               }}
             >
-              <GitCompare size={24} style={{ color: '#5B8AF0', opacity: 0.5 }} />
+              <GitCompare size={24} style={{ color: 'var(--mai-accent)', opacity: 0.5 }} />
             </div>
             <p style={{ fontSize: 13, color: 'var(--mai-text-2)', margin: '0 0 6px' }}>
               Compare database schemas
@@ -628,7 +628,7 @@ export function SchemaDiff() {
       {loading && !result && (
         <div className="flex flex-1 items-center justify-center">
           <div className="flex flex-col items-center gap-3" style={{ color: 'var(--mai-text-3)' }}>
-            <Loader2 size={24} className="animate-spin" style={{ color: '#5B8AF0' }} />
+            <Loader2 size={24} className="animate-spin" style={{ color: 'var(--mai-accent)' }} />
             <span style={{ fontSize: 12 }}>Comparing schemas...</span>
           </div>
         </div>

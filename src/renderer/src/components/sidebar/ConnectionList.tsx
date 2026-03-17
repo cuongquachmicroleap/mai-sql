@@ -152,7 +152,7 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
                     className="shrink-0 px-1 rounded"
                     style={{
                       fontSize: 10,
-                      color: '#5B8AF0',
+                      color: 'var(--mai-accent)',
                       border: '1px solid rgba(91,138,240,0.4)',
                     }}
                   >

@@ -8,7 +8,7 @@ import type { Snippet } from '@shared/types/snippet'
 const CATEGORIES = [
   { value: 'admin', label: 'Admin', color: '#F87171' },
   { value: 'performance', label: 'Performance', color: '#FBBF24' },
-  { value: 'schema', label: 'Schema', color: '#5B8AF0' },
+  { value: 'schema', label: 'Schema', color: '#F5B800' },
   { value: 'data', label: 'Data', color: '#34D399' },
   { value: 'custom', label: 'Custom', color: '#A78BFA' },
 ] as const

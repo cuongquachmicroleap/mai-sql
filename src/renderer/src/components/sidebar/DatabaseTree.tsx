@@ -428,7 +428,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
               style={{ height: 26, paddingLeft: 8, paddingRight: 8, color: isDefault ? 'var(--mai-text-1)' : 'var(--mai-text-2)', background: hoveredRow === `db:${database}` ? 'var(--mai-bg-hover)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
             >
               {loadingKeys.has(dbKey(database)) ? <Loader2 size={11} className="animate-spin shrink-0" /> : expanded.has(dbKey(database)) ? <ChevronDown size={11} className="shrink-0" /> : <ChevronRight size={11} className="shrink-0" />}
-              <Server size={11} className="shrink-0" style={{ color: isDefault ? '#34D399' : '#5B8AF0' }} />
+              <Server size={11} className="shrink-0" style={{ color: isDefault ? '#34D399' : 'var(--mai-accent)' }} />
               <span style={{ fontWeight: isDefault ? 600 : 400 }} className="truncate">{database}</span>
               {isDefault && <span style={{ fontSize: 9, color: 'var(--mai-text-3)', marginLeft: 'auto', flexShrink: 0 }}>connected</span>}
             </button>
@@ -456,7 +456,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                       style={{ height: 24, paddingLeft: 20, paddingRight: 8, color: 'var(--mai-text-2)', background: hoveredRow === `schema:${database}/${schema}` ? 'var(--mai-bg-hover)' : 'transparent', border: 'none', cursor: 'pointer', transition: 'background 0.1s' }}
                     >
                       {loadingKeys.has(schemaKey(database, schema)) ? <Loader2 size={10} className="animate-spin shrink-0" /> : expanded.has(schemaKey(database, schema)) ? <ChevronDown size={10} className="shrink-0" /> : <ChevronRight size={10} className="shrink-0" />}
-                      <Database size={10} className="shrink-0" style={{ color: '#5B8AF0' }} />
+                      <Database size={10} className="shrink-0" style={{ color: 'var(--mai-accent)' }} />
                       <span style={{ fontWeight: 500, fontSize: 11 }} className="truncate">{schema}</span>
                     </button>
                   )}
@@ -491,7 +491,7 @@ export function DatabaseTree({ connectionId }: DatabaseTreeProps) {
                               title="Double-click to SELECT * | Right-click for options"
                             >
                               {loadingKeys.has(tdk) ? <Loader2 size={10} className="animate-spin shrink-0" /> : expanded.has(tk) ? <ChevronDown size={10} className="shrink-0" /> : <ChevronRight size={10} className="shrink-0" />}
-                              <Table2 size={10} className="shrink-0" style={{ color: table.type === 'view' ? '#5B8AF0' : '#F97316' }} />
+                              <Table2 size={10} className="shrink-0" style={{ color: table.type === 'view' ? 'var(--mai-accent)' : '#F97316' }} />
                               <span className="truncate" style={{ fontSize: 11 }}>{table.name}</span>
                               {rowCount !== undefined && <span className="ml-auto shrink-0" style={{ fontSize: 10, color: 'var(--mai-text-3)' }}>{formatRowCount(rowCount)}</span>}
                             </button>

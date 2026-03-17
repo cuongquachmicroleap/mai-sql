@@ -241,7 +241,7 @@ export function MindmapView({ scopeDatabase }: MindmapViewProps) {
           <MiniMap
             nodeColor={(node) => {
               if (node.type === 'database') return '#34D399'
-              if (node.type === 'schema') return '#5B8AF0'
+              if (node.type === 'schema') return '#F5B800'
               return '#F97316'
             }}
             style={{ background: 'var(--mai-bg-panel)', border: '1px solid var(--mai-border-strong)', borderRadius: 6 }}
