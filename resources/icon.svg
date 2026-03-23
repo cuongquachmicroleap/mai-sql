@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Golden gradient for petals -->
+    <linearGradient id="petalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD54F"/>
+      <stop offset="50%" stop-color="#F5B800"/>
+      <stop offset="100%" stop-color="#E6A200"/>
+    </linearGradient>
+    <!-- Dark warm gradient for background circle -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2A1F0E"/>
+      <stop offset="100%" stop-color="#1A1510"/>
+    </linearGradient>
+    <!-- Subtle glow -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="248" fill="url(#bgGrad)" stroke="#3D2E14" stroke-width="3"/>
+
+  <!-- Mai flower — 5 petals arranged radially -->
+  <g transform="translate(256, 210)" filter="url(#glow)">
+    <!-- Petal 1 (top) -->
+    <path d="M0,-70 C20,-55 25,-25 0,-5 C-25,-25 -20,-55 0,-70Z" fill="url(#petalGrad)" opacity="0.95"/>
+    <!-- Petal 2 (top-right) -->
+    <path d="M0,-70 C20,-55 25,-25 0,-5 C-25,-25 -20,-55 0,-70Z" fill="url(#petalGrad)" opacity="0.90" transform="rotate(72)"/>
+    <!-- Petal 3 (bottom-right) -->
+    <path d="M0,-70 C20,-55 25,-25 0,-5 C-25,-25 -20,-55 0,-70Z" fill="url(#petalGrad)" opacity="0.85" transform="rotate(144)"/>
+    <!-- Petal 4 (bottom-left) -->
+    <path d="M0,-70 C20,-55 25,-25 0,-5 C-25,-25 -20,-55 0,-70Z" fill="url(#petalGrad)" opacity="0.90" transform="rotate(216)"/>
+    <!-- Petal 5 (top-left) -->
+    <path d="M0,-70 C20,-55 25,-25 0,-5 C-25,-25 -20,-55 0,-70Z" fill="url(#petalGrad)" opacity="0.85" transform="rotate(288)"/>
+    <!-- Center (nhụy hoa) -->
+    <circle cx="0" cy="0" r="10" fill="#5C3D1A"/>
+    <circle cx="0" cy="0" r="6" fill="#8B6914"/>
+    <!-- Small stamens -->
+    <circle cx="-4" cy="-3" r="2" fill="#3D2E14"/>
+    <circle cx="4" cy="-3" r="2" fill="#3D2E14"/>
+    <circle cx="0" cy="4" r="2" fill="#3D2E14"/>
+  </g>
+
+  <!-- Database icon (3 ellipses) below flower — represents SQL -->
+  <g transform="translate(256, 340)">
+    <ellipse cx="0" cy="0" rx="55" ry="14" fill="none" stroke="#F5B800" stroke-width="2.5" opacity="0.8"/>
+    <line x1="-55" y1="0" x2="-55" y2="30" stroke="#F5B800" stroke-width="2.5" opacity="0.8"/>
+    <line x1="55" y1="0" x2="55" y2="30" stroke="#F5B800" stroke-width="2.5" opacity="0.8"/>
+    <ellipse cx="0" cy="15" rx="55" ry="14" fill="none" stroke="#F5B800" stroke-width="2.5" opacity="0.6"/>
+    <ellipse cx="0" cy="30" rx="55" ry="14" fill="none" stroke="#F5B800" stroke-width="2.5" opacity="0.4"/>
+  </g>
+
+  <!-- Text "MAI" -->
+  <text x="256" y="430" text-anchor="middle" fill="#F5B800" font-family="'SF Pro Display', -apple-system, system-ui, sans-serif" font-size="42" font-weight="700" letter-spacing="8">MAI</text>
+  <!-- Text "SQL" smaller -->
+  <text x="256" y="465" text-anchor="middle" fill="#C49A00" font-family="'SF Mono', 'Fira Code', monospace" font-size="22" font-weight="500" letter-spacing="6">SQL</text>
+</svg>

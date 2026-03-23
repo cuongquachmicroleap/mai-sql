@@ -21,31 +21,52 @@
     "@monaco-editor/react": "^4.7.0",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.22",
+    "@xyflow/react": "^12.10.1",
     "better-sqlite3": "^12.8.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dagre": "^0.8.5",
     "electron-store": "^8.2.0",
     "electron-updater": "^6.8.3",
     "i18next": "^25.8.18",
     "lucide-react": "^0.577.0",
+    "mysql2": "^3.20.0",
     "nanoid": "^5.1.6",
     "pg": "^8.20.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-i18next": "^16.5.8",
     "sql-formatter": "^15.7.2",
+    "ssh2": "^1.17.0",
     "tailwind-merge": "^3.5.0",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.11"
+  },
+  "build": {
+    "appId": "com.microleap.mai-sql",
+    "productName": "MAI SQL",
+    "icon": "resources/icon.png",
+    "mac": {
+      "icon": "resources/icon.icns"
+    },
+    "win": {
+      "icon": "resources/icon.ico"
+    },
+    "linux": {
+      "icon": "resources/icon.png"
+    }
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@playwright/test": "^1.44.0",
     "@tailwindcss/vite": "^4.2.1",
     "@types/better-sqlite3": "^7.6.13",
+    "@types/dagre": "^0.7.54",
     "@types/node": "^25.5.0",
     "@types/pg": "^8.18.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/ssh2": "^1.15.5",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "@vitejs/plugin-react": "^4.7.0",

@@ -11,22 +11,26 @@ export interface IDataSource {
   testConnection(): Promise<boolean>
 
   // Execution
-  execute(query: string, params?: unknown[]): Promise<QueryResult>
+  execute(query: string, params?: unknown[], database?: string): Promise<QueryResult>
   cancel(queryId: string): Promise<void>
 
   // Schema introspection
   getDatabases(): Promise<string[]>
-  getSchemas(database: string): Promise<string[]>
-  getTables(schema: string): Promise<TableInfo[]>
-  getColumns(table: string, schema?: string): Promise<ColumnInfo[]>
-  getFunctions(schema: string): Promise<FunctionInfo[]>
-  getRelationships(schema: string): Promise<Relationship[]>
-  getIndexes(table: string, schema?: string): Promise<IndexInfo[]>
-  getTriggers(table: string, schema: string): Promise<TriggerInfo[]>
+  getSchemas(database?: string): Promise<string[]>
+  getTables(schema: string, database?: string): Promise<TableInfo[]>
+  getColumns(table: string, schema?: string, database?: string): Promise<ColumnInfo[]>
+  getFunctions(schema: string, database?: string): Promise<FunctionInfo[]>
+  getRelationships(schema: string, database?: string): Promise<Relationship[]>
+  getIndexes(table: string, schema?: string, database?: string): Promise<IndexInfo[]>
+  getTriggers(table: string, schema: string, database?: string): Promise<TriggerInfo[]>
 
   // Metadata
   getDialect(): SQLDialect
   getVersion(): Promise<string>
+  getDefaultDatabase(): string
+
+  /** Whether this database supports schemas (PostgreSQL/MSSQL: true, MySQL/ClickHouse/MongoDB: false) */
+  supportsSchemas(): boolean
 }
 
 // Thrown by all drivers on connection or query failure

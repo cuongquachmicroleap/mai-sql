@@ -1,8 +1,9 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import Editor, { type Monaco } from '@monaco-editor/react'
 import type * as MonacoTypes from 'monaco-editor'
 import { useEditorStore } from '../../stores/editor-store'
 import { useConnectionStore } from '../../stores/connection-store'
+import { useSettingsStore } from '../../stores/settings-store'
 import { invoke } from '../../lib/ipc-client'
 import type { TableInfo, ColumnInfo, FunctionInfo, IndexInfo, TriggerInfo } from '@shared/types/schema'
 
@@ -34,6 +35,7 @@ const SQL_KEYWORDS = [
 export function QueryEditor({ tabId }: QueryEditorProps) {
   const { tabs, updateTabContent, setSelectedText } = useEditorStore()
   const { activeConnectionId } = useConnectionStore()
+  const { theme } = useSettingsStore()
   const tab = tabs.find((t) => t.id === tabId)
   const editorRef = useRef<MonacoTypes.editor.IStandaloneCodeEditor | null>(null)
   const monacoRef = useRef<Monaco | null>(null)
@@ -77,7 +79,10 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
     if (!cache) return []
     if (cache.columnsByTable[tableName]) return cache.columnsByTable[tableName]
     try {
-      const columns = await invoke('schema:columns', connId, tableName, 'public')
+      // Use the table's own schema from the cache (avoids hardcoding 'public')
+      const tableInfo = cache.tables.find((t) => t.name === tableName)
+      const tableSchema = tableInfo?.schema ?? 'public'
+      const columns = await invoke('schema:columns', connId, tableName, tableSchema)
       cache.columnsByTable[tableName] = columns
       return columns
     } catch {
@@ -92,7 +97,8 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
     if (!cache) return []
     if (cache.indexesByTable[tableName]) return cache.indexesByTable[tableName]
     try {
-      const indexes = await invoke('schema:indexes', connId, tableName, 'public')
+      const tableInfo = cache.tables.find((t) => t.name === tableName)
+      const indexes = await invoke('schema:indexes', connId, tableName, tableInfo?.schema ?? 'public')
       cache.indexesByTable[tableName] = indexes
       return indexes
     } catch {
@@ -107,7 +113,8 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
     if (!cache) return []
     if (cache.triggersByTable[tableName]) return cache.triggersByTable[tableName]
     try {
-      const triggers = await invoke('schema:triggers', connId, tableName, 'public')
+      const tableInfo = cache.tables.find((t) => t.name === tableName)
+      const triggers = await invoke('schema:triggers', connId, tableName, tableInfo?.schema ?? 'public')
       cache.triggersByTable[tableName] = triggers
       return triggers
     } catch {
@@ -150,12 +157,24 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
           endColumn: wordInfo.startColumn,
         })
 
+        // --- Alias resolution ---
+        // Parse "FROM table alias" and "JOIN table alias" patterns from the full query
+        const fullText = model.getValue()
+        const aliasMap = new Map<string, string>() // alias -> tableName
+        const aliasRegex = /\b(?:FROM|JOIN)\s+(\w+)\s+(?:AS\s+)?(\w+)/gi
+        let aliasMatch
+        while ((aliasMatch = aliasRegex.exec(fullText)) !== null) {
+          aliasMap.set(aliasMatch[2].toLowerCase(), aliasMatch[1])
+        }
+
         // --- Context detection ---
 
-        // 1. Column mode: "tablename." — suggest columns for that table
+        // 1. Column mode: "tablename." or "alias." - suggest columns for that table
         const dotMatch = lineTextBefore.match(/(\w+)\.$/)
         if (dotMatch) {
-          const tableName = dotMatch[1]
+          // Resolve alias to table name if possible
+          const rawName = dotMatch[1]
+          const tableName = aliasMap.get(rawName.toLowerCase()) ?? rawName
           const columnRange = {
             startLineNumber: position.lineNumber,
             endLineNumber: position.lineNumber,
@@ -213,7 +232,37 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
           }
         }
 
-        // 3. Index mode: after DROP INDEX / REINDEX → suggest all indexes (flat list)
+        // 2b. JOIN ON mode: after "JOIN table ON" suggest FK-based conditions
+        const joinOnMatch = fullText.match(/\bJOIN\s+(\w+)\s+(?:AS\s+)?(\w+)?\s+ON\s*$/i)
+        if (joinOnMatch && connId && cache) {
+          const joinTable = joinOnMatch[1]
+          const joinAlias = joinOnMatch[2] || joinTable
+          // Find FK relationships involving this table
+          try {
+            const joinTableInfo = cache.tables.find((t) => t.name === joinTable)
+            const rels = await invoke('schema:relationships', connId, joinTableInfo?.schema ?? 'public')
+            const suggestions = rels
+              .filter((r) => r.sourceTable === joinTable || r.targetTable === joinTable)
+              .map((r) => {
+                const isSource = r.sourceTable === joinTable
+                const otherTable = isSource ? r.targetTable : r.sourceTable
+                const otherAlias = Array.from(aliasMap.entries()).find(([, t]) => t === otherTable)?.[0] || otherTable
+                const joinCol = isSource ? r.sourceColumn : r.targetColumn
+                const otherCol = isSource ? r.targetColumn : r.sourceColumn
+                const text = `${joinAlias}.${joinCol} = ${otherAlias}.${otherCol}`
+                return {
+                  label: text,
+                  kind: monaco.languages.CompletionItemKind.Snippet,
+                  detail: `FK: ${r.constraintName}`,
+                  insertText: text,
+                  range,
+                }
+              })
+            if (suggestions.length > 0) return { suggestions }
+          } catch { /* ignore */ }
+        }
+
+        // 3. Index mode: after DROP INDEX / REINDEX - suggest all indexes (flat list)
         const indexKeywordMatch = /\b(DROP INDEX|REINDEX)\s+\w*$/i.test(lineTextBefore)
         if (indexKeywordMatch && connId && cache) {
           const allIndexResults = await Promise.all(
@@ -292,6 +341,13 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
     completionDisposableRef.current = disposable
   }
 
+  // Switch Monaco theme when app theme changes
+  useEffect(() => {
+    const monaco = monacoRef.current
+    if (!monaco) return
+    monaco.editor.setTheme(theme === 'light' ? 'mai-light' : 'mai-dark')
+  }, [theme])
+
   // Re-register the provider and refresh schema cache when connectionId changes
   useEffect(() => {
     const monaco = monacoRef.current
@@ -324,7 +380,7 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
       base: 'vs-dark',
       inherit: true,
       rules: [
-        { token: 'keyword', foreground: '5B8AF0', fontStyle: 'bold' },
+        { token: 'keyword', foreground: 'F5B800', fontStyle: 'bold' },
         { token: 'string', foreground: 'CE9178' },
         { token: 'number', foreground: '98C379' },
         { token: 'comment', foreground: '555560', fontStyle: 'italic' },
@@ -334,14 +390,39 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
         'editor.foreground': '#ECECEC',
         'editor.lineHighlightBackground': '#1C1C20',
         'editorLineNumber.foreground': '#3A3A45',
-        'editorLineNumber.activeForeground': '#5B8AF0',
-        'editor.selectionBackground': '#5B8AF025',
-        'editorCursor.foreground': '#5B8AF0',
+        'editorLineNumber.activeForeground': '#F5B800',
+        'editor.selectionBackground': '#F5B80025',
+        'editorCursor.foreground': '#F5B800',
         'editorIndentGuide.background1': '#222227',
         'editorGutter.background': '#131316',
       },
     })
-    monaco.editor.setTheme('mai-dark')
+
+    monaco.editor.defineTheme('mai-light', {
+      base: 'vs',
+      inherit: true,
+      rules: [
+        { token: 'keyword', foreground: 'D4A000', fontStyle: 'bold' },
+        { token: 'string', foreground: 'A31515' },
+        { token: 'number', foreground: '098658' },
+        { token: 'comment', foreground: '9B9BA0', fontStyle: 'italic' },
+      ],
+      colors: {
+        'editor.background': '#FAFAFA',
+        'editor.foreground': '#1A1A1A',
+        'editor.lineHighlightBackground': '#F5F5F7',
+        'editorLineNumber.foreground': '#C0C0C5',
+        'editorLineNumber.activeForeground': '#D4A000',
+        'editor.selectionBackground': '#D4A00025',
+        'editorCursor.foreground': '#D4A000',
+        'editorIndentGuide.background1': '#E8E8EA',
+        'editorGutter.background': '#FAFAFA',
+      },
+    })
+
+    // Apply the correct theme based on current setting
+    const currentTheme = document.documentElement.classList.contains('light') ? 'mai-light' : 'mai-dark'
+    monaco.editor.setTheme(currentTheme)
 
     // Disable Monaco's built-in SQL word-based completions so our
     // schema-aware provider is the sole source of suggestions
@@ -377,7 +458,7 @@ export function QueryEditor({ tabId }: QueryEditorProps) {
         value={tab.content}
         onChange={(val) => updateTabContent(tabId, val ?? '')}
         onMount={handleMount}
-        theme="mai-dark"
+        theme={theme === 'light' ? 'mai-light' : 'mai-dark'}
         options={{
           fontSize: 14,
           fontFamily: "'JetBrains Mono', 'SF Mono', 'Fira Code', monospace",

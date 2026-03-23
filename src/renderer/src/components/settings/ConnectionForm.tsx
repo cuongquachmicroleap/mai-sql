@@ -23,12 +23,12 @@ interface ConnectionFormProps {
 // Shared input style
 const INPUT_STYLE: React.CSSProperties = {
   height: 34,
-  background: '#222227',
-  border: '1px solid rgba(255,255,255,0.08)',
+  background: 'var(--mai-bg-elevated)',
+  border: '1px solid var(--mai-border-strong)',
   borderRadius: 6,
   padding: '0 10px',
   fontSize: 13,
-  color: '#ECECEC',
+  color: 'var(--mai-text-1)',
   width: '100%',
   outline: 'none',
   fontFamily: 'inherit',
@@ -38,7 +38,7 @@ const INPUT_STYLE: React.CSSProperties = {
 const LABEL_STYLE: React.CSSProperties = {
   fontSize: 11,
   fontWeight: 500,
-  color: '#8B8B8B',
+  color: 'var(--mai-text-2)',
   display: 'block',
   marginBottom: 4,
 }
@@ -50,7 +50,7 @@ function FormInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
       {...props}
       style={{
         ...INPUT_STYLE,
-        borderColor: focused ? '#5B8AF0' : 'rgba(255,255,255,0.08)',
+        borderColor: focused ? 'var(--mai-accent)' : 'var(--mai-border-strong)',
         ...props.style,
       }}
       onFocus={(e) => { setFocused(true); props.onFocus?.(e) }}
@@ -66,7 +66,7 @@ function FormSelect(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
       {...props}
       style={{
         ...INPUT_STYLE,
-        borderColor: focused ? '#5B8AF0' : 'rgba(255,255,255,0.08)',
+        borderColor: focused ? 'var(--mai-accent)' : 'var(--mai-border-strong)',
         appearance: 'none',
         cursor: 'pointer',
         ...props.style,
@@ -104,6 +104,8 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
         username: initialConnection.username,
         ssl: initialConnection.ssl,
         sshTunnel: initialConnection.sshTunnel,
+        color: initialConnection.color,
+        group: initialConnection.group,
       })
       setSshEnabled(!!initialConnection.sshTunnel)
       setAdvancedOpen(!!initialConnection.ssl || !!initialConnection.sshTunnel)
@@ -150,27 +152,29 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
   }
 
   const handleSave = async () => {
-    if (!form.host || !form.database || !form.username) return
+    if (!form.host || !form.username) return
     if (!isEditing && !form.password) return
     const config: ConnectionConfig = {
       id: form.id ?? nanoid(),
-      name: form.name || `${form.host}/${form.database}`,
+      name: form.name || (form.database ? `${form.host}/${form.database}` : form.host),
       type: form.type as SQLDialect,
       host: form.host,
       port: form.port ?? DIALECT_DEFAULTS[form.type as SQLDialect].port,
-      database: form.database,
+      database: form.database || undefined,
       username: form.username,
       password: form.password ?? '',
       ssl: form.ssl,
       sshTunnel: sshEnabled ? form.sshTunnel : undefined,
+      color: form.color,
+      group: form.group,
     }
     await invoke('connection:save', config)
     await loadConnections()
     handleClose()
   }
 
-  const canSave = !!form.host && !!form.database && !!form.username && (isEditing || !!form.password)
-  const canTest = !!form.host && !!form.database && !!form.username && !!form.password
+  const canSave = !!form.host && !!form.username && (isEditing || !!form.password)
+  const canTest = !!form.host && !!form.username && !!form.password
 
   return (
     <>
@@ -182,10 +186,10 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
           style={{
             width: '100%',
             height: 30,
-            background: btnNewHovered ? '#2A2A30' : '#222227',
-            border: '1px solid rgba(255,255,255,0.10)',
+            background: btnNewHovered ? '#2A2A30' : 'var(--mai-bg-elevated)',
+            border: '1px solid var(--mai-border-strong)',
             borderRadius: 6,
-            color: '#8B8B8B',
+            color: 'var(--mai-text-2)',
             fontSize: 12,
             fontWeight: 500,
             cursor: 'pointer',
@@ -221,7 +225,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                 }}
               >
                 {(Object.entries(DIALECT_DEFAULTS) as [SQLDialect, { port: number; label: string }][]).map(([k, v]) => (
-                  <option key={k} value={k} style={{ background: '#222227', color: '#ECECEC' }}>{v.label}</option>
+                  <option key={k} value={k} style={{ background: 'var(--mai-bg-elevated)', color: 'var(--mai-text-1)' }}>{v.label}</option>
                 ))}
               </FormSelect>
             </div>
@@ -234,6 +238,47 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                 value={form.name ?? ''}
                 onChange={(e) => setField('name', e.target.value)}
               />
+            </div>
+
+            {/* Group + Color */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
+              <div>
+                <label style={LABEL_STYLE}>Group (optional)</label>
+                <FormInput
+                  placeholder="Production, Staging, Dev..."
+                  value={form.group ?? ''}
+                  onChange={(e) => setField('group', e.target.value)}
+                  list="connection-groups"
+                />
+                <datalist id="connection-groups">
+                  <option value="Production" />
+                  <option value="Staging" />
+                  <option value="Development" />
+                  <option value="Testing" />
+                </datalist>
+              </div>
+              <div>
+                <label style={LABEL_STYLE}>Color</label>
+                <div className="flex items-center gap-1" style={{ height: 34 }}>
+                  {['#34D399', '#F5B800', '#FBBF24', '#F97316', '#EF4444', '#A78BFA'].map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setField('color', form.color === color ? undefined : color)}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        background: color,
+                        border: form.color === color ? '2px solid var(--mai-text-1)' : '2px solid transparent',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'border-color 0.12s',
+                      }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Host + Port */}
@@ -257,8 +302,12 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
 
             {/* Database */}
             <div>
-              <label style={LABEL_STYLE}>Database</label>
+              <label style={LABEL_STYLE}>
+                Database
+                <span style={{ fontWeight: 400, color: 'var(--mai-text-3)', marginLeft: 4 }}>(optional)</span>
+              </label>
               <FormInput
+                placeholder="postgres"
                 value={form.database ?? ''}
                 onChange={(e) => setField('database', e.target.value)}
               />
@@ -277,7 +326,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                 <label style={LABEL_STYLE}>
                   Password
                   {isEditing && (
-                    <span style={{ fontWeight: 400, color: '#555560', marginLeft: 4 }}>(required)</span>
+                    <span style={{ fontWeight: 400, color: 'var(--mai-text-3)', marginLeft: 4 }}>(required)</span>
                   )}
                 </label>
                 <FormInput
@@ -291,7 +340,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
 
             {/* Advanced section */}
             <div style={{
-              border: '1px solid rgba(255,255,255,0.08)',
+              border: '1px solid var(--mai-border-strong)',
               borderRadius: 6,
               overflow: 'hidden',
             }}>
@@ -306,14 +355,14 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                   padding: '6px 12px',
                   fontSize: 12,
                   fontWeight: 500,
-                  color: '#8B8B8B',
+                  color: 'var(--mai-text-2)',
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
                   transition: 'color 0.12s',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#ECECEC'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#8B8B8B'}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--mai-text-1)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-2)'}
               >
                 {advancedOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                 Advanced
@@ -321,7 +370,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
               {advancedOpen && (
                 <div style={{
                   padding: '8px 12px 12px',
-                  borderTop: '1px solid rgba(255,255,255,0.08)',
+                  borderTop: '1px solid var(--mai-border-strong)',
                   display: 'grid',
                   gap: 10,
                 }}>
@@ -331,9 +380,9 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                       type="checkbox"
                       checked={!!form.ssl}
                       onChange={(e) => setField('ssl', e.target.checked)}
-                      style={{ width: 14, height: 14, accentColor: '#5B8AF0' }}
+                      style={{ width: 14, height: 14, accentColor: 'var(--mai-accent)' }}
                     />
-                    <span style={{ fontSize: 12, color: '#8B8B8B' }}>Use SSL/TLS</span>
+                    <span style={{ fontSize: 12, color: 'var(--mai-text-2)' }}>Use SSL/TLS</span>
                   </label>
 
                   {/* SSH Tunnel toggle */}
@@ -342,9 +391,9 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                       type="checkbox"
                       checked={sshEnabled}
                       onChange={(e) => setSshEnabled(e.target.checked)}
-                      style={{ width: 14, height: 14, accentColor: '#5B8AF0' }}
+                      style={{ width: 14, height: 14, accentColor: 'var(--mai-accent)' }}
                     />
-                    <span style={{ fontSize: 12, color: '#8B8B8B' }}>Use SSH Tunnel</span>
+                    <span style={{ fontSize: 12, color: 'var(--mai-text-2)' }}>Use SSH Tunnel</span>
                   </label>
 
                   {sshEnabled && (
@@ -380,7 +429,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                       <div>
                         <label style={LABEL_STYLE}>
                           SSH Private Key Path
-                          <span style={{ fontWeight: 400, color: '#555560', marginLeft: 4 }}>(optional)</span>
+                          <span style={{ fontWeight: 400, color: 'var(--mai-text-3)', marginLeft: 4 }}>(optional)</span>
                         </label>
                         <FormInput
                           type="text"
@@ -392,7 +441,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
                       <div>
                         <label style={LABEL_STYLE}>
                           SSH Password
-                          <span style={{ fontWeight: 400, color: '#555560', marginLeft: 4 }}>(optional)</span>
+                          <span style={{ fontWeight: 400, color: 'var(--mai-text-3)', marginLeft: 4 }}>(optional)</span>
                         </label>
                         <FormInput
                           type="password"
@@ -421,7 +470,7 @@ export function ConnectionForm({ initialConnection, onClose }: ConnectionFormPro
             {/* Actions */}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
               {isEditing && !form.password && (
-                <span style={{ fontSize: 12, color: '#555560', marginRight: 'auto' }}>
+                <span style={{ fontSize: 12, color: 'var(--mai-text-3)', marginRight: 'auto' }}>
                   Enter password to test
                 </span>
               )}
@@ -458,10 +507,10 @@ function OutlineButton({ onClick, disabled, children }: {
         padding: '0 12px',
         fontSize: 12,
         fontWeight: 500,
-        background: hovered && !disabled ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-        border: '1px solid rgba(255,255,255,0.12)',
+        background: hovered && !disabled ? 'var(--mai-border-strong)' : 'var(--mai-bg-hover)',
+        border: '1px solid var(--mai-border-strong)',
         borderRadius: 6,
-        color: disabled ? '#555560' : '#8B8B8B',
+        color: disabled ? 'var(--mai-text-3)' : 'var(--mai-text-2)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
         transition: 'background 0.15s, color 0.15s',
@@ -489,7 +538,7 @@ function PrimaryButton({ onClick, disabled, children }: {
         padding: '0 14px',
         fontSize: 12,
         fontWeight: 500,
-        background: disabled ? '#3A3A45' : hovered ? '#4A7AE0' : '#5B8AF0',
+        background: disabled ? 'var(--mai-text-4)' : hovered ? 'var(--mai-accent)' : 'var(--mai-accent)',
         border: 'none',
         borderRadius: 6,
         color: '#ffffff',

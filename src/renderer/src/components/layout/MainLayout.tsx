@@ -1,6 +1,7 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useConnectionStore } from '../../stores/connection-store'
 import { useEditorStore } from '../../stores/editor-store'
+import { useSettingsStore } from '../../stores/settings-store'
 import { ConnectionList } from '../sidebar/ConnectionList'
 import { ConnectionForm } from '../settings/ConnectionForm'
 import type { SavedConnection } from '@shared/types/connection'
@@ -12,9 +13,22 @@ import { ResultsToolbar } from '../results/ResultsToolbar'
 import { ERDiagram } from '../er-diagram/ERDiagram'
 import { BackupRestore } from '../backup/BackupRestore'
 import { StatusBar } from './StatusBar'
-import { Database, Settings, ChevronRight, Network, ArchiveRestore } from 'lucide-react'
+import { TableDesigner } from '../table-designer/TableDesigner'
+import { QueryHistory } from '../history/QueryHistory'
+import { SnippetPanel } from '../snippets/SnippetPanel'
+import { AIChatPanel } from '../ai/AIChatPanel'
+import { SettingsPanel } from '../settings/SettingsPanel'
+import { SchemaDiff } from '../diff/SchemaDiff'
+import { ExplainTree } from '../explain/ExplainTree'
+import { ThemeToggle } from '../settings/ThemeToggle'
+import { MaiLogo } from './MaiLogo'
+import {
+  Database, Settings, ChevronRight, Network, ArchiveRestore,
+  Clock, Code2, Sparkles, GitCompare,
+} from 'lucide-react'
 
-type ActiveView = 'editor' | 'er-diagram' | 'backup'
+type SidebarView = 'explorer' | 'history' | 'snippets' | 'ai'
+type MainView = 'editor' | 'er-diagram' | 'backup' | 'settings' | 'diff'
 
 const MIN_SIDEBAR = 160
 const MAX_SIDEBAR = 480
@@ -26,12 +40,20 @@ const DEFAULT_RESULTS = 240
 export function MainLayout() {
   useConnectionStore()
   const { tabs, activeTabId } = useEditorStore()
+  const { loadSettings } = useSettingsStore()
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0]
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR)
   const [resultsHeight, setResultsHeight] = useState(DEFAULT_RESULTS)
-  const [activeView, setActiveView] = useState<ActiveView>('editor')
+  const [mainView, setMainView] = useState<MainView>('editor')
+  const [sidebarView, setSidebarView] = useState<SidebarView>('explorer')
   const [editingConnection, setEditingConnection] = useState<SavedConnection | null>(null)
+  const [resultsTab, setResultsTab] = useState<'grid' | 'explain'>('grid')
+
+  // Load settings on mount
+  useEffect(() => {
+    loadSettings()
+  }, [loadSettings])
 
   // Sidebar resize
   const sidebarDragging = useRef(false)
@@ -81,27 +103,42 @@ export function MainLayout() {
     document.body.style.userSelect = 'none'
   }, [resultsHeight])
 
+  const toggleSidebarView = (view: SidebarView) => {
+    if (!sidebarCollapsed && sidebarView === view) {
+      setSidebarCollapsed(true)
+    } else {
+      setSidebarCollapsed(false)
+      setSidebarView(view)
+      if (mainView !== 'editor') setMainView('editor')
+    }
+  }
+
+  // Check if EXPLAIN JSON result exists for visual display
+  const hasExplainResult = activeTab?.result?.rows?.[0]?.['QUERY PLAN'] != null
+
   return (
     <div
       className="flex flex-col h-screen overflow-hidden"
-      style={{ background: '#0C0C0E', color: '#ECECEC' }}
+      style={{ background: 'var(--mai-bg-deep)', color: 'var(--mai-text-1)' }}
     >
-      {/* Custom titlebar drag region — sits above everything, draggable */}
+      {/* Custom titlebar drag region */}
       <div
         style={{
           height: 40,
-          background: '#0C0C0E',
+          background: 'var(--mai-bg-deep)',
           flexShrink: 0,
           // @ts-ignore electron CSS
           WebkitAppRegion: 'drag',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid var(--mai-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <span style={{ fontSize: 12, color: '#555560', fontWeight: 500, letterSpacing: '0.02em', userSelect: 'none' }}>
-          MAI SQL
+        <span className="flex items-center gap-1.5" style={{ userSelect: 'none' }}>
+          <MaiLogo size={18} />
+          <span style={{ fontSize: 12, color: 'var(--mai-accent)', fontWeight: 600, letterSpacing: '0.04em' }}>MAI</span>
+          <span style={{ fontSize: 11, color: 'var(--mai-text-3)', fontWeight: 400, letterSpacing: '0.02em' }}>SQL</span>
         </span>
       </div>
 
@@ -112,37 +149,65 @@ export function MainLayout() {
           className="flex flex-col items-center gap-0.5 py-2 shrink-0"
           style={{
             width: 44,
-            background: '#0C0C0E',
-            borderRight: '1px solid rgba(255,255,255,0.07)',
+            background: 'var(--mai-bg-deep)',
+            borderRight: '1px solid var(--mai-border)',
           }}
         >
           <ActivityBtn
             icon={<Database size={17} />}
-            active={!sidebarCollapsed && activeView === 'editor'}
-            onClick={() => {
-              if (!sidebarCollapsed && activeView === 'editor') {
-                setSidebarCollapsed(true)
-              } else {
-                setSidebarCollapsed(false)
-                setActiveView('editor')
-              }
-            }}
+            active={!sidebarCollapsed && sidebarView === 'explorer'}
+            onClick={() => toggleSidebarView('explorer')}
             title="Explorer"
           />
           <ActivityBtn
+            icon={<Clock size={17} />}
+            active={!sidebarCollapsed && sidebarView === 'history'}
+            onClick={() => toggleSidebarView('history')}
+            title="Query History"
+          />
+          <ActivityBtn
+            icon={<Code2 size={17} />}
+            active={!sidebarCollapsed && sidebarView === 'snippets'}
+            onClick={() => toggleSidebarView('snippets')}
+            title="Snippets"
+          />
+          <ActivityBtn
+            icon={<Sparkles size={17} />}
+            active={!sidebarCollapsed && sidebarView === 'ai'}
+            onClick={() => toggleSidebarView('ai')}
+            title="AI Assistant"
+          />
+
+          <div style={{ width: 24, height: 1, background: 'var(--mai-border)', margin: '4px 0' }} />
+
+          <ActivityBtn
             icon={<Network size={17} />}
-            active={activeView === 'er-diagram'}
-            onClick={() => setActiveView((v) => v === 'er-diagram' ? 'editor' : 'er-diagram')}
+            active={mainView === 'er-diagram'}
+            onClick={() => setMainView((v) => v === 'er-diagram' ? 'editor' : 'er-diagram')}
             title="ER Diagram"
           />
           <ActivityBtn
+            icon={<GitCompare size={17} />}
+            active={mainView === 'diff'}
+            onClick={() => setMainView((v) => v === 'diff' ? 'editor' : 'diff')}
+            title="Schema Diff"
+          />
+          <ActivityBtn
             icon={<ArchiveRestore size={17} />}
-            active={activeView === 'backup'}
-            onClick={() => setActiveView((v) => v === 'backup' ? 'editor' : 'backup')}
+            active={mainView === 'backup'}
+            onClick={() => setMainView((v) => v === 'backup' ? 'editor' : 'backup')}
             title="Backup & Restore"
           />
+
           <div className="flex-1" />
-          <ActivityBtn icon={<Settings size={16} />} title="Settings" />
+
+          <ThemeToggle />
+          <ActivityBtn
+            icon={<Settings size={16} />}
+            active={mainView === 'settings'}
+            onClick={() => setMainView((v) => v === 'settings' ? 'editor' : 'settings')}
+            title="Settings"
+          />
         </div>
 
         {/* Sidebar */}
@@ -151,50 +216,58 @@ export function MainLayout() {
             className="flex flex-col shrink-0 overflow-hidden relative"
             style={{
               width: sidebarWidth,
-              background: '#1C1C20',
-              borderRight: '1px solid rgba(255,255,255,0.07)',
+              background: 'var(--mai-bg-panel)',
+              borderRight: '1px solid var(--mai-border)',
             }}
           >
-            {/* Header */}
-            <div
-              className="flex items-center justify-between shrink-0"
-              style={{
-                height: 40,
-                padding: '0 12px',
-                borderBottom: '1px solid rgba(255,255,255,0.07)',
-              }}
-            >
-              <span style={{
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: '#555560',
-              }}>
-                Explorer
-              </span>
-            </div>
+            {sidebarView === 'explorer' && (
+              <>
+                {/* Header */}
+                <div
+                  className="flex items-center justify-between shrink-0"
+                  style={{
+                    height: 40,
+                    padding: '0 12px',
+                    borderBottom: '1px solid var(--mai-border)',
+                  }}
+                >
+                  <span style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'var(--mai-text-3)',
+                  }}>
+                    Explorer
+                  </span>
+                </div>
 
-            {/* New connection */}
-            <div className="px-2 py-2 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-              <ConnectionForm />
-              {editingConnection && (
-                <ConnectionForm initialConnection={editingConnection} onClose={() => setEditingConnection(null)} />
-              )}
-            </div>
+                {/* New connection */}
+                <div className="px-2 py-2 shrink-0" style={{ borderBottom: '1px solid var(--mai-border)' }}>
+                  <ConnectionForm />
+                  {editingConnection && (
+                    <ConnectionForm initialConnection={editingConnection} onClose={() => setEditingConnection(null)} />
+                  )}
+                </div>
 
-            {/* Connections + schema tree */}
-            <div className="flex-1 overflow-y-auto min-h-0">
-              <SectionLabel>Connections</SectionLabel>
-              <ConnectionList onEdit={setEditingConnection} />
-            </div>
+                {/* Connections + schema tree */}
+                <div className="flex-1 overflow-y-auto min-h-0">
+                  <SectionLabel>Connections</SectionLabel>
+                  <ConnectionList onEdit={setEditingConnection} />
+                </div>
+              </>
+            )}
+
+            {sidebarView === 'history' && <QueryHistory />}
+            {sidebarView === 'snippets' && <SnippetPanel />}
+            {sidebarView === 'ai' && <AIChatPanel />}
 
             {/* Sidebar drag handle */}
             <div
               onMouseDown={handleSidebarDrag}
               className="absolute top-0 right-0 bottom-0"
               style={{ width: 4, cursor: 'col-resize' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--mai-accent)'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             />
           </div>
@@ -206,14 +279,14 @@ export function MainLayout() {
             onClick={() => setSidebarCollapsed(false)}
             style={{
               width: 4,
-              background: 'rgba(255,255,255,0.07)',
+              background: 'var(--mai-border)',
               cursor: 'col-resize',
               flexShrink: 0,
               border: 'none',
               padding: 0,
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--mai-accent)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'var(--mai-border)'}
             title="Expand sidebar"
           >
             <ChevronRight size={8} style={{ color: 'transparent' }} />
@@ -221,16 +294,23 @@ export function MainLayout() {
         )}
 
         {/* Main area */}
-        <main className="flex flex-1 flex-col overflow-hidden min-w-0" style={{ background: '#131316' }}>
-          {activeView === 'backup' ? (
+        <main className="flex flex-1 flex-col overflow-hidden min-w-0" style={{ background: 'var(--mai-bg-base)' }}>
+          {mainView === 'backup' ? (
             <BackupRestore />
-          ) : activeView === 'er-diagram' ? (
+          ) : mainView === 'er-diagram' ? (
             <ERDiagram />
+          ) : mainView === 'settings' ? (
+            <SettingsPanel />
+          ) : mainView === 'diff' ? (
+            <SchemaDiff />
           ) : (
             <>
               <TabBar />
 
               {activeTab ? (
+                activeTab.type === 'table-designer' ? (
+                  <TableDesigner tabId={activeTab.id} />
+                ) : (
                 <div className="flex flex-1 flex-col overflow-hidden min-h-0">
                   <EditorToolbar tabId={activeTab.id} />
 
@@ -244,7 +324,7 @@ export function MainLayout() {
                     className="flex flex-col shrink-0 overflow-hidden"
                     style={{
                       height: resultsHeight,
-                      borderTop: '1px solid rgba(255,255,255,0.07)',
+                      borderTop: '1px solid var(--mai-border)',
                     }}
                   >
                     {/* Drag handle — 4px */}
@@ -256,7 +336,7 @@ export function MainLayout() {
                         flexShrink: 0,
                         background: 'transparent',
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--mai-accent)'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     />
 
@@ -265,13 +345,28 @@ export function MainLayout() {
                       error={activeTab.error}
                       isExecuting={activeTab.isExecuting}
                     />
+
+                    {/* Results tab bar (grid / explain) */}
+                    {activeTab.result && hasExplainResult && (
+                      <div className="flex items-center gap-0 shrink-0" style={{ borderBottom: '1px solid var(--mai-border)', background: 'var(--mai-bg-panel)' }}>
+                        <ResultsTabBtn label="Grid" active={resultsTab === 'grid'} onClick={() => setResultsTab('grid')} />
+                        <ResultsTabBtn label="Visual Plan" active={resultsTab === 'explain'} onClick={() => setResultsTab('explain')} />
+                      </div>
+                    )}
+
                     <div className="flex-1 overflow-hidden min-h-0">
                       {activeTab.result ? (
-                        <ResultsGrid result={activeTab.result} />
+                        resultsTab === 'explain' && hasExplainResult ? (
+                          <ExplainTree
+                            explainResult={JSON.stringify(activeTab.result.rows[0]?.['QUERY PLAN'])}
+                          />
+                        ) : (
+                          <ResultsGrid result={activeTab.result} />
+                        )
                       ) : (
                         <div
                           className="flex h-full items-center justify-center"
-                          style={{ color: '#555560', fontSize: 13 }}
+                          style={{ color: 'var(--mai-text-3)', fontSize: 13 }}
                         >
                           {activeTab.error ? null : 'Run a query to see results'}
                         </div>
@@ -279,12 +374,13 @@ export function MainLayout() {
                     </div>
                   </div>
                 </div>
+                )
               ) : (
-                <div className="flex flex-1 items-center justify-center" style={{ color: '#555560' }}>
+                <div className="flex flex-1 items-center justify-center" style={{ color: 'var(--mai-text-3)' }}>
                   <div className="text-center" style={{ gap: 12, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Database size={40} style={{ opacity: 0.12, color: '#8B8B8B' }} />
-                    <p style={{ fontSize: 14, color: '#8B8B8B', margin: 0 }}>Connect to a database to get started</p>
-                    <p style={{ fontSize: 12, color: '#555560', margin: 0 }}>Select a connection in the sidebar or create a new one</p>
+                    <Database size={40} style={{ opacity: 0.12, color: 'var(--mai-text-2)' }} />
+                    <p style={{ fontSize: 14, color: 'var(--mai-text-2)', margin: 0 }}>Connect to a database to get started</p>
+                    <p style={{ fontSize: 12, color: 'var(--mai-text-3)', margin: 0 }}>Select a connection in the sidebar or create a new one</p>
                   </div>
                 </div>
               )}
@@ -315,27 +411,45 @@ function ActivityBtn({
         width: 36,
         height: 36,
         borderRadius: 6,
-        color: active ? '#ECECEC' : '#555560',
+        color: active ? 'var(--mai-text-1)' : 'var(--mai-text-3)',
         background: active ? 'rgba(91,138,240,0.12)' : 'transparent',
-        borderLeft: active ? '2px solid #5B8AF0' : '2px solid transparent',
         border: 'none',
         cursor: 'pointer',
         transition: 'color 0.15s, background 0.15s',
       }}
       onMouseEnter={(e) => {
         if (!active) {
-          e.currentTarget.style.color = '#8B8B8B'
-          e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+          e.currentTarget.style.color = 'var(--mai-text-2)'
+          e.currentTarget.style.background = 'var(--mai-bg-hover)'
         }
       }}
       onMouseLeave={(e) => {
         if (!active) {
-          e.currentTarget.style.color = '#555560'
+          e.currentTarget.style.color = 'var(--mai-text-3)'
           e.currentTarget.style.background = 'transparent'
         }
       }}
     >
       {icon}
+    </button>
+  )
+}
+
+function ResultsTabBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '4px 12px',
+        fontSize: 11,
+        color: active ? 'var(--mai-text-1)' : 'var(--mai-text-3)',
+        background: 'transparent',
+        border: 'none',
+        borderBottom: active ? '2px solid var(--mai-accent)' : '2px solid transparent',
+        cursor: 'pointer',
+      }}
+    >
+      {label}
     </button>
   )
 }
@@ -348,7 +462,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       fontWeight: 600,
       letterSpacing: '0.09em',
       textTransform: 'uppercase',
-      color: '#555560',
+      color: 'var(--mai-text-3)',
     }}>
       {children}
     </div>

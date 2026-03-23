@@ -1,8 +1,9 @@
 import Store from 'electron-store'
 import { createDriver } from '../drivers/factory'
 import { keychain } from '../security/keychain'
+import { sshManager } from './ssh-manager'
 import type { IDataSource } from '../drivers/interface'
-import type { ConnectionConfig, SavedConnection } from '../../shared/types/connection'
+import type { ConnectionConfig, SavedConnection, SSHTunnelConfig } from '../../shared/types/connection'
 
 interface StoreSchema {
   connections: SavedConnection[]
@@ -76,7 +77,23 @@ export class ConnectionManager {
     const password = await keychain.getPassword(`conn-${id}`)
     if (!password) throw new Error(`No stored password for connection ${id}`)
 
-    const config: ConnectionConfig = { ...saved, password }
+    let config: ConnectionConfig = { ...saved, password }
+
+    // If an SSH tunnel is configured, establish it and rewrite host/port
+    if (saved.sshTunnel) {
+      const tunnel: SSHTunnelConfig = saved.sshTunnel
+      const localPort = await sshManager.connect(id, {
+        host: tunnel.host,
+        port: tunnel.port,
+        username: tunnel.username,
+        password: tunnel.password,
+        privateKey: tunnel.privateKey,
+        remoteHost: saved.host,
+        remotePort: saved.port,
+      })
+      config = { ...config, host: '127.0.0.1', port: localPort }
+    }
+
     const driver = createDriver(config)
     await driver.connect()
     this.activeDrivers.set(id, driver)
@@ -88,6 +105,7 @@ export class ConnectionManager {
       await driver.disconnect()
       this.activeDrivers.delete(id)
     }
+    await sshManager.disconnect(id)
   }
 
   getDriver(id: string): IDataSource | undefined {

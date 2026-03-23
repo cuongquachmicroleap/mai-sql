@@ -39,8 +39,8 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
   if (loading) {
     return (
       <div className="flex items-center gap-2 px-3 py-3">
-        <Loader2 size={12} className="animate-spin" style={{ color: '#555560' }} />
-        <span style={{ color: '#555560', fontSize: 12 }}>Loading...</span>
+        <Loader2 size={12} className="animate-spin" style={{ color: 'var(--mai-text-3)' }} />
+        <span style={{ color: 'var(--mai-text-3)', fontSize: 12 }}>Loading...</span>
       </div>
     )
   }
@@ -51,16 +51,43 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
         <Database
           size={24}
           className="mx-auto mb-2"
-          style={{ color: '#555560', opacity: 0.4, display: 'block', margin: '0 auto 8px' }}
+          style={{ color: 'var(--mai-text-3)', opacity: 0.4, display: 'block', margin: '0 auto 8px' }}
         />
-        <p style={{ color: '#555560', fontSize: 12 }}>No connections yet</p>
+        <p style={{ color: 'var(--mai-text-3)', fontSize: 12 }}>No connections yet</p>
       </div>
     )
   }
 
+  // Group connections by group name
+  const grouped = new Map<string, typeof connections>()
+  for (const conn of connections) {
+    const group = conn.group || ''
+    if (!grouped.has(group)) grouped.set(group, [])
+    grouped.get(group)!.push(conn)
+  }
+  const sortedGroups = Array.from(grouped.entries()).sort(([a], [b]) => {
+    if (!a) return 1  // ungrouped last
+    if (!b) return -1
+    return a.localeCompare(b)
+  })
+
   return (
     <div className="py-0.5">
-      {connections.map((conn) => {
+      {sortedGroups.map(([group, groupConns]) => (
+        <div key={group || '__ungrouped__'}>
+          {group && (
+            <div style={{
+              padding: '6px 10px 2px',
+              fontSize: 9,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: group.toLowerCase() === 'production' ? '#F87171' : 'var(--mai-text-4)',
+            }}>
+              {group}
+            </div>
+          )}
+          {groupConns.map((conn) => {
         const isActive = conn.id === activeConnectionId
         const isHovered = hoveredId === conn.id
         const color = DIALECT_COLORS[conn.type] ?? '#555560'
@@ -75,17 +102,17 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
                 background: isActive
                   ? 'rgba(91,138,240,0.12)'
                   : isHovered
-                    ? 'rgba(255,255,255,0.04)'
+                    ? 'var(--mai-bg-hover)'
                     : 'transparent',
                 transition: 'background 0.12s',
               }}
               onMouseEnter={() => setHoveredId(conn.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              {/* Connection status dot */}
+              {/* Connection status dot (uses custom color if set) */}
               <span
                 className="h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ background: isActive ? '#34D399' : '#3A3A45' }}
+                style={{ background: isActive ? (conn.color || '#34D399') : 'var(--mai-text-4)' }}
               />
 
               {/* DB type badge */}
@@ -115,7 +142,7 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
                   className="truncate"
                   style={{
                     fontSize: 13,
-                    color: isActive ? '#ECECEC' : '#8B8B8B',
+                    color: isActive ? 'var(--mai-text-1)' : 'var(--mai-text-2)',
                   }}
                 >
                   {conn.name}
@@ -125,7 +152,7 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
                     className="shrink-0 px-1 rounded"
                     style={{
                       fontSize: 10,
-                      color: '#5B8AF0',
+                      color: 'var(--mai-accent)',
                       border: '1px solid rgba(91,138,240,0.4)',
                     }}
                   >
@@ -143,15 +170,15 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
                     width: 20,
                     height: 20,
                     flexShrink: 0,
-                    color: '#555560',
+                    color: 'var(--mai-text-3)',
                     opacity: isHovered ? 1 : 0,
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
                     transition: 'opacity 0.12s, color 0.12s',
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#ECECEC'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#555560'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--mai-text-1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-3)'}
                   title="Edit connection"
                 >
                   <Pencil size={11} />
@@ -166,7 +193,7 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
                   width: 20,
                   height: 20,
                   flexShrink: 0,
-                  color: '#555560',
+                  color: 'var(--mai-text-3)',
                   opacity: isHovered ? 1 : 0,
                   background: 'none',
                   border: 'none',
@@ -174,7 +201,7 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
                   transition: 'opacity 0.12s, color 0.12s',
                 }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#F87171'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#555560'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-3)'}
                 title="Delete connection"
               >
                 <Trash2 size={11} />
@@ -190,6 +217,8 @@ export function ConnectionList({ onEdit }: ConnectionListProps) {
           </div>
         )
       })}
+        </div>
+      ))}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, Table2 } from 'lucide-react'
 import { useEditorStore } from '../../stores/editor-store'
 
 export function TabBar() {
@@ -11,8 +11,8 @@ export function TabBar() {
     <div
       className="flex items-end overflow-x-auto shrink-0"
       style={{
-        background: '#131316',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: 'var(--mai-bg-base)',
+        borderBottom: '1px solid var(--mai-border)',
         height: 36,
       }}
     >
@@ -31,10 +31,10 @@ export function TabBar() {
               maxWidth: 200,
               fontSize: 12,
               fontFamily: 'inherit',
-              background: isActive ? '#1C1C20' : isHovered ? 'rgba(255,255,255,0.04)' : 'transparent',
-              color: isActive ? '#ECECEC' : isHovered ? '#8B8B8B' : '#555560',
-              borderRight: '1px solid rgba(255,255,255,0.07)',
-              borderTop: isActive ? '2px solid #5B8AF0' : '2px solid transparent',
+              background: isActive ? 'var(--mai-bg-panel)' : isHovered ? 'var(--mai-bg-hover)' : 'transparent',
+              color: isActive ? 'var(--mai-text-1)' : isHovered ? 'var(--mai-text-2)' : 'var(--mai-text-3)',
+              borderRight: '1px solid var(--mai-border)',
+              borderTop: isActive ? '2px solid var(--mai-accent)' : '2px solid transparent',
               borderLeft: 'none',
               borderBottom: 'none',
               cursor: 'pointer',
@@ -42,15 +42,19 @@ export function TabBar() {
               paddingTop: isActive ? 0 : 2,
             }}
           >
+            {/* Table designer icon */}
+            {tab.type === 'table-designer' && (
+              <Table2 size={11} className="shrink-0" style={{ color: '#F97316' }} />
+            )}
             {/* Executing dot: animated amber pulse */}
-            {tab.isExecuting && (
+            {tab.type !== 'table-designer' && tab.isExecuting && (
               <span
                 className="h-1.5 w-1.5 shrink-0 rounded-full animate-pulse-yellow"
                 style={{ background: '#FBBF24' }}
               />
             )}
             {/* Error indicator */}
-            {tab.error && !tab.isExecuting && (
+            {tab.type !== 'table-designer' && tab.error && !tab.isExecuting && (
               <span
                 className="h-1.5 w-1.5 shrink-0 rounded-full"
                 style={{ background: '#F87171' }}
@@ -67,11 +71,11 @@ export function TabBar() {
                 height: 14,
                 flexShrink: 0,
                 opacity: isHovered || isActive ? 1 : 0,
-                color: '#555560',
+                color: 'var(--mai-text-3)',
                 transition: 'opacity 0.12s, color 0.12s',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#ECECEC'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#555560'}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--mai-text-1)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--mai-text-3)'}
             >
               <X size={10} />
             </span>
@@ -86,7 +90,7 @@ export function TabBar() {
         onMouseLeave={() => setHoveredNew(false)}
         className="flex h-full items-center px-2 shrink-0 ml-auto"
         style={{
-          color: hoveredNew ? '#8B8B8B' : '#555560',
+          color: hoveredNew ? 'var(--mai-text-2)' : 'var(--mai-text-3)',
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',

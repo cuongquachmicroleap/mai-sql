@@ -1,12 +1,21 @@
 import { useState, useRef } from 'react'
 import ReactDOM from 'react-dom'
-import { CheckCircle2, XCircle, Loader2, Table2, Download, Copy } from 'lucide-react'
+import { CheckCircle2, XCircle, Loader2, Table2, Download, Copy, FileSpreadsheet, FileText, Database } from 'lucide-react'
+import { invoke } from '../../lib/ipc-client'
 import type { QueryResult } from '@shared/types/query'
 
 interface ResultsToolbarProps {
   result: QueryResult | null
   error: string | null
   isExecuting: boolean
+}
+
+function formatForExport(result: QueryResult): { columns: string[]; rows: unknown[][] } {
+  const columns = result.columns.map((c) => c.name)
+  const rows = result.rows.map((row) =>
+    columns.map((col) => (row as Record<string, unknown>)[col] ?? null)
+  )
+  return { columns, rows }
 }
 
 function exportCSV(result: QueryResult) {
@@ -58,6 +67,18 @@ function copyAsCSV(result: QueryResult) {
   navigator.clipboard.writeText(csv).catch(() => {})
 }
 
+function copyAsTSV(result: QueryResult) {
+  const headers = result.columns.map((c) => c.name).join('\t')
+  const rows = result.rows.map((row) =>
+    result.columns.map((c) => {
+      const v = (row as Record<string, unknown>)[c.name]
+      if (v === null || v === undefined) return ''
+      return String(v).replace(/\t/g, ' ').replace(/\n/g, ' ')
+    }).join('\t')
+  ).join('\n')
+  navigator.clipboard.writeText(headers + '\n' + rows).catch(() => {})
+}
+
 const toolbarBtnStyle = (hovered: boolean): React.CSSProperties => ({
   height: 22,
   padding: '0 8px',
@@ -65,8 +86,8 @@ const toolbarBtnStyle = (hovered: boolean): React.CSSProperties => ({
   fontSize: 11,
   border: 'none',
   cursor: 'pointer',
-  background: hovered ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)',
-  color: hovered ? '#ECECEC' : '#8B8B8B',
+  background: hovered ? 'var(--mai-border-strong)' : 'var(--mai-border)',
+  color: hovered ? 'var(--mai-text-1)' : 'var(--mai-text-2)',
   transition: 'background 0.12s, color 0.12s',
   display: 'flex',
   alignItems: 'center',
@@ -87,25 +108,54 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
     setTimeout(() => setCopied(false), 1500)
   }
 
+  const handleExportXLSX = async () => {
+    if (!result) return
+    const path = await invoke('export:choose-save-path', 'query-result.xlsx', [{ name: 'Excel', extensions: ['xlsx'] }])
+    if (!path) return
+    const data = formatForExport(result)
+    await invoke('export:xlsx', data, path)
+    setExportOpen(false)
+  }
+
+  const handleExportSQLInsert = async () => {
+    if (!result) return
+    const tableName = prompt('Enter table name for INSERT statements:', 'my_table')
+    if (!tableName) return
+    const path = await invoke('export:choose-save-path', `${tableName}-inserts.sql`, [{ name: 'SQL', extensions: ['sql'] }])
+    if (!path) return
+    const data = formatForExport(result)
+    await invoke('export:sql-insert', tableName, data, path)
+    setExportOpen(false)
+  }
+
+  const handleExportCSVFile = async () => {
+    if (!result) return
+    const path = await invoke('export:choose-save-path', 'query-result.csv', [{ name: 'CSV', extensions: ['csv'] }])
+    if (!path) return
+    const data = formatForExport(result)
+    await invoke('export:csv', data, path)
+    setExportOpen(false)
+  }
+
   return (
     <div
       className="flex items-center gap-3 px-3 shrink-0"
       style={{
         height: 30,
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#1C1C20',
+        borderBottom: '1px solid var(--mai-border)',
+        background: 'var(--mai-bg-panel)',
         fontSize: 11,
       }}
     >
-      <div className="flex items-center gap-1.5" style={{ color: '#555560', fontWeight: 500 }}>
+      <div className="flex items-center gap-1.5" style={{ color: 'var(--mai-text-3)', fontWeight: 500 }}>
         <Table2 size={12} />
         <span>Results</span>
       </div>
 
-      <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.08)' }} />
+      <div style={{ width: 1, height: 12, background: 'var(--mai-border-strong)' }} />
 
       {isExecuting && (
-        <div className="flex items-center gap-1.5" style={{ color: '#5B8AF0' }}>
+        <div className="flex items-center gap-1.5" style={{ color: 'var(--mai-accent)' }}>
           <Loader2 size={11} className="animate-spin" />
           <span>Executing...</span>
         </div>
@@ -124,7 +174,7 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
             <XCircle size={10} className="shrink-0" />
             <span>Error</span>
           </span>
-          <span className="truncate" style={{ color: '#8B8B8B' }}>{error}</span>
+          <span className="truncate" style={{ color: 'var(--mai-text-2)' }}>{error}</span>
         </div>
       )}
 
@@ -141,24 +191,24 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
             <CheckCircle2 size={10} />
             <span>OK</span>
           </span>
-          <span style={{ color: '#8B8B8B' }}>
+          <span style={{ color: 'var(--mai-text-2)' }}>
             {result.rowCount.toLocaleString()} rows
           </span>
-          <span style={{ color: '#555560' }}>{result.executionTimeMs}ms</span>
+          <span style={{ color: 'var(--mai-text-3)' }}>{result.executionTimeMs}ms</span>
         </div>
       )}
 
       {!result && !error && !isExecuting && (
-        <span style={{ color: '#555560' }}>Ready</span>
+        <span style={{ color: 'var(--mai-text-3)' }}>Ready</span>
       )}
 
       {/* Spacer */}
       <div style={{ flex: 1 }} />
 
-      {/* Export and Copy buttons — only when there are results */}
+      {/* Export and Copy buttons */}
       {result && !isExecuting && (
         <div className="flex items-center gap-1.5" style={{ position: 'relative' }}>
-          {/* Copy as CSV button */}
+          {/* Copy as CSV */}
           <button
             onClick={handleCopy}
             onMouseEnter={() => setCopyHovered(true)}
@@ -168,6 +218,16 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
           >
             <Copy size={10} />
             <span>{copied ? 'Copied!' : 'Copy CSV'}</span>
+          </button>
+
+          {/* Copy as TSV (for spreadsheets) */}
+          <button
+            onClick={() => { if (result) copyAsTSV(result) }}
+            title="Copy as tab-separated (paste into Excel/Sheets)"
+            style={toolbarBtnStyle(false)}
+          >
+            <FileSpreadsheet size={10} />
+            <span>TSV</span>
           </button>
 
           {/* Export dropdown */}
@@ -188,7 +248,6 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
               const rect = exportBtnRef.current?.getBoundingClientRect()
               return ReactDOM.createPortal(
                 <>
-                  {/* Backdrop to close */}
                   <div
                     style={{ position: 'fixed', inset: 0, zIndex: 999 }}
                     onClick={() => setExportOpen(false)}
@@ -199,36 +258,40 @@ export function ResultsToolbar({ result, error, isExecuting }: ResultsToolbarPro
                       right: rect ? window.innerWidth - rect.right : 0,
                       top: rect ? rect.bottom + 4 : 0,
                       zIndex: 1000,
-                      background: '#222227',
-                      border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'var(--mai-bg-elevated)',
+                      border: '1px solid var(--mai-border-strong)',
                       borderRadius: 7,
                       padding: 4,
                       boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                      minWidth: 140,
+                      minWidth: 170,
                     }}
                   >
                     {[
-                      { label: 'Export as CSV', action: () => { exportCSV(result); setExportOpen(false) } },
-                      { label: 'Export as JSON', action: () => { exportJSON(result); setExportOpen(false) } },
+                      { label: 'Export as CSV', icon: <FileText size={10} />, action: () => { exportCSV(result); setExportOpen(false) } },
+                      { label: 'Save as CSV...', icon: <Download size={10} />, action: handleExportCSVFile },
+                      { label: 'Export as JSON', icon: <FileText size={10} />, action: () => { exportJSON(result); setExportOpen(false) } },
+                      { label: 'Export as Excel', icon: <FileSpreadsheet size={10} />, action: handleExportXLSX },
+                      { label: 'Export as SQL INSERT', icon: <Database size={10} />, action: handleExportSQLInsert },
                     ].map((item) => (
                       <button
                         key={item.label}
                         onClick={item.action}
-                        className="flex w-full items-center"
+                        className="flex w-full items-center gap-2"
                         style={{
                           height: 28,
                           padding: '0 10px',
                           fontSize: 12,
-                          color: '#ECECEC',
+                          color: 'var(--mai-text-1)',
                           background: 'transparent',
                           border: 'none',
                           borderRadius: 4,
                           cursor: 'pointer',
                           textAlign: 'left',
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--mai-border-strong)' }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                       >
+                        {item.icon}
                         {item.label}
                       </button>
                     ))}

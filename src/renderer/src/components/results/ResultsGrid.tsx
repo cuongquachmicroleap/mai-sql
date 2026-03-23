@@ -9,7 +9,7 @@ interface ResultsGridProps {
 
 function CellValue({ value }: { value: unknown }) {
   if (value === null || value === undefined) {
-    return <span style={{ color: '#555560', fontStyle: 'italic' }}>NULL</span>
+    return <span style={{ color: 'var(--mai-text-3)', fontStyle: 'italic' }}>NULL</span>
   }
   if (typeof value === 'boolean') {
     return (
@@ -48,8 +48,8 @@ function estimateColWidth(name: string, rows: Record<string, unknown>[], maxRows
 
 // Row number column sticky style
 const ROW_NUM_STYLE: React.CSSProperties = {
-  background: '#1C1C20',
-  borderRight: '1px solid rgba(255,255,255,0.08)',
+  background: 'var(--mai-bg-panel)',
+  borderRight: '1px solid var(--mai-border-strong)',
   position: 'sticky',
   left: 0,
   zIndex: 1,
@@ -63,10 +63,10 @@ export function ResultsGrid({ result }: ResultsGridProps) {
     {
       id: '__rownum__',
       header: () => (
-        <span style={{ color: '#555560', fontVariantNumeric: 'tabular-nums' }}>#</span>
+        <span style={{ color: 'var(--mai-text-3)', fontVariantNumeric: 'tabular-nums' }}>#</span>
       ),
       cell: ({ row }) => (
-        <span style={{ color: '#555560', fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ color: 'var(--mai-text-3)', fontVariantNumeric: 'tabular-nums' }}>
           {row.index + 1}
         </span>
       ),
@@ -83,13 +83,13 @@ export function ResultsGrid({ result }: ResultsGridProps) {
             fontSize: 11,
             textTransform: 'uppercase' as const,
             letterSpacing: '0.06em',
-            color: '#8B8B8B',
+            color: 'var(--mai-text-2)',
           }}>
             {col.name}
           </span>
           <span style={{
             fontSize: 10,
-            color: '#555560',
+            color: 'var(--mai-text-3)',
             fontFamily: 'inherit',
             textTransform: 'none' as const,
             letterSpacing: 0,
@@ -129,14 +129,14 @@ export function ResultsGrid({ result }: ResultsGridProps) {
       ref={parentRef}
       className="h-full overflow-auto"
       style={{
-        background: '#131316',
+        background: 'var(--mai-bg-base)',
         fontFamily: "ui-monospace, 'SF Mono', 'Cascadia Code', 'Fira Code', monospace",
         fontSize: 13,
       }}
     >
       <table style={{ width: '100%', borderCollapse: 'collapse', lineHeight: '1.0' }}>
         {/* Header — 32px, #222227 bg */}
-        <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: '#222227' }}>
+        <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: 'var(--mai-bg-elevated)' }}>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((header, i) => (
@@ -145,15 +145,15 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                   style={{
                     width: header.getSize(),
                     height: 32,
-                    borderBottom: '1px solid rgba(255,255,255,0.10)',
-                    borderRight: '1px solid rgba(255,255,255,0.06)',
+                    borderBottom: '1px solid var(--mai-border-strong)',
+                    borderRight: '1px solid var(--mai-border)',
                     padding: '0 10px',
                     textAlign: 'left',
                     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
                     verticalAlign: 'middle',
                     whiteSpace: 'nowrap',
-                    background: i === 0 ? '#222227' : undefined,
-                    ...(i === 0 ? { ...ROW_NUM_STYLE, background: '#222227', zIndex: 11 } : {}),
+                    background: i === 0 ? 'var(--mai-bg-elevated)' : undefined,
+                    ...(i === 0 ? { ...ROW_NUM_STYLE, background: 'var(--mai-bg-elevated)', zIndex: 11 } : {}),
                     position: i === 0 ? 'sticky' : 'relative',
                     left: i === 0 ? 0 : 'auto',
                     zIndex: i === 0 ? 11 : 'auto',
@@ -167,9 +167,9 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                       style={{
                         position: 'absolute', right: 0, top: 0, bottom: 0,
                         width: 4, cursor: 'col-resize', userSelect: 'none',
-                        background: header.column.getIsResizing() ? '#5B8AF0' : 'transparent',
+                        background: header.column.getIsResizing() ? 'var(--mai-accent)' : 'transparent',
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#5B8AF0'}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--mai-accent)'}
                       onMouseLeave={(e) => {
                         if (!header.column.getIsResizing()) e.currentTarget.style.background = 'transparent'
                       }}
@@ -185,7 +185,7 @@ export function ResultsGrid({ result }: ResultsGridProps) {
           {virtualRows.map((vRow) => {
             const row = rows[vRow.index]
             const isOdd = vRow.index % 2 === 1
-            const rowBg = isOdd ? 'rgba(255,255,255,0.015)' : 'transparent'
+            const rowBg = isOdd ? 'var(--mai-bg-hover)' : 'transparent'
             return (
               <tr
                 key={row.id}
@@ -202,21 +202,21 @@ export function ResultsGrid({ result }: ResultsGridProps) {
                       style={{
                         width: cell.column.getSize(),
                         height: 27,
-                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        borderBottom: '1px solid var(--mai-border)',
                         borderRight: '1px solid rgba(255,255,255,0.04)',
                         padding: '0 10px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         textAlign: isNum ? 'right' : 'left',
-                        color: '#ECECEC',
+                        color: 'var(--mai-text-1)',
                         verticalAlign: 'middle',
                         ...(i === 0 ? {
                           ...ROW_NUM_STYLE,
                           textAlign: 'right',
                           padding: '0 8px',
                           fontSize: 11,
-                          color: '#555560',
+                          color: 'var(--mai-text-3)',
                         } : {}),
                       }}
                     >

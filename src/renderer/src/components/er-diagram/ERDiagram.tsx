@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { RefreshCw, Network, AlertCircle, ZoomIn, ZoomOut, Maximize2, GripVertical, ChevronRight, ChevronDown } from 'lucide-react'
+import { RefreshCw, Network, AlertCircle, ZoomIn, ZoomOut, Maximize2, GripVertical } from 'lucide-react'
 import { invoke } from '../../lib/ipc-client'
 import { useConnectionStore } from '../../stores/connection-store'
 import type { TableInfo, ColumnInfo, Relationship } from '@shared/types/schema'
@@ -152,10 +152,10 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
       <div
         style={{
           width: node.width,
-          border: '1px solid rgba(255,255,255,0.10)',
+          border: '1px solid var(--mai-border-strong)',
           borderRadius: 4,
           overflow: 'hidden',
-          background: '#1C1C20',
+          background: 'var(--mai-bg-panel)',
           boxShadow: '0 1px 4px rgba(0,0,0,0.6)',
           fontFamily: 'var(--font-sans, system-ui, sans-serif)',
         }}
@@ -165,8 +165,8 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
           onMouseDown={(e) => onDragStart(e, node.id)}
           style={{
             height: NODE_HEADER_HEIGHT,
-            background: '#252B3B',
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--mai-bg-elevated)',
+            borderBottom: '1px solid var(--mai-border-strong)',
             display: 'flex',
             alignItems: 'center',
             paddingLeft: 6,
@@ -178,7 +178,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
           <GripVertical size={10} style={{ color: 'rgba(200,216,240,0.35)', marginRight: 4, flexShrink: 0 }} />
           <span
             style={{
-              color: '#C8D8F0',
+              color: 'var(--mai-text-2)',
               fontWeight: 700,
               fontSize: 12,
               overflow: 'hidden',
@@ -212,7 +212,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
               height: NODE_ROW_HEIGHT,
               display: 'flex',
               alignItems: 'center',
-              borderBottom: '1px solid rgba(255,255,255,0.04)',
+              borderBottom: '1px solid var(--mai-bg-hover)',
               background: col.isPrimaryKey ? 'rgba(250,204,21,0.04)' : undefined,
             }}
           >
@@ -225,7 +225,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRight: '1px solid rgba(255,255,255,0.06)',
+                borderRight: '1px solid var(--mai-border)',
                 background: 'rgba(0,0,0,0.15)',
               }}
             >
@@ -247,7 +247,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
               <span
                 style={{
                   fontSize: 11,
-                  color: col.isPrimaryKey ? '#FDE68A' : col.isForeignKey ? '#C8D8F0' : '#ECECEC',
+                  color: col.isPrimaryKey ? '#FDE68A' : col.isForeignKey ? '#C8D8F0' : 'var(--mai-text-1)',
                   textDecoration: col.isPrimaryKey ? 'underline' : undefined,
                   flex: 1,
                   overflow: 'hidden',
@@ -260,7 +260,7 @@ function TableNodeCard({ node, onDragStart }: TableNodeCardProps) {
               <span
                 style={{
                   fontSize: 10,
-                  color: '#555560',
+                  color: 'var(--mai-text-3)',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                 }}
@@ -317,120 +317,11 @@ function EdgeLine({ edge, nodeMap }: EdgeLineProps) {
         markerStart="url(#crow-foot-many)"
         markerEnd="url(#one-end)"
       />
-      <rect x={midX - 13} y={midY - 8} width={26} height={14} rx={3} fill="#1C1C20" stroke="rgba(123,159,212,0.35)" strokeWidth={1} />
+      <rect x={midX - 13} y={midY - 8} width={26} height={14} rx={3} fill="var(--mai-bg-panel)" stroke="rgba(123,159,212,0.35)" strokeWidth={1} />
       <text x={midX} y={midY + 4} textAnchor="middle" fontSize={9} fontFamily="var(--font-sans, system-ui, sans-serif)" fill="#7B9FD4">
         N:1
       </text>
     </g>
-  )
-}
-
-// ─── Field List Panel ─────────────────────────────────────────────────────────
-function FieldListPanel({ nodes, edges }: { nodes: TableNode[]; edges: Edge[] }) {
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
-
-  // Build a set of table names that have relationships
-  const relatedTables = new Set<string>()
-  edges.forEach((e) => {
-    relatedTables.add(e.rel.sourceTable)
-    relatedTables.add(e.rel.targetTable)
-  })
-
-  const toggle = (id: string) => setCollapsed((c) => ({ ...c, [id]: !c[id] }))
-
-  return (
-    <div
-      style={{
-        width: 220,
-        minWidth: 220,
-        borderRight: '1px solid rgba(255,255,255,0.07)',
-        background: '#141416',
-        overflowY: 'auto',
-        fontFamily: 'var(--font-sans, system-ui, sans-serif)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <div
-        style={{
-          padding: '8px 10px 6px',
-          fontSize: 10,
-          fontWeight: 700,
-          color: 'rgba(255,255,255,0.35)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}
-      >
-        Tables &amp; Fields
-      </div>
-      {nodes.map((node) => {
-        const isOpen = !collapsed[node.id]
-        return (
-          <div key={node.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-            {/* Table header row */}
-            <div
-              onClick={() => toggle(node.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '5px 8px',
-                cursor: 'pointer',
-                gap: 4,
-                background: isOpen ? 'rgba(37,43,59,0.6)' : undefined,
-              }}
-            >
-              {isOpen
-                ? <ChevronDown size={11} style={{ color: '#7B9FD4', flexShrink: 0 }} />
-                : <ChevronRight size={11} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
-              }
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#C8D8F0', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {node.table.name}
-              </span>
-              {relatedTables.has(node.id) && (
-                <span style={{ fontSize: 9, color: '#7B9FD4', background: 'rgba(123,159,212,0.12)', borderRadius: 3, padding: '0 4px' }}>FK</span>
-              )}
-            </div>
-            {/* Column rows */}
-            {isOpen && node.columns.map((col) => (
-              <div
-                key={col.name}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  paddingLeft: 22,
-                  paddingRight: 8,
-                  height: 22,
-                  gap: 5,
-                  background: col.isPrimaryKey ? 'rgba(250,204,21,0.03)' : undefined,
-                }}
-              >
-                <div style={{ width: 12, flexShrink: 0 }}>
-                  {col.isPrimaryKey && <KeyIconPK />}
-                  {col.isForeignKey && !col.isPrimaryKey && <KeyIconFK />}
-                </div>
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: col.isPrimaryKey ? '#FDE68A' : col.isForeignKey ? '#C8D8F0' : '#ADADB5',
-                    textDecoration: col.isPrimaryKey ? 'underline' : undefined,
-                    flex: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {col.name}
-                </span>
-                <span style={{ fontSize: 10, color: '#3E3E48', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  {col.displayType}
-                </span>
-              </div>
-            ))}
-          </div>
-        )
-      })}
-    </div>
   )
 }
 
@@ -478,17 +369,17 @@ export function ERDiagram() {
     setLoading(true)
     setError(null)
     try {
-      const tables = await invoke('schema:tables', activeConnectionId, schema)
+      const tables = await invoke('schema:tables', activeConnectionId, schema, db)
 
       const columnEntries = await Promise.all(
         tables.map(async (t) => {
-          const cols = await invoke('schema:columns', activeConnectionId, t.name)
+          const cols = await invoke('schema:columns', activeConnectionId, t.name, schema, db)
           return [t.name, cols] as [string, ColumnInfo[]]
         })
       )
       const columnsByTable: Record<string, ColumnInfo[]> = Object.fromEntries(columnEntries)
 
-      const relationships = await invoke('schema:relationships', activeConnectionId, schema)
+      const relationships = await invoke('schema:relationships', activeConnectionId, schema, db)
 
       const layouted = layoutNodes(tables, columnsByTable)
 
@@ -524,9 +415,12 @@ export function ERDiagram() {
     try {
       let targetDb = db
       if (!targetDb) {
-        const dbs = await invoke('schema:databases', activeConnectionId)
+        const [dbs, defDb] = await Promise.all([
+          invoke('schema:databases', activeConnectionId),
+          invoke('schema:default-database', activeConnectionId),
+        ])
         setDatabases(dbs)
-        targetDb = dbs[0] ?? ''
+        targetDb = defDb || dbs[0] || ''
         setSelectedDb(targetDb)
       }
       if (!targetDb) {
@@ -732,11 +626,6 @@ export function ERDiagram() {
       {/* Main area: field list + canvas */}
       {!loading && (
         <div className="flex flex-1 overflow-hidden">
-          {/* Field list panel */}
-          {nodes.length > 0 && (
-            <FieldListPanel nodes={nodes} edges={edges} />
-          )}
-
           {/* Canvas */}
           <div
             ref={containerRef}
@@ -776,7 +665,7 @@ export function ERDiagram() {
                       <line x1="6" y1="1" x2="6" y2="13" stroke="#7B9FD4" strokeWidth="1.5"/>
                     </marker>
                     <pattern id="dot-grid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <circle cx="1" cy="1" r="0.8" fill="rgba(255,255,255,0.06)"/>
+                      <circle cx="1" cy="1" r="0.8" fill="var(--mai-border)"/>
                     </pattern>
                   </defs>
 

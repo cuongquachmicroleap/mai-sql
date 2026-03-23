@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Play, Square, AlignLeft, Zap } from 'lucide-react'
+import { Play, Square, AlignLeft, Zap, Sparkles } from 'lucide-react'
 import { format } from 'sql-formatter'
 import { useEditorStore } from '../../stores/editor-store'
 import { useConnectionStore } from '../../stores/connection-store'
+import { useSettingsStore } from '../../stores/settings-store'
 
 interface EditorToolbarProps { tabId: string }
 
@@ -16,7 +17,6 @@ const ROW_LIMIT_OPTIONS: { label: string; value: number | null }[] = [
 function applyRowLimit(sql: string, limit: number | null): string {
   if (limit === null) return sql
   const trimmed = sql.trim().replace(/;+$/, '')
-  // Only add LIMIT to SELECT statements that don't already have one
   if (!trimmed.toUpperCase().startsWith('SELECT')) return sql
   if (/\bLIMIT\b/i.test(trimmed)) return sql
   return `${trimmed}\nLIMIT ${limit}`
@@ -29,8 +29,8 @@ const toolbarBtnStyle = (hovered: boolean): React.CSSProperties => ({
   fontSize: 12,
   border: 'none',
   cursor: 'pointer',
-  background: hovered ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.06)',
-  color: hovered ? '#ECECEC' : '#8B8B8B',
+  background: hovered ? 'var(--mai-bg-hover)' : 'var(--mai-bg-elevated)',
+  color: hovered ? 'var(--mai-text-1)' : 'var(--mai-text-2)',
   transition: 'background 0.12s, color 0.12s',
   display: 'flex',
   alignItems: 'center',
@@ -40,22 +40,23 @@ const toolbarBtnStyle = (hovered: boolean): React.CSSProperties => ({
 export function EditorToolbar({ tabId }: EditorToolbarProps) {
   const { tabs, executeQuery, updateTabContent, setRowLimit } = useEditorStore()
   const { activeConnectionId, connections } = useConnectionStore()
+  const { aiConfig } = useSettingsStore()
   const tab = tabs.find((t) => t.id === tabId)
   const [runHovered, setRunHovered] = useState(false)
   const [formatHovered, setFormatHovered] = useState(false)
   const [explainHovered, setExplainHovered] = useState(false)
+  const [explainVisualHovered, setExplainVisualHovered] = useState(false)
 
   if (!tab) return null
 
   const canExecute = !!activeConnectionId && !!tab.content.trim() && !tab.isExecuting
   const activeConn = connections.find((c) => c.id === activeConnectionId)
 
-  const runBgDefault = tab.isExecuting ? '#F87171' : '#5B8AF0'
-  const runBgHover   = tab.isExecuting ? '#ef5350' : '#4A7AE0'
+  const runBgDefault = tab.isExecuting ? '#F87171' : 'var(--mai-accent)'
+  const runBgHover   = tab.isExecuting ? '#ef5350' : 'var(--mai-accent)'
 
   const handleRun = () => {
     if (!activeConnectionId) return
-    // If there's selected text, execute only that
     const sqlToRun = tab.selectedText.trim() || tab.content
     const sqlWithLimit = applyRowLimit(sqlToRun, tab.rowLimit)
     executeQuery(tabId, activeConnectionId, sqlWithLimit)
@@ -66,7 +67,7 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
       const formatted = format(tab.content, { language: 'postgresql', tabWidth: 2, keywordCase: 'upper' })
       updateTabContent(tabId, formatted)
     } catch {
-      // If formatting fails (e.g. invalid SQL), do nothing
+      // If formatting fails, do nothing
     }
   }
 
@@ -77,6 +78,13 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
     executeQuery(tabId, activeConnectionId, explainSql)
   }
 
+  const handleExplainVisual = () => {
+    if (!activeConnectionId || !tab.content.trim()) return
+    const sqlToRun = tab.selectedText.trim() || tab.content
+    const explainSql = `EXPLAIN (ANALYZE, FORMAT JSON) ${sqlToRun.trim()}`
+    executeQuery(tabId, activeConnectionId, explainSql)
+  }
+
   const selChars = tab.selectedText.length
 
   return (
@@ -84,8 +92,8 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
       className="flex items-center gap-2 px-3 shrink-0"
       style={{
         height: 38,
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        background: '#1C1C20',
+        borderBottom: '1px solid var(--mai-border)',
+        background: 'var(--mai-bg-panel)',
       }}
     >
       {/* Run / Stop button */}
@@ -99,7 +107,7 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
           fontSize: 12,
           fontWeight: 500,
           background: runHovered && (canExecute || tab.isExecuting) ? runBgHover : runBgDefault,
-          color: '#ffffff',
+          color: '#1A1510',
           borderRadius: 6,
           padding: '0 10px',
           height: 26,
@@ -143,8 +151,25 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
         <span>Explain</span>
       </button>
 
+      {/* Visual Explain button */}
+      <button
+        disabled={!canExecute}
+        onClick={handleExplainVisual}
+        onMouseEnter={() => setExplainVisualHovered(true)}
+        onMouseLeave={() => setExplainVisualHovered(false)}
+        title="EXPLAIN ANALYZE with visual tree"
+        style={{
+          ...toolbarBtnStyle(explainVisualHovered),
+          opacity: canExecute ? 1 : 0.35,
+          cursor: canExecute ? 'pointer' : 'default',
+        }}
+      >
+        <Zap size={11} />
+        <span>Visual</span>
+      </button>
+
       {/* Row limit selector */}
-      <div className="flex items-center gap-1" style={{ color: '#555560', fontSize: 11 }}>
+      <div className="flex items-center gap-1" style={{ color: 'var(--mai-text-3)', fontSize: 11 }}>
         <span>Limit</span>
         <select
           value={tab.rowLimit === null ? 'null' : String(tab.rowLimit)}
@@ -157,9 +182,9 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
             padding: '0 4px',
             borderRadius: 5,
             fontSize: 11,
-            border: '1px solid rgba(255,255,255,0.1)',
-            background: '#222227',
-            color: '#ECECEC',
+            border: '1px solid var(--mai-border-strong)',
+            background: 'var(--mai-bg-elevated)',
+            color: 'var(--mai-text-1)',
             cursor: 'pointer',
             outline: 'none',
           }}
@@ -174,21 +199,29 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
 
       {/* Selected text indicator */}
       {selChars > 0 && (
-        <span style={{ fontSize: 11, color: '#5B8AF0', marginLeft: 2 }}>
+        <span style={{ fontSize: 11, color: 'var(--mai-accent)', marginLeft: 2 }}>
           {selChars} chars selected
         </span>
       )}
 
-      <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
+      <div style={{ width: 1, height: 16, background: 'var(--mai-border-strong)', margin: '0 4px' }} />
+
+      {/* AI indicator */}
+      {aiConfig && (
+        <span className="flex items-center gap-1" style={{ fontSize: 10, color: 'var(--mai-text-4)' }}>
+          <Sparkles size={9} />
+          AI
+        </span>
+      )}
 
       {/* Active connection chip */}
       {activeConn ? (
         <div
-          className="flex items-center gap-1.5"
+          className="flex items-center gap-1.5 ml-auto"
           style={{
             fontSize: 12,
-            background: '#222227',
-            color: '#ECECEC',
+            background: 'var(--mai-bg-elevated)',
+            color: 'var(--mai-text-1)',
             borderRadius: 6,
             padding: '0 8px',
             height: 24,
@@ -196,13 +229,26 @@ export function EditorToolbar({ tabId }: EditorToolbarProps) {
         >
           <span
             className="h-1.5 w-1.5 rounded-full shrink-0"
-            style={{ background: '#34D399' }}
+            style={{ background: activeConn.color || '#34D399' }}
           />
-          <span style={{ color: '#ECECEC' }}>{activeConn.name}</span>
-          <span style={{ color: '#555560' }}>{activeConn.type}</span>
+          <span style={{ color: 'var(--mai-text-1)' }}>{activeConn.name}</span>
+          <span style={{ color: 'var(--mai-text-3)' }}>/</span>
+          <span style={{ color: 'var(--mai-text-2)' }}>{tab?.database || activeConn.database || 'postgres'}</span>
+          {activeConn.group && (
+            <span style={{
+              fontSize: 9,
+              padding: '1px 4px',
+              borderRadius: 3,
+              background: activeConn.group.toLowerCase() === 'production' ? 'rgba(248,113,113,0.15)' : 'var(--mai-bg-hover)',
+              color: activeConn.group.toLowerCase() === 'production' ? '#F87171' : 'var(--mai-text-3)',
+              marginLeft: 2,
+            }}>
+              {activeConn.group}
+            </span>
+          )}
         </div>
       ) : (
-        <span style={{ fontSize: 12, color: '#555560' }}>
+        <span className="ml-auto" style={{ fontSize: 12, color: 'var(--mai-text-3)' }}>
           No connection
         </span>
       )}

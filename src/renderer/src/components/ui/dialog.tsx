@@ -32,19 +32,19 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
             background: 'transparent',
             border: 'none',
             cursor: 'pointer',
-            color: '#555560',
+            color: 'var(--mai-text-3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'background 0.12s, color 0.12s',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-            e.currentTarget.style.color = '#ECECEC'
+            e.currentTarget.style.background = 'var(--mai-border-strong)'
+            e.currentTarget.style.color = 'var(--mai-text-1)'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent'
-            e.currentTarget.style.color = '#555560'
+            e.currentTarget.style.color = 'var(--mai-text-3)'
           }}
           title="Close"
         >
@@ -79,8 +79,8 @@ export function DialogContent({
     <div
       className={cn('w-full', className)}
       style={{
-        background: '#1C1C20',
-        border: '1px solid rgba(255,255,255,0.10)',
+        background: 'var(--mai-bg-panel)',
+        border: '1px solid var(--mai-border-strong)',
         borderRadius: 10,
         padding: '20px 20px 16px',
         maxWidth: 480,
@@ -111,7 +111,7 @@ export function DialogTitle({
         margin: 0,
         fontSize: 14,
         fontWeight: 600,
-        color: '#ECECEC',
+        color: 'var(--mai-text-1)',
         ...style,
       }}
     >
