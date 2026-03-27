@@ -152,7 +152,7 @@ describe('useEditorStore', () => {
     await getState().executeQuery(INIT_TAB_ID, 'conn-1', 'SELECT 1')
 
     const tab = getState().tabs[0]
-    expect(mockInvoke).toHaveBeenCalledWith('query:execute', 'conn-1', 'SELECT 1')
+    expect(mockInvoke).toHaveBeenCalledWith('query:execute', 'conn-1', 'SELECT 1', undefined)
     expect(tab.result).toBe(queryResult)
     expect(tab.isExecuting).toBe(false)
     expect(tab.error).toBeNull()

@@ -19,6 +19,15 @@ vi.mock('../../security/keychain', () => ({
   }
 }))
 
+// Mock ssh-manager (depends on ssh2 native module)
+vi.mock('../../managers/ssh-manager', () => ({
+  sshManager: {
+    openTunnel: vi.fn().mockResolvedValue({ localPort: 5433 }),
+    closeTunnel: vi.fn().mockResolvedValue(undefined),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+  },
+}))
+
 // Mock driver factory
 vi.mock('../../drivers/factory', () => ({
   createDriver: vi.fn().mockReturnValue({

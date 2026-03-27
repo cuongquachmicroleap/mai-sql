@@ -83,7 +83,7 @@ describe('IPC schema handlers', () => {
     const tables = [{ name: 'users', schema: 'public', type: 'table' }]
     mockDriver.getTables.mockResolvedValueOnce(tables)
     const result = await handlers.get('schema:tables')!(fakeEvent, connId, 'public')
-    expect(mockDriver.getTables).toHaveBeenCalledWith('public')
+    expect(mockDriver.getTables).toHaveBeenCalledWith('public', undefined)
     expect(result).toBe(tables)
   })
 
@@ -93,14 +93,14 @@ describe('IPC schema handlers', () => {
     const cols = [{ name: 'id', type: 'integer' }]
     mockDriver.getColumns.mockResolvedValueOnce(cols)
     const result = await handlers.get('schema:columns')!(fakeEvent, connId, 'users', 'public')
-    expect(mockDriver.getColumns).toHaveBeenCalledWith('users', 'public')
+    expect(mockDriver.getColumns).toHaveBeenCalledWith('users', 'public', undefined)
     expect(result).toBe(cols)
   })
 
   it('schema:columns works without optional schema (undefined)', async () => {
     mockDriver.getColumns.mockResolvedValueOnce([])
     await handlers.get('schema:columns')!(fakeEvent, connId, 'users')
-    expect(mockDriver.getColumns).toHaveBeenCalledWith('users', undefined)
+    expect(mockDriver.getColumns).toHaveBeenCalledWith('users', undefined, undefined)
   })
 
   // ─── schema:indexes ───────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ describe('IPC schema handlers', () => {
     const indexes = [{ name: 'users_pkey', columns: ['id'], isUnique: true, isPrimary: true }]
     mockDriver.getIndexes.mockResolvedValueOnce(indexes)
     const result = await handlers.get('schema:indexes')!(fakeEvent, connId, 'users', 'public')
-    expect(mockDriver.getIndexes).toHaveBeenCalledWith('users', 'public')
+    expect(mockDriver.getIndexes).toHaveBeenCalledWith('users', 'public', undefined)
     expect(result).toBe(indexes)
   })
 
@@ -119,7 +119,7 @@ describe('IPC schema handlers', () => {
     const triggers = [{ name: 'audit', event: 'INSERT', timing: 'AFTER', orientation: 'ROW' }]
     mockDriver.getTriggers.mockResolvedValueOnce(triggers)
     const result = await handlers.get('schema:triggers')!(fakeEvent, connId, 'users', 'public')
-    expect(mockDriver.getTriggers).toHaveBeenCalledWith('users', 'public')
+    expect(mockDriver.getTriggers).toHaveBeenCalledWith('users', 'public', undefined)
     expect(result).toBe(triggers)
   })
 
@@ -129,7 +129,7 @@ describe('IPC schema handlers', () => {
     const fns = [{ name: 'get_user', returnType: 'record', language: 'plpgsql', kind: 'function' }]
     mockDriver.getFunctions.mockResolvedValueOnce(fns)
     const result = await handlers.get('schema:functions')!(fakeEvent, connId, 'public')
-    expect(mockDriver.getFunctions).toHaveBeenCalledWith('public')
+    expect(mockDriver.getFunctions).toHaveBeenCalledWith('public', undefined)
     expect(result).toBe(fns)
   })
 
@@ -147,7 +147,7 @@ describe('IPC schema handlers', () => {
     ]
     mockDriver.getRelationships.mockResolvedValueOnce(rels)
     const result = await handlers.get('schema:relationships')!(fakeEvent, connId, 'public')
-    expect(mockDriver.getRelationships).toHaveBeenCalledWith('public')
+    expect(mockDriver.getRelationships).toHaveBeenCalledWith('public', undefined)
     expect(result).toBe(rels)
   })
 })

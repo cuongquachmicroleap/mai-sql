@@ -16,6 +16,13 @@ vi.mock('electron', () => ({
 vi.mock('../../managers/connection-manager', () => ({
   connectionManager: {
     getDriver: vi.fn(),
+    listConnections: vi.fn().mockReturnValue([]),
+  },
+}))
+
+vi.mock('../../managers/history-manager', () => ({
+  historyManager: {
+    add: vi.fn(),
   },
 }))
 
@@ -41,7 +48,7 @@ describe('IPC query:execute', () => {
     const result = await handler(fakeEvent, 'conn-1', 'SELECT 1')
 
     expect(connectionManager.getDriver).toHaveBeenCalledWith('conn-1')
-    expect(mockDriver.execute).toHaveBeenCalledWith('SELECT 1')
+    expect(mockDriver.execute).toHaveBeenCalledWith('SELECT 1', undefined, undefined)
     expect(result).toBe(queryResult)
   })
 
