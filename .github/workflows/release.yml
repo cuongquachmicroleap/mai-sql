@@ -47,6 +47,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        # windows-latest has VS Build Tools + Python pre-installed;
+        # set msvs_version so node-gyp uses the correct VS toolchain
+        env:
+          npm_config_msvs_version: '2022'
         run: npm ci
 
       - name: Build & package Windows
