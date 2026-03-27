@@ -73,11 +73,11 @@ interface Edge {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-function nodeHeight(columns: ColumnInfo[]): number {
+export function nodeHeight(columns: ColumnInfo[]): number {
   return NODE_HEADER_HEIGHT + columns.length * NODE_ROW_HEIGHT + NODE_PADDING_BOTTOM
 }
 
-function layoutNodes(
+export function layoutNodes(
   tables: TableInfo[],
   columnsByTable: Record<string, ColumnInfo[]>
 ): TableNode[] {
@@ -98,7 +98,7 @@ function layoutNodes(
 }
 
 /** Returns the centre-point of a node's right or left edge for edge routing */
-function edgeAnchor(
+export function edgeAnchor(
   node: TableNode,
   side: 'left' | 'right',
   rowIndex: number
@@ -109,7 +109,7 @@ function edgeAnchor(
 }
 
 // ─── SVG edge path ────────────────────────────────────────────────────────────
-function buildPath(sx: number, sy: number, tx: number, ty: number): string {
+export function buildPath(sx: number, sy: number, tx: number, ty: number): string {
   const dx = Math.abs(tx - sx)
   const cx = Math.max(40, dx * 0.5)
   const csx = sx < tx ? sx + cx : sx - cx

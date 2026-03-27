@@ -28,7 +28,7 @@ interface ExplainTreeProps {
   explainResult: string
 }
 
-function parseExplainJSON(text: string): PlanNode | null {
+export function parseExplainJSON(text: string): PlanNode | null {
   try {
     const parsed = JSON.parse(text)
     // EXPLAIN (FORMAT JSON) returns array with single object containing Plan
@@ -44,14 +44,14 @@ function parseExplainJSON(text: string): PlanNode | null {
   }
 }
 
-function costColor(cost: number): string {
+export function costColor(cost: number): string {
   if (cost < 10) return '#34D399'    // green
   if (cost < 100) return '#FBBF24'   // yellow
   if (cost < 1000) return '#F97316'  // orange
   return '#F87171'                     // red
 }
 
-function timeColor(ms: number): string {
+export function timeColor(ms: number): string {
   if (ms < 1) return '#34D399'
   if (ms < 10) return '#FBBF24'
   if (ms < 100) return '#F97316'
