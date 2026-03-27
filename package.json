@@ -14,7 +14,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "pack:mac": "npm run build && electron-builder --mac",
+    "pack:win": "npm run build && electron-builder --win"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
@@ -46,11 +48,16 @@
     "appId": "com.microleap.mai-sql",
     "productName": "MAI SQL",
     "icon": "resources/icon.png",
+    "directories": {
+      "output": "dist"
+    },
     "mac": {
-      "icon": "resources/icon.icns"
+      "icon": "resources/icon.icns",
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }]
     },
     "win": {
-      "icon": "resources/icon.ico"
+      "icon": "resources/icon.ico",
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
     },
     "linux": {
       "icon": "resources/icon.png"
