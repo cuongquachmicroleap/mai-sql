@@ -21,8 +21,8 @@
     </filter>
   </defs>
 
-  <!-- Background circle -->
-  <circle cx="256" cy="256" r="248" fill="url(#bgGrad)" stroke="#3D2E14" stroke-width="3"/>
+  <!-- Background rounded square (macOS app icon style) -->
+  <rect x="8" y="8" width="496" height="496" rx="110" ry="110" fill="url(#bgGrad)" stroke="#3D2E14" stroke-width="3"/>
 
   <!-- Mai flower — 5 petals arranged radially -->
   <g transform="translate(256, 210)" filter="url(#glow)">
